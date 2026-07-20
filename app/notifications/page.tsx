@@ -48,7 +48,8 @@ export default function NotificationsPage() {
       <h1 className="text-3xl font-bold">Notifications</h1>
 
       {notifications.length === 0 && (
-        <p classname="text-gray-600">You have no notifications.</p>
+       <p className="text-gray-600">You have no notifications.</p>
+
       )}
 
       <div className="space-y-4">
