@@ -73,11 +73,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         {/* TOP NAV */}
         <header
-          className="gx-glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-40
-          md:left-auto md:right-auto md:w-[calc(100%-64px)] md:ml-[64px]
-          transition-all duration-300
-          ${collapsed ? "md:ml-[80px]" : "md:ml-[256px]"}"
-        >
+          className={`gx-glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-40
+  md:left-auto md:right-auto md:w-[calc(100%-64px)] md:ml-[64px]
+  transition-all duration-300
+  ${collapsed ? "md:ml-[80px]" : "md:ml-[256px]"}`}
+
           <button
             className="md:hidden gx-btn-ghost"
             onClick={() => setMobileOpen(true)}
