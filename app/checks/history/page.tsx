@@ -92,23 +92,24 @@ export default function CheckHistoryPage() {
 
             {/* Fraud Flags */}
             {check.fraudFlags?.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {check.fraudFlags.map((flag) => (
-                  <p
-                    key={flag.id}
-                    className={`text-sm ${
-                      flag.severity === "critical"
-                        ? "text-red-700"
-                        : flag.severity === "warning"
-                        ? "text-yellow-700"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    ⚠️ {flag.message}
-                  </p>
-                ))}
-              </div>
-            )}
+  <div className="mt-2 space-y-1">
+    {check.fraudFlags.map((flag: { id: string; message: string; severity: string }) => (
+      <p
+        key={flag.id}
+        className={`text-sm ${
+          flag.severity === "critical"
+            ? "text-red-700"
+            : flag.severity === "warning"
+            ? "text-yellow-700"
+            : "text-gray-600"
+        }`}
+      >
+        ⚠️ {flag.message}
+      </p>
+    ))}
+  </div>
+)}
+
 
             {/* Verify Link */}
             <div className="pt-2">
