@@ -15,20 +15,28 @@ export default function InvestorDashboard() {
         setPortfolio(res.portfolio);
         setDeals(res.deals);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load investor dashboard:", err);
       } finally {
         setLoading(false);
       }
     }
+
     load();
   }, []);
 
-  if (loading) return <div className="p-10 text-center">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg">
+        Loading investor dashboard...
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-8 space-y-10">
       <h1 className="text-3xl font-bold">Investor Dashboard</h1>
 
+      {/* Portfolio Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-white shadow rounded-xl">
           <h2 className="text-lg font-semibold">Total Invested</h2>
@@ -46,7 +54,8 @@ export default function InvestorDashboard() {
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold mt-10">Pipeline Deals</h2>
+      {/* Pipeline Deals */}
+      <h2 className="text-xl font-semibold">Pipeline Deals</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {deals.map((d) => (
