@@ -1,84 +1,98 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
     setError("");
 
     try {
       const res = await api("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
-      // Save token + role
-      localStorage.setItem("token", res.access_token);
-      localStorage.setItem("role", res.role);
-
-      // Redirect based on role
-      if (res.role === "owner") router.push("/owner");
-      else if (res.role === "investor") router.push("/investor");
-      else if (res.role === "admin") router.push("/admin");
-      else router.push("/dashboard");
-
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+      if (res?.token) {
+        localStorage.setItem("token", res.token);
+        router.push("/dashboard");
+      } else {
+        setError("Invalid login credentials.");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError("Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-xl p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">
+    <div className="min-h-screen bg-[#0B0B0F] flex items-center justify-center px-6">
+      <div className="gx-card p-10 rounded-2xl w-full max-w-md">
+
+        <h1 className="text-3xl font-bold gx-text-primary text-center mb-8">
           Login
         </h1>
 
         {error && (
-          <div className="mb-4 text-red-600 text-center font-medium">
+          <div className="bg-red-500/20 text-red-400 p-3 rounded-lg mb-4 text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-6">
+
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
+            <label className="block mb-2 font-medium">Email</label>
             <input
-              type="text"
-              className="w-full border rounded-lg px-3 py-2"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              className="w-full p-3 rounded-lg bg-[#111118] border border-white/10 text-white"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block mb-2 font-medium">Password</label>
             <input
               type="password"
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full p-3 rounded-lg bg-[#111118] border border-white/10 text-white"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
+            className="gx-btn-primary w-full py-3 rounded-lg font-semibold"
+            disabled={loading}
           >
-            Log In
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
+
+        <p className="text-gray-400 text-center mt-6">
+          Don’t have an account?{" "}
+          <a href="/signup" className="gx-text-primary hover:underline">
+            Sign Up
+          </a>
+        </p>
       </div>
     </div>
   );
