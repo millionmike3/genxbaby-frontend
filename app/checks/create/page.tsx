@@ -1,202 +1,194 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import CheckPreviewCard from "@/components/CheckPreviewCard";
 
 export default function CreateCheckPage() {
-  const [bankProfiles, setBankProfiles] = useState<any[]>([]);
-  const [signers, setSigners] = useState<any[]>([]);
-  const [selectedBank, setSelectedBank] = useState("");
-  const [selectedSigner, setSelectedSigner] = useState("");
-  const [checkNumber, setCheckNumber] = useState("");
+  const [bankProfiles, setBankProfiles] = useState([]);
+  const [signers, setSigners] = useState([]);
+  const [selectedBankProfile, setSelectedBankProfile] = useState("");
+  const [selectedSigner, setSelectedSigner] = useState(null);
+  const [autoCheckNumber, setAutoCheckNumber] = useState("");
+  const [bankPreview, setBankPreview] = useState(null);
   const [payee, setPayee] = useState("");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
-  const [date, setDate] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [dateValue, setDateValue] = useState("");
 
-  // Load bank profiles
+  // Load bank profiles on mount
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await api("/checks/banks");
-        setBankProfiles(res);
-      } catch (err) {
-        console.error("Failed to load bank profiles:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    fetch("/api/bank-profiles/list")
+      .then((res) => res.json())
+      .then((data) => setBankProfiles(data));
   }, []);
 
-  // Load signers when bank changes
+  // Load signers when bank profile changes
   useEffect(() => {
-    async function loadSigners() {
-      if (!selectedBank) return;
-      try {
-        const res = await api(`/checks/signers?bank=${selectedBank}`);
-        setSigners(res);
-      } catch (err) {
-        console.error("Failed to load signers:", err);
-      }
-    }
-    loadSigners();
-  }, [selectedBank]);
+    if (!selectedBankProfile) return;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSuccess(false);
-
-    try {
-      await api("/checks/create", {
-        method: "POST",
-        body: JSON.stringify({
-          bankId: selectedBank,
-          signerId: selectedSigner,
-          checkNumber,
-          payee,
-          amount,
-          memo,
-          date,
-        }),
-      });
-
-      setSuccess(true);
-      setCheckNumber("");
-      setPayee("");
-      setAmount("");
-      setMemo("");
-      setDate("");
-    } catch (err) {
-      console.error("Failed to create check:", err);
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-lg">
-        Loading check creation...
-      </div>
-    );
-  }
+    fetch(`/api/signers/by-bank/${selectedBankProfile}`)
+      .then((res) => res.json())
+      .then((data) => setSigners(data));
+  }, [selectedBankProfile]);
 
   return (
-    <div className="p-8 space-y-10">
-      <h1 className="text-3xl font-bold">Create Check</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Create Check</h1>
 
-      {success && (
-        <div className="p-4 bg-green-100 text-green-700 rounded-lg">
-          Check created successfully.
+      <div className="flex gap-6">
+        {/* LEFT SIDE — FORM */}
+        <div className="flex-1">
+          <form action="/api/checks/create" method="POST" className="space-y-4">
+
+            {/* BANK PROFILE */}
+            <div>
+              <label className="block font-medium">Bank Profile</label>
+              <select
+                name="bankProfileId"
+                className="border p-2 rounded w-full"
+                required
+                onChange={async (e) => {
+                  const bankId = e.target.value;
+                  setSelectedBankProfile(bankId);
+                  setSelectedSigner(null);
+                  setBankPreview(null);
+
+                  if (bankId) {
+                    // Load next check number
+                    const nextCheckRes = await fetch(`/api/bank-profiles/next-check/${bankId}`);
+                    const nextCheckData = await nextCheckRes.json();
+                    setAutoCheckNumber(nextCheckData.nextCheckNumber);
+
+                    // Load bank preview
+                    const previewRes = await fetch(`/api/bank-profiles/details/${bankId}`);
+                    const previewData = await previewRes.json();
+                    setBankPreview(previewData);
+                  }
+                }}
+              >
+                <option value="">Select Bank Profile</option>
+                {bankProfiles.map((bp) => (
+                  <option key={bp.id} value={bp.id}>
+                    {bp.bankName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* SIGNER */}
+            <div>
+              <label className="block font-medium">Signer</label>
+
+              {selectedSigner && (
+                <div className="mb-2">
+                  <img
+                    src={selectedSigner.signatureImage}
+                    alt="Signature Preview"
+                    className="h-16 object-contain border p-2 bg-white"
+                  />
+                </div>
+              )}
+
+              <select
+                name="signerId"
+                className="border p-2 rounded w-full"
+                required
+                onChange={(e) => {
+                  const signer = signers.find((s) => s.id === e.target.value);
+                  setSelectedSigner(signer || null);
+                }}
+              >
+                <option value="">Select Signer</option>
+                {signers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} {s.title ? `(${s.title})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* CHECK NUMBER */}
+            <div>
+              <label className="block font-medium">Check Number</label>
+              <input
+                name="checkNumber"
+                type="number"
+                className="border p-2 rounded w-full"
+                required
+                value={autoCheckNumber}
+                onChange={(e) => setAutoCheckNumber(e.target.value)}
+              />
+            </div>
+
+            {/* PAYEE */}
+            <div>
+              <label className="block font-medium">Payee</label>
+              <input
+                name="payee"
+                className="border p-2 rounded w-full"
+                required
+                value={payee}
+                onChange={(e) => setPayee(e.target.value)}
+              />
+            </div>
+
+            {/* AMOUNT */}
+            <div>
+              <label className="block font-medium">Amount</label>
+              <input
+                name="amount"
+                type="number"
+                step="0.01"
+                className="border p-2 rounded w-full"
+                required
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            {/* MEMO */}
+            <div>
+              <label className="block font-medium">Memo</label>
+              <input
+                name="memo"
+                className="border p-2 rounded w-full"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+              />
+            </div>
+
+            {/* DATE */}
+            <div>
+              <label className="block font-medium">Date</label>
+              <input
+                name="date"
+                type="date"
+                className="border p-2 rounded w-full"
+                required
+                value={dateValue}
+                onChange={(e) => setDateValue(e.target.value)}
+              />
+            </div>
+
+            <button className="px-4 py-2 bg-blue-600 text-white rounded">
+              Create Check
+            </button>
+          </form>
         </div>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl shadow max-w-xl">
-
-        {/* Bank Profile */}
-        <div>
-          <label className="block font-medium mb-1">Bank Profile</label>
-          <select
-            className="border rounded-lg p-2 w-full"
-            value={selectedBank}
-            onChange={(e) => setSelectedBank(e.target.value)}
-            required
-          >
-            <option value="">Select Bank</option>
-            {bankProfiles.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.bankName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Signer */}
-        <div>
-          <label className="block font-medium mb-1">Signer</label>
-          <select
-            className="border rounded-lg p-2 w-full"
-            value={selectedSigner}
-            onChange={(e) => setSelectedSigner(e.target.value)}
-            required
-          >
-            <option value="">Select Signer</option>
-            {signers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Check Number */}
-        <div>
-          <label className="block font-medium mb-1">Check Number</label>
-          <input
-            type="number"
-            className="border rounded-lg p-2 w-full"
-            value={checkNumber}
-            onChange={(e) => setCheckNumber(e.target.value)}
-            required
+        {/* RIGHT SIDE — CHECK PREVIEW */}
+        <div className="w-[900px]">
+          <CheckPreviewCard
+            bank={bankPreview}
+            signer={selectedSigner}
+            checkNumber={autoCheckNumber}
+            payee={payee}
+            amount={parseFloat(amount || 0)}
+            memo={memo}
+            date={dateValue}
           />
         </div>
-
-        {/* Payee */}
-        <div>
-          <label className="block font-medium mb-1">Payee</label>
-          <input
-            type="text"
-            className="border rounded-lg p-2 w-full"
-            value={payee}
-            onChange={(e) => setPayee(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Amount */}
-        <div>
-          <label className="block font-medium mb-1">Amount</label>
-          <input
-            type="number"
-            step="0.01"
-            className="border rounded-lg p-2 w-full"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Memo */}
-        <div>
-          <label className="block font-medium mb-1">Memo</label>
-          <input
-            type="text"
-            className="border rounded-lg p-2 w-full"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-          />
-        </div>
-
-        {/* Date */}
-        <div>
-          <label className="block font-medium mb-1">Date</label>
-          <input
-            type="date"
-            className="border rounded-lg p-2 w-full"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
-        >
-          Create Check
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,19 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
 export default function NotificationsPage() {
+  const router = useRouter();
+
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Redirect if not logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) router.push("/login");
+  }, []);
+
+  // Load notifications
   useEffect(() => {
     async function load() {
       try {
-        const res = await api("/notifications");
-        setNotifications(res);
+        const data = await api("/notifications");
+        setNotifications(data);
       } catch (err) {
-        console.error("Failed to load notifications:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -28,51 +38,54 @@ export default function NotificationsPage() {
 
       // Update UI instantly
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) =>
+          n.id === id ? { ...n, read: true } : n
+        )
       );
     } catch (err) {
-      console.error("Failed to mark notification as read:", err);
+      console.error(err);
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-lg">
-        Loading notifications...
+      <div className="min-h-screen flex items-center justify-center text-xl">
+        Loading notifications…
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="min-h-screen bg-gray-100 p-6 space-y-6">
+
       <h1 className="text-3xl font-bold">Notifications</h1>
 
-      {notifications.length === 0 && (
-       <p className="text-gray-600">You have no notifications.</p>
+      <div className="bg-white p-6 rounded-xl shadow space-y-4">
 
-      )}
+        {notifications.length === 0 && (
+          <div className="text-gray-500 text-center py-6">
+            No notifications yet.
+          </div>
+        )}
 
-      <div className="space-y-4">
         {notifications.map((n) => (
           <div
             key={n.id}
-            className={`p-6 rounded-xl shadow bg-white border ${
-              n.read ? "border-gray-200" : "border-blue-300 bg-blue-50"
+            className={`p-4 rounded-lg border ${
+              n.read ? "bg-gray-50" : "bg-blue-50 border-blue-300"
             }`}
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className="font-semibold text-lg">{n.title}</p>
-                <p className="text-gray-700 mt-1">{n.message}</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  {new Date(n.created_at).toLocaleString()}
-                </p>
+                <div className="font-semibold text-gray-800">{n.title}</div>
+                <div className="text-gray-600 text-sm mt-1">{n.message}</div>
+                <div className="text-gray-400 text-xs mt-2">{n.created_at}</div>
               </div>
 
               {!n.read && (
                 <button
                   onClick={() => markAsRead(n.id)}
-                  className="px-3 py-1 bg-black text-white rounded-lg text-sm hover:bg-gray-800"
+                  className="text-sm bg-black text-white px-3 py-1 rounded-lg hover:bg-gray-800"
                 >
                   Mark as Read
                 </button>
@@ -80,6 +93,7 @@ export default function NotificationsPage() {
             </div>
           </div>
         ))}
+
       </div>
     </div>
   );

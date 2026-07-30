@@ -28,15 +28,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <nav className="flex-1 px-4 space-y-2">
           <SidebarLink href="/dashboard" label="Dashboard" collapsed={collapsed} />
-          <SidebarLink href="/owner" label="Owner" collapsed={collapsed} />
-          <SidebarLink href="/admin" label="Admin" collapsed={collapsed} />
-          <SidebarLink href="/investor" label="Investor" collapsed={collapsed} />
-          <SidebarLink href="/borrower" label="Borrower" collapsed={collapsed} />
-          <SidebarLink href="/checks/create" label="Create Check" collapsed={collapsed} />
-          <SidebarLink href="/checks/history" label="Check History" collapsed={collapsed} />
-          <SidebarLink href="/notifications" label="Notifications" collapsed={collapsed} />
-          <SidebarLink href="/profile" label="Profile" collapsed={collapsed} />
-          <SidebarLink href="/settings" label="Settings" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/signals" label="Signals" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/pipeline" label="Pipeline" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/investors" label="Investors" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/borrowers" label="Borrowers" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/ultrafavorable" label="UltraFavorable" collapsed={collapsed} />
+          <SidebarLink href="/dashboard/bluetooth" label="Bluetooth Scanner" collapsed={collapsed} />
         </nav>
       </aside>
 
@@ -54,30 +51,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <nav className="px-4 space-y-2">
           <SidebarLink href="/dashboard" label="Dashboard" />
-          <SidebarLink href="/owner" label="Owner" />
-          <SidebarLink href="/admin" label="Admin" />
-          <SidebarLink href="/investor" label="Investor" />
-          <SidebarLink href="/borrower" label="Borrower" />
-          <SidebarLink href="/checks/create" label="Create Check" />
-          <SidebarLink href="/checks/history" label="Check History" />
-          <SidebarLink href="/notifications" label="Notifications" />
-          <SidebarLink href="/profile" label="Profile" />
-          <SidebarLink href="/settings" label="Settings" />
+          <SidebarLink href="/dashboard/signals" label="Signals" />
+          <SidebarLink href="/dashboard/pipeline" label="Pipeline" />
+          <SidebarLink href="/dashboard/investors" label="Investors" />
+          <SidebarLink href="/dashboard/borrowers" label="Borrowers" />
+          <SidebarLink href="/dashboard/ultrafavorable" label="UltraFavorable" />
+          <SidebarLink href="/dashboard/bluetooth" label="Bluetooth Scanner" />
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN CONTENT AREA */}
       <div
         className={`flex-1 min-h-screen transition-all duration-300
         ${collapsed ? "md:ml-20" : "md:ml-64"}`}
       >
+
         {/* TOP NAV */}
         <header
           className={`gx-glass fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-6 z-40
-  md:left-auto md:right-auto md:w-[calc(100%-64px)] md:ml-[64px]
-  transition-all duration-300
-  ${collapsed ? "md:ml-[80px]" : "md:ml-[256px]"}`}
-
+            md:left-auto md:right-auto md:w-[calc(100%-64px)]
+            transition-all duration-300
+            ${collapsed ? "md:ml-[80px]" : "md:ml-[256px]"}
+          `}
+        >
           <button
             className="md:hidden gx-btn-ghost"
             onClick={() => setMobileOpen(true)}
