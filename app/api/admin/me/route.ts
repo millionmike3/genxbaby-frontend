@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-import { createPublicClient, http } from "viem";
-import { polygonAmoy } from "viem/chains";
-import { CHECK_REGISTRY_ABI } from "@/lib/contract";
 
 export async function GET(req: Request) {
   try {
@@ -29,28 +26,8 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
 
-    // ---------------------------------------------
-    // On-chain admin verification
-    // ---------------------------------------------
-    let onChainAdmin = false;
-
-    if (admin.walletAddress) {
-      const client = createPublicClient({
-        chain: polygonAmoy,
-        transport: http(process.env.NEXT_PUBLIC_RPC_URL!),
-      });
-
-      onChainAdmin = await client.readContract({
-        address: process.env.CHECK_REGISTRY_ADDRESS as `0x${string}`,
-        abi: CHECK_REGISTRY_ABI,
-        functionName: "isAdmin",
-        args: [admin.walletAddress],
-      });
-    }
-
     return NextResponse.json({
       admin,
-      onChainAdmin,
       session: {
         expiresIn: payload.exp,
       },
