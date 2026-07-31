@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAccount, useSignMessage } from "wagmi";
+import { useAccount } from "wagmi";
+import { useSignMessage } from "@wagmi/core";
+
 
 export default function AdminLogin() {
   const router = useRouter();
