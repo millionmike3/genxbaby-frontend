@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { useSignMessage } from "@wagmi/core";
+import { useSignMessage } from "wagmi";
 
 
 export default function AdminLogin() {
