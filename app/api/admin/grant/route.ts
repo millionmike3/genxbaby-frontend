@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { createWalletClient, http } from "viem";
-import { polygonAmoy } from "viem/chains";
+import { polygon } from "viem/chains";
 import { CHECK_REGISTRY_ABI } from "@/lib/contract";
 
 export async function POST(req: Request) {
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     // 5. Create wallet client for on-chain role grant
     // ---------------------------------------------
     const client = createWalletClient({
-      chain: polygonAmoy,
+      chain: polygon,
       transport: http(process.env.NEXT_PUBLIC_RPC_URL!),
       account: process.env.ADMIN_PRIVATE_KEY as `0x${string}`,
     });

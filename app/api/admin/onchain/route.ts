@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { createPublicClient, http } from "viem";
-import { polygonAmoy } from "viem/chains";
+import { polygon } from "viem/chains";
 import { CHECK_REGISTRY_ABI } from "@/lib/contract";
 
 export async function GET(req: Request) {
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     // 4. Create public client for on-chain check
     // ---------------------------------------------
     const client = createPublicClient({
-      chain: polygonAmoy,
+      chain: polygon,
       transport: http(process.env.NEXT_PUBLIC_RPC_URL!),
     });
 

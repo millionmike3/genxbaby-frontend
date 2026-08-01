@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { SignJWT } from "jose";
 import { verifyMessage, createPublicClient, http } from "viem";
-import { polygonAmoy } from "viem/chains";
+import { polygon } from "viem/chains";
 import { CHECK_REGISTRY_ABI } from "@/lib/contract";
 
 export async function POST(req: Request) {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       address,
       message,
       signature,
-      chain: polygonAmoy,
+      chain: polygon,
     });
 
     if (!ok) {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     // 2. On-chain role verification
     // ---------------------------------------------
     const client = createPublicClient({
-      chain: polygonAmoy,
+      chain: polygon,
       transport: http(process.env.NEXT_PUBLIC_RPC_URL!),
     });
 
