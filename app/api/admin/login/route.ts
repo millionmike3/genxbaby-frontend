@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 
 // ---------------------------------------------
 // RATE LIMITING CONFIG
@@ -82,16 +82,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create JWT
-    const token = jwt.sign(
-      {
-        adminId: admin.id,
-        email: admin.email,
-        role: admin.role,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "2h" }
-    );
+    // ---------------------------------------------
+    // CREATE JWT USING JOSE (ESM SAFE)
+    // ---------------------------------------------
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    const token = await new SignJWT({
+      adminId: admin.id,
+      email: admin.email,
+      role: admin.role,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("2h")
+      .sign(secret);
 
     // Set cookie
     const res = NextResponse.json({ success: true });

@@ -40,15 +40,21 @@ export async function api(path: string, options: RequestInit = {}) {
 // ===============================
 
 export async function fetchUnderwritingResult(applicationId: string) {
-  const res = await fetch(`${API_BASE}/api/admin/underwriting/${applicationId}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
-    },
-  });
+  const token = getToken();
+
+  const res = await fetch(
+    `${API_BASE}/api/admin/underwriting/${applicationId}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }
+  );
 
   if (!res.ok) {
-    throw new Error("Failed to fetch underwriting result");
+    const text = await res.text();
+    throw new Error(text || "Failed to fetch underwriting result");
   }
 
   return res.json();

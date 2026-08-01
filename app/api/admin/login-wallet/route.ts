@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { verifyMessage, createPublicClient, http } from "viem";
 import { polygonAmoy } from "viem/chains";
 import { CHECK_REGISTRY_ABI } from "@/lib/contract";
@@ -70,18 +70,19 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------
-    // 4. Issue JWT session cookie
+    // 4. Issue JWT session cookie (JOSE ESM SAFE)
     // ---------------------------------------------
-    const token = jwt.sign(
-      {
-        adminId: admin.id,
-        email: admin.email,
-        role: admin.role,
-        wallet: admin.walletAddress,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "2h" }
-    );
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    const token = await new SignJWT({
+      adminId: admin.id,
+      email: admin.email,
+      role: admin.role,
+      wallet: admin.walletAddress,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("2h")
+      .sign(secret);
 
     const res = NextResponse.json({ success: true });
 

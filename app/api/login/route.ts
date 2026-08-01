@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 
 export async function POST(req: Request) {
   try {
@@ -31,12 +31,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create JWT
-    const token = jwt.sign(
-      { email, role: "admin" },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    // ---------------------------------------------
+    // CREATE JWT USING JOSE (ESM SAFE)
+    // ---------------------------------------------
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+    const token = await new SignJWT({
+      email,
+      role: "admin",
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(secret);
 
     const res = NextResponse.json({ success: true });
 
@@ -44,7 +50,7 @@ export async function POST(req: Request) {
       name: "session",
       value: token,
       httpOnly: true,
-      secure: false, // set true in production
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       sameSite: "strict",
     });

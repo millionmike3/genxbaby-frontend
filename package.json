@@ -12,7 +12,7 @@
     "@tanstack/react-query": "^5.101.4",
     "@walletconnect/core": "^2.23.10",
     "@walletconnect/utils": "^2.23.10",
-    "jsonwebtoken": "^9.0.3",
+    "jose": "^6.2.6",
     "lucide-react": "^1.25.0",
     "next": "16.2.9",
     "nodemailer": "^9.0.3",
