@@ -14,14 +14,10 @@ export default function MotionIntro() {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black">
-      <div className="animate-pulse">
-        <span className="text-3xl font-semibold tracking-[0.35em] text-gray-200">
-          GEN
-        </span>
+      <div className="animate-pulse tracking-widest">
+        <span className="text-3xl font-semibold text-gray-200">GEN</span>
         <span className="mx-2 text-3xl font-semibold text-[#3CF46B]">X</span>
-        <span className="text-3xl font-semibold tracking-[0.35em] text-gray-200">
-          BABY
-        </span>
+        <span className="text-3xl font-semibold text-gray-200">BABY</span>
       </div>
     </div>
   );

@@ -8,32 +8,31 @@ export default function PortalSection() {
     >
       <div className="max-w-5xl mx-auto">
         <h2 className="text-2xl font-semibold mb-6 text-gray-100">
-          Financial Infrastructure Pillars
+          The GenXBaby Operating Stack
         </h2>
 
-        <p className="text-gray-400 mb-8 max-w-2xl">
-          The GenXBaby ecosystem is built on three coordinated financial infrastructure pillars —
-          a consumer‑facing identity and capital‑access platform, a nonprofit community backbone,
-          and a lending engine engineered for structured capital deployment. Together, they form
-          a unified system designed to accelerate financial stability, credit readiness, and
-          long‑term economic mobility.
+        <p className="text-gray-400 mb-8 max-w-2xl leading-relaxed">
+          A fully integrated, AI-powered fintech operating system — combining borrower intake,
+          AI underwriting, compliance audit, loan origination, investor reporting, and nonprofit
+          routing into one unified platform. Polygon Amoy verified. Merkle-tree hashed. 
+          Institutionally ready.
         </p>
 
         <div className="grid gap-6 md:grid-cols-3">
           <PillarCard
-            title="GenXBaby"
+            title="AI Underwriting Engine"
             accent="#3CF46B"
-            description="A financial identity and capital‑access platform designed for emerging earners — integrating structured savings automation, early‑stage credit pathways, identity‑secured data vaults, and creator‑driven income infrastructure."
+            description="Real-time borrower scoring, intelligent risk tiering, and automated credit decisioning with explainable confidence intervals."
           />
           <PillarCard
             title="Resilient America Inc."
             accent="#4FB6FF"
-            description="The community infrastructure backbone providing regulatory‑aligned onboarding, financial capability development, and access pathways for underserved populations across the GenXBaby ecosystem."
+            description="Regulatory-aligned community infrastructure powering borrower eligibility, nonprofit routing, and mission-driven capital access."
           />
           <PillarCard
             title="Substantial Funding LLC"
             accent="#FFB84F"
-            description="The lending and capital‑strategy engine powering the ecosystem — delivering underwriting intelligence, mortgage strategy, structured capital access, and scalable financial pathways for families and emerging earners."
+            description="Lending and capital strategy engine delivering underwriting intelligence, structured capital access, and mortgage workflow automation."
           />
         </div>
       </div>

@@ -10,19 +10,19 @@ export default function DashboardPreview() {
     >
       <div className="max-w-5xl mx-auto">
         <h2 className="text-2xl font-semibold mb-6 text-gray-100">
-          System Dashboard Preview
+          Institutional Dashboard Preview
         </h2>
 
-        <p className="text-gray-400 mb-8 max-w-2xl">
-          A unified control center for audit logs, capital flows, underwriting intelligence,
-          identity‑secured data, and community asset tracking — forming the operational backbone
-          of the GenXBaby financial infrastructure.
+        <p className="text-gray-400 mb-8 max-w-2xl leading-relaxed">
+          Real-time analytics for lenders and investors — loan tapes, cohort aging, default
+          probability, yield curves, audit logs, and blockchain-verified event history. 
+          Designed for institutional clarity and regulatory-grade transparency.
         </p>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <DashboardTile label="Capital Flow Activity" value="Live" />
-          <DashboardTile label="Underwriting Intelligence" value="Active" />
-          <DashboardTile label="Identity Vault Metrics" value="Secured" />
+          <DashboardTile label="AI Decision Speed" value="< 48 hrs" />
+          <DashboardTile label="Blockchain Integrity" value="100% Immutable" />
+          <DashboardTile label="Investor Yield Models" value="Live" />
         </div>
 
         <div className="mt-8">
