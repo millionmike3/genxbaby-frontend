@@ -12,8 +12,9 @@ export default function Home() {
       <Hero />
       <PortalSection />
       <DashboardPreview />
+
       <footer className="mt-16 pb-8 text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} Gen X Baby · Resilient America · Substantial Funding
+        © {new Date().getFullYear()} GenXBaby · Resilient America Inc. · Substantial Funding LLC
       </footer>
     </main>
   );

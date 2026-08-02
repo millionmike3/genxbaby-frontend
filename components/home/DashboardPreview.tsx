@@ -14,14 +14,15 @@ export default function DashboardPreview() {
         </h2>
 
         <p className="text-gray-400 mb-8 max-w-2xl">
-          A unified control center for audit logs, timelines, funding flows, and
-          community assets—anchored to your CheckRegistry and admin stack.
+          A unified control center for audit logs, capital flows, underwriting intelligence,
+          identity‑secured data, and community asset tracking — forming the operational backbone
+          of the GenXBaby financial infrastructure.
         </p>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <DashboardTile label="Audit Log Activity" value="Live" />
-          <DashboardTile label="Funding Pipelines" value="Active" />
-          <DashboardTile label="Community Assets" value="Tracking" />
+          <DashboardTile label="Capital Flow Activity" value="Live" />
+          <DashboardTile label="Underwriting Intelligence" value="Active" />
+          <DashboardTile label="Identity Vault Metrics" value="Secured" />
         </div>
 
         <div className="mt-8">
@@ -29,7 +30,7 @@ export default function DashboardPreview() {
             href="/admin"
             className="inline-flex px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition text-sm font-semibold"
           >
-            Go to Admin Dashboard
+            Open Admin Dashboard
           </Link>
         </div>
       </div>
@@ -37,7 +38,7 @@ export default function DashboardPreview() {
   );
 }
 
-function DashboardTile({ label, value }: { label: string; value: string }) {
+function DashboardTile({ label, value }) {
   return (
     <div className="rounded-xl border border-white/10 bg-black/40 p-4">
       <div className="text-xs text-gray-400 mb-1">{label}</div>
