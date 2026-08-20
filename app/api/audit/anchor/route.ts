@@ -52,7 +52,8 @@ export async function POST() {
       },
     ],
     functionName: "anchor",
-    args: [root],
+    args: [`0x${root}`],
+
   });
 
   // 4. Save anchor record
