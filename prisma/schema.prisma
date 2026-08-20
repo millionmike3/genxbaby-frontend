@@ -20,7 +20,7 @@ model User {
   borrowerDocs BorrowerDoc[]
   positions    Position[]
   auditLogs    AuditLog[] // existing audit log model
-  audits       Audit[] // NEW relation for the Audit model
+  audits       Audit[] // new Audit model relation
 }
 
 model BorrowerDoc {
@@ -54,7 +54,7 @@ model Check {
   status        String
   voidReason    String?
   voidedAt      DateTime?
-  bankProfileId Int?
+  bankProfileId Int? // FIXED: must match BankProfile.id (Int)
   signerId      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
