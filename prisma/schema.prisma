@@ -19,8 +19,8 @@ model User {
 
   borrowerDocs BorrowerDoc[]
   positions    Position[]
-  auditLogs    AuditLog[] // existing audit log model
-  audits       Audit[] // new Audit model relation
+  auditLogs    AuditLog[]
+  audits       Audit[]
 }
 
 model BorrowerDoc {
@@ -54,10 +54,13 @@ model Check {
   status        String
   voidReason    String?
   voidedAt      DateTime?
-  bankProfileId Int? // FIXED: must match BankProfile.id (Int)
+  bankProfileId Int?
   signerId      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // ⭐ Added field — this is the correct placement
+  pdfUrl        String?
 
   bankProfile BankProfile? @relation(fields: [bankProfileId], references: [id])
 }
