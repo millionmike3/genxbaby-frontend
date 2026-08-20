@@ -1,0 +1,127 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  username      String?
+  passwordHash  String?
+  role          String   @default("user")
+  walletAddress String?
+  xp            Int      @default(0)
+  created_at    DateTime @default(now())
+
+  borrowerDocs BorrowerDoc[]
+  positions    Position[]
+  auditLogs    AuditLog[]
+}
+
+model BorrowerDoc {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Position {
+  id         Int      @id @default(autoincrement())
+  investorId Int
+  note       String
+  amount     Int
+  yield      String
+  createdAt  DateTime @default(now())
+
+  investor User @relation(fields: [investorId], references: [id])
+}
+
+model Check {
+  id            String    @id @default(uuid())
+  checkNumber   String
+  amount        Int
+  memo          String?
+  payee         String?
+  date          DateTime?
+  status        String
+  voidReason    String?
+  voidedAt      DateTime?
+  bankProfileId Int?
+  signerId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bankProfile BankProfile? @relation(fields: [bankProfileId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String?
+  adminId   Int?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [adminId], references: [id])
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  createdAt DateTime @default(now())
+
+  contactAttempts ContactAttempt[]
+}
+
+model ContactAttempt {
+  id        String   @id @default(uuid())
+  leadId    String
+  timestamp DateTime @default(now())
+  notes     String?
+
+  lead Lead @relation(fields: [leadId], references: [id])
+}
+
+model BankProfile {
+  id              Int      @id @default(autoincrement())
+  bankName        String
+  routingNumber   String
+  accountNumber   String
+  nextCheckNumber Int      @default(1)
+  createdAt       DateTime @default(now())
+
+  checks Check[]
+}
+
+model Investor {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+
+  behavior InvestorBehavior[]
+}
+
+model InvestorBehavior {
+  id         String   @id @default(uuid())
+  investorId String
+  timestamp  DateTime @default(now())
+  notes      String?
+
+  investor Investor @relation(fields: [investorId], references: [id])
+}
+
+model AnchorRecord {
+  id         String   @id @default(cuid())
+  merkleRoot String
+  txHash     String
+  createdAt  DateTime @default(now())
+}
