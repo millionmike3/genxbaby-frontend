@@ -53,16 +53,15 @@ export async function POST() {
     ],
     functionName: "anchor",
     args: [`0x${root}`],
-
   });
 
   // 4. Save anchor record
   await prisma.anchorRecord.create({
     data: {
       merkleRoot: root,
-      txHash: tx,
+      txHash: tx, // tx is already a hex string
     },
   });
 
-  return NextResponse.json({ root, txHash: tx});
+  return NextResponse.json({ root, txHash: tx });
 }
