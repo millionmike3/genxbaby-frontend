@@ -60,7 +60,7 @@ export async function POST() {
   await prisma.anchorRecord.create({
     data: {
       merkleRoot: root,
-      txHash: tx.hash,
+      txHash: tx,
     },
   });
 
