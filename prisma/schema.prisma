@@ -19,7 +19,8 @@ model User {
 
   borrowerDocs BorrowerDoc[]
   positions    Position[]
-  auditLogs    AuditLog[]
+  auditLogs    AuditLog[] // existing audit log model
+  audits       Audit[] // NEW relation for the Audit model
 }
 
 model BorrowerDoc {
@@ -124,4 +125,14 @@ model AnchorRecord {
   merkleRoot String
   txHash     String
   createdAt  DateTime @default(now())
+}
+
+model Audit {
+  id        String   @id @default(uuid())
+  action    String
+  details   Json
+  createdAt DateTime @default(now())
+
+  adminId Int?
+  admin   User? @relation(fields: [adminId], references: [id])
 }
