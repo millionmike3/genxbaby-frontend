@@ -27,7 +27,7 @@ export async function POST(req: Request) {
           memo: row.memo,
           date: new Date(row.date),
           status: "issued",
-          bankProfileId: "default-bank",
+          bankProfileId:  1,
           signerId: "default-signer",
         },
       });
