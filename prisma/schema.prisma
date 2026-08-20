@@ -63,6 +63,8 @@ model Check {
   pdfUrl        String?
 
   bankProfile BankProfile? @relation(fields: [bankProfileId], references: [id])
+ 
+  fraudFlags   FraudFlag[]
 }
 
 model AuditLog {
@@ -138,4 +140,12 @@ model Audit {
 
   adminId Int?
   admin   User? @relation(fields: [adminId], references: [id])
+}
+model FraudFlag {
+  id        String   @id @default(uuid())
+  reason    String
+  createdAt DateTime @default(now())
+
+  checkId   String
+  check     Check    @relation(fields: [checkId], references: [id])
 }
