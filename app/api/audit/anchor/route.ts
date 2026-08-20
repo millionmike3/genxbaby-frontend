@@ -64,5 +64,5 @@ export async function POST() {
     },
   });
 
-  return NextResponse.json({ root, txHash: tx.hash });
+  return NextResponse.json({ root, txHash: tx});
 }
