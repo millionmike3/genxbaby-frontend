@@ -115,6 +115,7 @@ model Investor {
 
   behavior   InvestorBehavior[]
   investorPotentialScore Int      @default(0)
+  investorPotentialBand  String   @default("low")
 }
 
 model InvestorBehavior {
