@@ -146,6 +146,9 @@ model FraudFlag {
   reason    String
   createdAt DateTime @default(now())
 
+  resolved  Boolean  @default(false)
+
   checkId   String
   check     Check    @relation(fields: [checkId], references: [id])
 }
+
