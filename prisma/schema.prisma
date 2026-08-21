@@ -113,7 +113,8 @@ model Investor {
   phone     String?
   createdAt DateTime @default(now())
 
-  behavior InvestorBehavior[]
+  behavior   InvestorBehavior[]
+  investorPotentialScore Int      @default(0)
 }
 
 model InvestorBehavior {
@@ -151,4 +152,11 @@ model FraudFlag {
   checkId   String
   check     Check    @relation(fields: [checkId], references: [id])
 }
+model PipelineDeal {
+  id        String   @id @default(uuid())
+  name      String?
+  status    String?
+  createdAt DateTime @default(now())
+}
+
 
