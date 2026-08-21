@@ -6,7 +6,7 @@ export async function GET() {
   const session = await requireRole(["investor"]);
 
   const positions = await db.position.findMany({
-    where: { investorId: session.userId },
+    where: { investorId: Number(session.userId)},
   });
 
   return NextResponse.json({ positions });

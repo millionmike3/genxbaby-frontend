@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useContext } from "react";
 import { NotificationContext } from "./NotificationContext";
 import colors from "../design/tokens/colors";
