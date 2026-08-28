@@ -2,7 +2,9 @@
 //  API CLIENT FOR GENXBABY FRONTEND
 // ===============================
 
-export const API_BASE = "https://genxbaby-backend-production.up.railway.app";
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+
 
 // Safely read token only on client
 function getToken() {
