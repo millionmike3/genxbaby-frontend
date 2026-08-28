@@ -2,12 +2,33 @@
 
 import { useState, useMemo } from "react";
 import CheckThumbnail from "./CheckThumbnail";
+import { buildSarExport, sarExportToCsv } from "./utils/sarExport";
+import FraudBadge from "./components/FraudBadge";
+import FraudSummary from "./components/FraudSummary";
+import { CheckHistoryItem } from "./types";
 
-export default function CheckHistoryClient({ checks }) {
-  const [selectedChecks, setSelectedChecks] = useState([]);
-  const [selectedCheck, setSelectedCheck] = useState(null);
 
-  function openModal(check) {
+
+/* -------------------------------------------
+   1. PLACE ALL INTERFACES RIGHT HERE
+------------------------------------------- */
+
+
+
+interface CheckHistoryClientProps {
+  checks: CheckHistoryItem[];
+}
+
+/* -------------------------------------------
+   2. COMPONENT STARTS AFTER INTERFACES
+------------------------------------------- */
+
+export default function CheckHistoryClient({ checks }: CheckHistoryClientProps) {
+
+  const [selectedChecks, setSelectedChecks] = useState<string[]>([]);
+ const [selectedCheck, setSelectedCheck] = useState<CheckHistoryItem | null>(null);
+
+  function openModal(check: CheckHistoryItem) {
     setSelectedCheck(check);
   }
 
@@ -24,7 +45,7 @@ export default function CheckHistoryClient({ checks }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  function toggleCheckSelection(id, checked) {
+  function toggleCheckSelection(id: string, checked: boolean) {
     setSelectedChecks((prev) =>
       checked ? [...prev, id] : prev.filter((x) => x !== id)
     );
@@ -110,10 +131,13 @@ export default function CheckHistoryClient({ checks }) {
     return checks.filter((check) => {
       const matchesSearch =
         search === "" ||
-        check.payee.toLowerCase().includes(search.toLowerCase()) ||
+        (check.payee ?? "").toLowerCase().includes(search.toLowerCase()) ||
         check.memo?.toLowerCase().includes(search.toLowerCase()) ||
         check.signer?.name.toLowerCase().includes(search.toLowerCase()) ||
-        check.bankProfile.bankName.toLowerCase().includes(search.toLowerCase()) ||
+        (check.bankProfile?.bankName ?? "")
+       .toLowerCase()
+       .includes(search.toLowerCase()) ||
+
         check.checkNumber.toString().includes(search);
 
       const matchesStatus =
@@ -127,11 +151,16 @@ export default function CheckHistoryClient({ checks }) {
       const matchesMaxAmount =
         maxAmount === "" || check.amount <= Number(maxAmount);
 
+      const checkDate = check.date ? new Date(check.date) : null;
+
       const matchesStartDate =
-        startDate === "" || new Date(check.date) >= new Date(startDate);
+       startDate === "" ||
+       (checkDate && checkDate >= new Date(startDate));
 
       const matchesEndDate =
-        endDate === "" || new Date(check.date) <= new Date(endDate);
+        endDate === "" ||
+       (checkDate && checkDate <= new Date(endDate));
+
 
       return (
         matchesSearch &&
@@ -240,6 +269,22 @@ export default function CheckHistoryClient({ checks }) {
         >
           Void Selected
         </button>
+          <button
+           onClick={() => {
+           const rows = buildSarExport(checks);
+           const csv = sarExportToCsv(rows);
+           const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+           const url = URL.createObjectURL(blob);
+           const a = document.createElement("a");
+            a.href = url;
+           a.download = "sar_fraud_flags.csv";
+           a.click();
+            URL.revokeObjectURL(url);
+          }}
+            className="rounded bg-slate-900 px-3 py-1 text-xs font-medium text-white"
+           >
+           Export SAR Fraud Flags
+         </button>
 
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
@@ -286,7 +331,10 @@ export default function CheckHistoryClient({ checks }) {
         >
           {/* THUMBNAIL PREVIEW */}
           <div className="flex justify-center mb-3">
-            <CheckThumbnail check={check} />
+            <p>
+           {check.date ? new Date(check.date).toLocaleDateString() : "N/A"}
+           </p>
+
           </div>
 
           <div className="flex justify-between items-center">
@@ -317,7 +365,13 @@ export default function CheckHistoryClient({ checks }) {
 
           <p><strong>Payee:</strong> {check.payee}</p>
           <p><strong>Amount:</strong> ${check.amount.toFixed(2)}</p>
-          <p><strong>Date:</strong> {check.date}</p>
+          <p>
+          <strong>Date:</strong>{" "}
+             {check.date
+             ? new Date(check.date).toLocaleDateString()
+             : "N/A"}
+              </p>
+
           {check.memo && <p><strong>Memo:</strong> {check.memo}</p>}
 
           <p>
@@ -326,31 +380,77 @@ export default function CheckHistoryClient({ checks }) {
 
           <hr className="my-2" />
 
-          <p><strong>Bank:</strong> {check.bankProfile.bankName}</p>
-          <p><strong>Routing:</strong> {check.bankProfile.routingNumber}</p>
-          <p><strong>Account:</strong> {check.bankProfile.accountNumber}</p>
+          <p>
+          <strong>Bank:</strong> {check.bankProfile?.bankName ?? "N/A"}
+          </p>
+
+          <p>
+  <strong>Routing:</strong> {check.bankProfile?.routingNumber ?? "N/A"}
+         </p>
+
+          <p>
+         <strong>Account:</strong> {check.bankProfile?.accountNumber ?? "N/A"}
+         </p>
+
 
           <p className="text-xs text-gray-500">
             Created: {new Date(check.createdAt).toLocaleString()}
           </p>
 
           {check.fraudFlags.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {check.fraudFlags.map((flag) => (
-                <p
-                  key={flag.id}
-                  className={`text-sm ${
-                    flag.severity === "critical"
-                      ? "text-red-700"
-                      : flag.severity === "warning"
-                      ? "text-yellow-700"
-                      : "text-gray-600"
-                  }`}
-                >
-                  ⚠️ {flag.message}
-                </p>
-              ))}
+            <div className="mt-3 space-y-2">
+  {check.fraudFlags.length === 0 ? (
+    <p className="text-xs text-slate-500 italic">No fraud indicators detected.</p>
+  ) : (
+    check.fraudFlags.map((flag) => {
+      const color =
+        flag.severity === "critical"
+          ? "text-red-700 bg-red-50 border-red-300"
+          : flag.severity === "warning"
+          ? "text-yellow-700 bg-yellow-50 border-yellow-300"
+          : "text-blue-700 bg-blue-50 border-blue-300";
+
+      return (
+        <div
+          key={flag.id}
+          className={`border rounded p-3 text-xs ${color}`}
+          
+        >
+          <div className="flex justify-between items-center mb-1">
+            <span className="font-semibold">
+              {flag.severity === "critical" && "🚨 Critical Risk"}
+              {flag.severity === "warning" && "⚠️ Warning"}
+              {flag.severity === "info" && "ℹ️ Info"}
+            </span>
+
+            <span className="text-[10px] opacity-70">
+              {new Date(flag.createdAt).toLocaleDateString()}
+            </span>
+            <FraudBadge check={check} />
+            <FraudSummary checks={checks} />
+
+          </div>
+
+          <p className="font-medium">{flag.message}</p>
+
+          <p className="text-slate-600 mt-1">
+            <strong>Reason:</strong> {flag.reason}
+          </p>
+
+          <p className="mt-1">
+            <strong>Status:</strong>{" "}
+            {flag.resolved ? (
+              <span className="text-green-700">Resolved</span>
+            ) : (
+              <span className="text-red-700">Unresolved</span>
+            )}
+            </p>
+           </div>
+            );
+           })
+           )}
             </div>
+
           )}
 
           <div className="flex gap-4 mt-3">
@@ -395,7 +495,13 @@ export default function CheckHistoryClient({ checks }) {
 
             <p><strong>Payee:</strong> {selectedCheck.payee}</p>
             <p><strong>Amount:</strong> ${selectedCheck.amount.toFixed(2)}</p>
-            <p><strong>Date:</strong> {selectedCheck.date}</p>
+            <p>
+            <strong>Date:</strong>{" "}
+           {selectedCheck.date
+            ? new Date(selectedCheck.date).toLocaleDateString()
+           : "N/A"}
+           </p>
+
             {selectedCheck.memo && (
               <p><strong>Memo:</strong> {selectedCheck.memo}</p>
             )}
@@ -407,9 +513,18 @@ export default function CheckHistoryClient({ checks }) {
 
             <hr />
 
-            <p><strong>Bank:</strong> {selectedCheck.bankProfile.bankName}</p>
-            <p><strong>Routing:</strong> {selectedCheck.bankProfile.routingNumber}</p>
-            <p><strong>Account:</strong> {selectedCheck.bankProfile.accountNumber}</p>
+            <p>
+           <strong>Bank:</strong> {selectedCheck.bankProfile?.bankName ?? "N/A"}
+           </p>
+
+           <p>
+           <strong>Routing:</strong> {selectedCheck.bankProfile?.routingNumber ?? "N/A"}
+           </p>
+
+            <p>
+           <strong>Account:</strong> {selectedCheck.bankProfile?.accountNumber ?? "N/A"}
+           </p>
+
 
             <p className="text-xs text-gray-500">
               Created: {new Date(selectedCheck.createdAt).toLocaleString()}
@@ -428,7 +543,7 @@ export default function CheckHistoryClient({ checks }) {
                         : "text-gray-600"
                     }`}
                   >
-                    ⚠️ {flag.message}
+                    ⚠️ {flag.reason}
                   </p>
                 ))}
               </div>

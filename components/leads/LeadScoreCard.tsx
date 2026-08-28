@@ -1,23 +1,57 @@
-export default function LeadScoreCard({ lead }) {
+"use client";
+
+interface LeadScoreCardProps {
+  lead: {
+    hardshipBand?: string;
+    investorPotentialBand?: string;
+    impulsivityBand?: string;
+    riskScore?: number | string;
+  };
+}
+
+export default function LeadScoreCard({ lead }: LeadScoreCardProps) {
   return (
     <div className="gx-card p-6 rounded-xl">
       <h2 className="text-xl font-bold gx-text-primary mb-4">Lead Scores</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ScoreBox title="Hardship" score={lead.hardshipScore} band={lead.hardshipBand} />
-        <ScoreBox title="Investor Potential" score={lead.investorPotentialScore} band={lead.investorPotentialBand} />
-        <ScoreBox title="Impulsivity" score={lead.impulsivityScore} band={lead.impulsivityBand} />
+      <div className="space-y-3 text-gray-300 text-sm">
+        <ScoreRow label="Hardship" value={lead.hardshipBand} color="#3CF46B" />
+        <ScoreRow
+          label="Investor Potential"
+          value={lead.investorPotentialBand}
+          color="#4FB6FF"
+        />
+        <ScoreRow
+          label="Impulsivity"
+          value={lead.impulsivityBand}
+          color="#FFB84F"
+        />
+        <ScoreRow
+          label="Risk Score"
+          value={lead.riskScore?.toString() ?? "N/A"}
+          color="#9DD431"
+        />
       </div>
     </div>
   );
 }
 
-function ScoreBox({ title, score, band }) {
+interface ScoreRowProps {
+  label: string;
+  value?: string;
+  color: string;
+}
+
+function ScoreRow({ label, value, color }: ScoreRowProps) {
   return (
-    <div className="bg-[#111118] p-4 rounded-lg">
-      <h3 className="font-semibold mb-2">{title}</h3>
-      <p className="text-3xl font-bold gx-text-primary">{score}</p>
-      <p className="text-gray-400 capitalize">{band}</p>
+    <div className="flex justify-between items-center">
+      <span>{label}</span>
+      <span
+        className="px-3 py-1 rounded-lg text-black font-semibold"
+        style={{ backgroundColor: color }}
+      >
+        {value ?? "N/A"}
+      </span>
     </div>
   );
 }

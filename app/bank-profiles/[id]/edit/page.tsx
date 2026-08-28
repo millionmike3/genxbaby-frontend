@@ -6,7 +6,8 @@ export default async function EditBankProfilePage({
 }: {
   params: { id: string };
 }) {
-  const id = params.id; // Prisma expects a string ID
+  // FIX: Convert route param (string) → number
+  const id = Number(params.id);
 
   const profile = await prisma.bankProfile.findUnique({
     where: { id },

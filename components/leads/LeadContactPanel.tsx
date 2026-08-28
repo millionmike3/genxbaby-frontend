@@ -2,87 +2,63 @@
 
 import { useState } from "react";
 
-export default function LeadContactPanel({ leadId }) {
+interface LeadContactPanelProps {
+  leadId: string;
+}
+
+export default function LeadContactPanel({ leadId }: LeadContactPanelProps) {
   const [channel, setChannel] = useState<"phone" | "sms" | "email">("phone");
   const [outcome, setOutcome] = useState("connected");
   const [notes, setNotes] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  async function handleLogContact() {
-    setLoading(true);
-    setMessage("");
-
-    const res = await fetch(`/api/leads/${leadId}/contact`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channel, outcome, notes }),
-    });
-
-    const data = await res.json();
-    setLoading(false);
-
-    if (data.success) {
-      setMessage("Contact attempt logged.");
-      setNotes("");
-    } else {
-      setMessage("Failed to log contact.");
-    }
-  }
 
   return (
-    <div className="gx-card p-6 rounded-xl">
-      <h2 className="text-xl font-bold gx-text-primary mb-4">Contact Lead</h2>
+    <div className="gx-card p-4">
+      <h3 className="text-lg font-semibold mb-4">Lead Contact</h3>
 
-      <div className="space-y-3">
-        <div>
-          <p className="text-gray-400 mb-1">Channel</p>
-          <select
-            value={channel}
-            onChange={(e) => setChannel(e.target.value as any)}
-            className="bg-[#111118] text-white p-2 rounded-lg"
-          >
-            <option value="phone">Phone</option>
-            <option value="sms">SMS</option>
-            <option value="email">Email</option>
-          </select>
-        </div>
-
-        <div>
-          <p className="text-gray-400 mb-1">Outcome</p>
-          <select
-            value={outcome}
-            onChange={(e) => setOutcome(e.target.value)}
-            className="bg-[#111118] text-white p-2 rounded-lg"
-          >
-            <option value="connected">Connected</option>
-            <option value="no_answer">No Answer</option>
-            <option value="left_message">Left Message</option>
-            <option value="bad_number">Bad Number</option>
-            <option value="opt_out">Opt Out</option>
-          </select>
-        </div>
-
-        <div>
-          <p className="text-gray-400 mb-1">Notes</p>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full bg-[#111118] text-white p-2 rounded-lg"
-            rows={3}
-          />
-        </div>
-
-        <button
-          onClick={handleLogContact}
-          disabled={loading}
-          className="gx-btn-primary px-4 py-2 rounded-lg"
-        >
-          {loading ? "Logging..." : "Log Contact"}
-        </button>
-
-        {message && <p className="text-gray-400 mt-2">{message}</p>}
+      <div className="mb-4 text-sm text-gray-400">
+        Lead ID: <span className="font-medium text-white">{leadId}</span>
       </div>
+
+      {/* Contact Channel */}
+      <div className="mb-4">
+        <label className="block text-sm mb-1">Channel</label>
+        <select
+          value={channel}
+          onChange={(e) => setChannel(e.target.value as "phone" | "sms" | "email")}
+          className="gx-input"
+        >
+          <option value="phone">Phone Call</option>
+          <option value="sms">SMS</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+
+      {/* Outcome */}
+      <div className="mb-4">
+        <label className="block text-sm mb-1">Outcome</label>
+        <select
+          value={outcome}
+          onChange={(e) => setOutcome(e.target.value)}
+          className="gx-input"
+        >
+          <option value="connected">Connected</option>
+          <option value="no-answer">No Answer</option>
+          <option value="left-voicemail">Left Voicemail</option>
+          <option value="wrong-number">Wrong Number</option>
+        </select>
+      </div>
+
+      {/* Notes */}
+      <div className="mb-4">
+        <label className="block text-sm mb-1">Notes</label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="gx-input h-24"
+        />
+      </div>
+
+      <button className="gx-btn-primary w-full">Save Contact Attempt</button>
     </div>
   );
 }

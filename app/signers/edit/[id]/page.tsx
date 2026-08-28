@@ -1,70 +1,55 @@
-"use server"
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
+interface VerifyCheckPageProps {
+  params: {
+    checkNo: string;
+  };
+}
 
-export default async function EditSignerPage({ params }) {
-  const signer = await prisma.signer.findUnique({
-    where: { id: params.id }
+export default async function VerifyCheckPage({ params }: VerifyCheckPageProps) {
+  const checkNo = params.checkNo; // checkNumber is a STRING in your schema
+
+  const check = await prisma.check.findUnique({
+    where: { checkNumber: checkNo }
   });
 
-  const bankProfiles = await prisma.bankProfile.findMany();
+  if (!check) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold text-red-500">Check not found</h1>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Edit Signer</h1>
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Verify Check</h1>
 
-      <form action="/api/signers/update" method="POST" className="space-y-4">
-        <input type="hidden" name="id" value={signer.id} />
+      <div className="gx-card p-6 rounded-xl space-y-3">
+        <p className="text-gray-300 text-sm">
+          <strong>Check #:</strong> {check.checkNumber}
+        </p>
 
-        <div>
-          <label className="block font-medium">Name</label>
-          <input
-            name="name"
-            defaultValue={signer.name}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
+        <p className="text-gray-300 text-sm">
+          <strong>Payee:</strong> {check.payee}
+        </p>
 
-        <div>
-          <label className="block font-medium">Title</label>
-          <input
-            name="title"
-            defaultValue={signer.title || ""}
-            className="border p-2 rounded w-full"
-          />
-        </div>
+        <p className="text-gray-300 text-sm">
+          <strong>Amount:</strong> ${check.amount}
+        </p>
 
-        <div>
-          <label className="block font-medium">Signature Image URL</label>
-          <input
-            name="signatureImage"
-            defaultValue={signer.signatureImage}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
+        <p className="text-gray-300 text-sm">
+          <strong>Memo:</strong> {check.memo || "None"}
+        </p>
 
-        <div>
-          <label className="block font-medium">Bank Profile</label>
-          <select
-            name="bankProfileId"
-            defaultValue={signer.bankProfileId}
-            className="border p-2 rounded w-full"
-            required
-          >
-            {bankProfiles.map((bp) => (
-              <option key={bp.id} value={bp.id}>
-                {bp.bankName}
-              </option>
-            ))}
-          </select>
-        </div>
+        <p className="text-gray-300 text-sm">
+          <strong>Bank Profile:</strong> {check.bankProfileId}
+        </p>
 
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
-          Update Signer
-        </button>
-      </form>
+        <p className="text-gray-300 text-sm">
+          <strong>Status:</strong> {check.status}
+        </p>
+      </div>
     </div>
   );
 }

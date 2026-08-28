@@ -1,22 +1,24 @@
-import FraudDashboard from "../fraud/FraudDashboard";
-import SyntheticPanel from "../synthetic/SyntheticPanel";
-import UnderwritingPanel from "../underwriting/UnderwritingPanel";
+"use client";
+
 import CasePanel from "../cases/CasePanel";
 
-export default function OwnerDrawer({ ownerId, apiUrl, onClose }) {
+interface OwnerDrawerProps {
+  ownerId: string;
+  apiUrl: string;
+  onClose: () => void;
+}
+
+export default function OwnerDrawer({ ownerId, apiUrl, onClose }: OwnerDrawerProps) {
   return (
     <div className="fixed right-0 top-0 w-[600px] h-full bg-[#1A1A22] border-l border-gray-700 p-6 overflow-y-auto">
       <button className="gx-btn-secondary mb-4" onClick={onClose}>
         Close
       </button>
 
-      <FraudDashboard ownerId={ownerId} apiUrl={apiUrl} />
-      <SyntheticPanel ownerId={ownerId} apiUrl={apiUrl} />
-      <UnderwritingPanel ownerId={ownerId} apiUrl={apiUrl} />
+      <h2 className="text-xl font-bold mb-4">Owner Details</h2>
+
+      {/* CasePanel expects ownerId + apiUrl */}
       <CasePanel ownerId={ownerId} apiUrl={apiUrl} />
-      <AlertsPanel apiUrl={apiUrl} ownerId={ownerId} />
-
     </div>
-
   );
 }

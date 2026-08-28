@@ -1,15 +1,22 @@
 import prisma from "@/lib/prisma";
 
-export default async function VerifyCheckPage({ params }) {
-  const checkNumber = Number(params.checkNumber);
+interface VerifyCheckPageProps {
+  params: {
+    checkNumber: string;
+  };
+}
+
+export default async function VerifyCheckPage({ params }: VerifyCheckPageProps) {
+  // Prisma expects checkNumber as STRING
+  const checkNumber = params.checkNumber;
 
   const check = await prisma.check.findFirst({
-    where: { checkNumber },
+    where: { checkNumber: String(checkNumber) },
     include: {
       bankProfile: true,
       signer: true,
-      fraudFlags: true
-    }
+      fraudFlags: true,
+    },
   });
 
   if (!check) {
@@ -21,7 +28,10 @@ export default async function VerifyCheckPage({ params }) {
     );
   }
 
-  const issued = new Date(check.createdAt).toLocaleString();
+  const issued =
+    check.createdAt instanceof Date
+      ? check.createdAt.toLocaleString()
+      : new Date(check.createdAt).toLocaleString();
 
   return (
     <div className="p-10 space-y-4 max-w-xl mx-auto">
@@ -42,9 +52,9 @@ export default async function VerifyCheckPage({ params }) {
 
       <div className="pt-4 border p-4 rounded bg-gray-50">
         <h2 className="text-xl font-semibold">Bank Profile</h2>
-        <p><strong>Bank:</strong> {check.bankProfile.bankName}</p>
-        <p><strong>Routing:</strong> {check.bankProfile.routingNumber}</p>
-        <p><strong>Account:</strong> {check.bankProfile.accountNumber}</p>
+        <p><strong>Bank:</strong> {check.bankProfile?.bankName}</p>
+        <p><strong>Routing:</strong> {check.bankProfile?.routingNumber}</p>
+        <p><strong>Account:</strong> {check.bankProfile?.accountNumber}</p>
       </div>
 
       {check.fraudFlags.length > 0 && (

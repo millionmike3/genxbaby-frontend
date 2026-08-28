@@ -1,4 +1,10 @@
-export default function RootLayout({ children }) {
+import type { ReactNode } from "react";
+
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-900">
@@ -11,7 +17,10 @@ export default function RootLayout({ children }) {
               <a href="/owners" className="block">Owners</a>
             </nav>
           </aside>
-          <main className="flex-1 p-6">{children}</main>
+
+          <main className="flex-1 p-6">
+            {children}
+          </main>
         </div>
       </body>
     </html>

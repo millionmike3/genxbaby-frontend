@@ -3,13 +3,14 @@ import CheckTable from "../CheckTable";
 
 export default async function CheckLogsPage() {
   const checks = await prisma.check.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { bank: true },
-  });
+  orderBy: { createdAt: "desc" },
+  include: { bankProfile: true }, // FIXED
+   });
 
   const banks = await prisma.bankProfile.findMany({
-    orderBy: { bankName: "asc" },
-  });
+  orderBy: { createdAt: "desc" },
+ });
+
 
   return (
     <div className="p-10 space-y-6">

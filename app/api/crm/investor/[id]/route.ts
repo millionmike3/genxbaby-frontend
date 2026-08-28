@@ -7,12 +7,13 @@ export async function GET(
 ) {
   const { id } = await context.params;
 
-  const investor = await prisma.investor.findUnique({
-    where: { id },
-    include: {
-      behavior: true,
-    },
-  });
+   const investor = await prisma.investor.findUnique({
+   where: { id },
+   include: {
+    behaviors: true,
+   },
+   });
+
 
   if (!investor) {
     return NextResponse.json(

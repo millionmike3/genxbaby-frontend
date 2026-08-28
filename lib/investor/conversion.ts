@@ -7,10 +7,20 @@ export async function convertLeadToInvestor(leadId: string) {
 
   if (!lead) throw new Error("Lead not found");
 
+  // Cast scores to a typed object
+  const scores = lead.scores as {
+    investorPotentialBand?: string;
+    equityEstimate?: number;
+    investorPotentialScore?: number;
+    investorNotes?: string;
+    phone?: string;
+    status?: string;
+  };
+
   // Basic eligibility rules
   const eligible =
-    lead.investorPotentialBand === "high" ||
-    (lead.equityEstimate && lead.equityEstimate > 150000);
+    scores.investorPotentialBand === "high" ||
+    (scores.equityEstimate && scores.equityEstimate > 150000);
 
   if (!eligible) {
     throw new Error("Lead is not eligible for investor conversion");
@@ -21,24 +31,24 @@ export async function convertLeadToInvestor(leadId: string) {
     data: {
       id: crypto.randomUUID(),
       name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      email: lead.email ?? null,
+      phone: scores.phone ?? null,
 
-      // Optional: carry over scoring metadata
-      investorPotentialScore: lead.investorPotentialScore,
-      investorPotentialBand: lead.investorPotentialBand,
-      notes: lead.investorNotes,
+      investorPotentialScore: scores.investorPotentialScore ?? 0,
+      investorPotentialBand: scores.investorPotentialBand ?? "low",
+      notes: scores.investorNotes ?? null,
     },
   });
 
-  // Update lead status
+  // Update lead status inside scores JSON
   await prisma.lead.update({
     where: { id: leadId },
     data: {
-      status: "converted",
-      updatedAt: new Date(),
+      scores: {
+        ...scores,
+        status: "converted",
+        convertedAt: new Date().toISOString(),
+      },
     },
   });
 

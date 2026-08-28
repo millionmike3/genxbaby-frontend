@@ -38,11 +38,18 @@ export default function DashboardPreview() {
   );
 }
 
-function DashboardTile({ label, value }) {
+interface DashboardTileProps {
+  label: string;
+  value: string | number;
+}
+
+function DashboardTile({ label, value }: DashboardTileProps) {
   return (
     <div className="rounded-xl border border-white/10 bg-black/40 p-4">
       <div className="text-xs text-gray-400 mb-1">{label}</div>
-      <div className="text-sm font-semibold text-[#3CF46B]">{value}</div>
+      <div className="text-xl font-semibold text-white">{value}</div>
     </div>
   );
 }
+
+

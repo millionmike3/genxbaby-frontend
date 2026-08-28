@@ -1,6 +1,7 @@
 "use client";
 
-import BluetoothScanner from "@/components/BluetoothScanner";
+import BluetoothScanner from "@/components/bluetooth/BluetoothScanner";
+
 import { useState } from "react";
 
 export default function BluetoothPage() {

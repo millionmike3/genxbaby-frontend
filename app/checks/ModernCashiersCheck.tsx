@@ -1,40 +1,52 @@
 "use client";
 
+import { CheckHistoryItem } from "./history/types";
 import { useState } from "react";
 import QRCode from "react-qr-code";
 import PrintCheckModal from "./PrintCheckModal";
 
-export default function ModernCashiersCheck({ check, bulkChecks }) {
+export default function ModernCashiersCheck({
+  check,
+  bulkChecks,
+}: {
+  check: CheckHistoryItem;
+  bulkChecks: CheckHistoryItem[];
+}) {
   const {
-    bankName = "Resilient America Inc.",
-    bankAddress = "123 Liberty Avenue, Queens, NY 11419",
     payee = "Payee Name",
     amount = "0.00",
     amountWritten = "Zero Dollars and 00/100",
     memo = "Memo / Purpose",
     date = "MM/DD/YYYY",
     checkNumber = "0000",
-    routingNumber = "123456789",
-    accountNumber = "9876543210",
-    signatureImageUrl = null,
+    bankProfile,
+    signer,
   } = check;
+
+  const bankName = bankProfile?.bankName ?? "Resilient America Inc.";
+  const bankAddress = "123 Liberty Avenue, Queens, NY 11419";
+  const routingNumber = bankProfile?.routingNumber ?? "123456789";
+  const accountNumber = bankProfile?.accountNumber ?? "9876543210";
+
+  const signatureImageUrl =
+    signer?.signatureImage ?? signer?.signatureUrl ?? null;
 
   const formattedAmount =
     typeof amount === "number" ? amount.toFixed(2) : amount;
 
   const verifyUrl = `https://verify.resilientamerica.org/check/${checkNumber}`;
-
   const [downloading, setDownloading] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  // -----------------------------
+  // Format date safely
+  const formattedDate =
+    date instanceof Date ? date.toLocaleDateString() : date ?? "N/A";
+
   // PDF DOWNLOAD
-  // -----------------------------
   async function downloadPdf() {
     try {
       setDownloading(true);
-
       const res = await fetch("/api/checks/pdf-modern", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,12 +55,10 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `cashiers-check-${checkNumber}.pdf`;
       a.click();
-
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("PDF download failed:", err);
@@ -57,10 +67,7 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
       setDownloading(false);
     }
   }
-
-  // -----------------------------
   // EMAIL CHECK
-  // -----------------------------
   async function emailCheck() {
     const email = prompt("Enter recipient email:");
     if (!email) return;
@@ -78,13 +85,10 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
     }
   }
 
-  // -----------------------------
   // BULK PDF EXPORT
-  // -----------------------------
   async function bulkPdfExport() {
     try {
       setBulkLoading(true);
-
       const res = await fetch("/api/checks/bulk-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,12 +97,10 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = "cashiers-checks-bulk.zip";
       a.click();
-
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Bulk PDF export failed:", err);
@@ -107,17 +109,13 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
       setBulkLoading(false);
     }
   }
-
-  // -----------------------------
   // BULK EMAIL
-  // -----------------------------
   async function bulkEmail() {
     const email = prompt("Enter recipient email for ALL checks:");
     if (!email) return;
 
     try {
       setBulkLoading(true);
-
       const res = await fetch("/api/checks/bulk-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,7 +140,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
 
   return (
     <div className="max-w-3xl mx-auto border rounded-lg shadow-xl bg-gradient-to-r from-blue-50 to-gray-100 p-8 space-y-6 font-sans">
-
       {/* HEADER */}
       <div className="flex justify-between items-start">
         <div>
@@ -155,10 +152,9 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
 
         <div className="text-right text-sm text-gray-700">
           <p className="font-semibold">No. {checkNumber}</p>
-          <p>Date: {date}</p>
+          <p>Date: {formattedDate}</p>
         </div>
       </div>
-
       {/* PAYEE */}
       <div className="border-t border-gray-300 pt-4">
         <p className="font-semibold text-gray-800">PAY TO THE ORDER OF:</p>
@@ -188,7 +184,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
           <p className="text-xs text-gray-600 mt-1">Scan to Verify</p>
         </div>
       </div>
-
       {/* HOLOGRAM SEAL */}
       <div className="mt-4 flex justify-end">
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-300 via-blue-400 to-purple-600 shadow-md border border-white flex items-center justify-center text-[9px] font-semibold text-white text-center">
@@ -222,11 +217,8 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
       <div className="border-t border-gray-300 pt-4 text-center font-mono text-lg text-gray-700 tracking-widest">
         :{routingNumber}: {accountNumber} {checkNumber}
       </div>
-
       {/* ACTION BUTTONS */}
       <div className="pt-6 flex flex-wrap gap-4 justify-end">
-
-        {/* PRINT */}
         <button
           onClick={() => setShowPrintModal(true)}
           className="px-6 py-3 bg-green-700 text-white rounded-lg shadow hover:bg-green-800 transition"
@@ -234,7 +226,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
           Print Check
         </button>
 
-        {/* EMAIL */}
         <button
           onClick={emailCheck}
           className="px-6 py-3 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800 transition"
@@ -242,7 +233,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
           Share via Email
         </button>
 
-        {/* PDF */}
         <button
           onClick={downloadPdf}
           disabled={downloading}
@@ -251,7 +241,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
           {downloading ? "Generating PDF..." : "Download PDF"}
         </button>
 
-        {/* BULK PDF */}
         <button
           onClick={bulkPdfExport}
           disabled={bulkLoading}
@@ -260,7 +249,6 @@ export default function ModernCashiersCheck({ check, bulkChecks }) {
           {bulkLoading ? "Exporting..." : "Bulk PDF Export"}
         </button>
 
-        {/* BULK EMAIL */}
         <button
           onClick={bulkEmail}
           disabled={bulkLoading}

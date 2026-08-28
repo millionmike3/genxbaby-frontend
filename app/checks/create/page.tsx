@@ -3,13 +3,31 @@
 import { useEffect, useState } from "react";
 import CheckPreviewCard from "@/components/CheckPreviewCard";
 
+// -----------------------------
+// TYPES
+// -----------------------------
+interface BankProfile {
+  id: number;
+  bankName: string;
+  routingNumber: string;
+  accountNumber: string;
+  nextCheckNumber: number;
+}
+
+interface Signer {
+  id: string;
+  name: string;
+  title?: string | null;
+  signatureImage?: string | null;
+}
+
 export default function CreateCheckPage() {
-  const [bankProfiles, setBankProfiles] = useState([]);
-  const [signers, setSigners] = useState([]);
-  const [selectedBankProfile, setSelectedBankProfile] = useState("");
-  const [selectedSigner, setSelectedSigner] = useState(null);
-  const [autoCheckNumber, setAutoCheckNumber] = useState("");
-  const [bankPreview, setBankPreview] = useState(null);
+  const [bankProfiles, setBankProfiles] = useState<BankProfile[]>([]);
+  const [signers, setSigners] = useState<Signer[]>([]);
+  const [selectedBankProfile, setSelectedBankProfile] = useState<string>("");
+  const [selectedSigner, setSelectedSigner] = useState<Signer | null>(null);
+  const [autoCheckNumber, setAutoCheckNumber] = useState<string>("");
+  const [bankPreview, setBankPreview] = useState<BankProfile | null>(null);
   const [payee, setPayee] = useState("");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
@@ -19,7 +37,7 @@ export default function CreateCheckPage() {
   useEffect(() => {
     fetch("/api/bank-profiles/list")
       .then((res) => res.json())
-      .then((data) => setBankProfiles(data));
+      .then((data: BankProfile[]) => setBankProfiles(data));
   }, []);
 
   // Load signers when bank profile changes
@@ -28,7 +46,7 @@ export default function CreateCheckPage() {
 
     fetch(`/api/signers/by-bank/${selectedBankProfile}`)
       .then((res) => res.json())
-      .then((data) => setSigners(data));
+      .then((data: Signer[]) => setSigners(data));
   }, [selectedBankProfile]);
 
   return (
@@ -54,12 +72,10 @@ export default function CreateCheckPage() {
                   setBankPreview(null);
 
                   if (bankId) {
-                    // Load next check number
                     const nextCheckRes = await fetch(`/api/bank-profiles/next-check/${bankId}`);
                     const nextCheckData = await nextCheckRes.json();
                     setAutoCheckNumber(nextCheckData.nextCheckNumber);
 
-                    // Load bank preview
                     const previewRes = await fetch(`/api/bank-profiles/details/${bankId}`);
                     const previewData = await previewRes.json();
                     setBankPreview(previewData);
@@ -82,7 +98,7 @@ export default function CreateCheckPage() {
               {selectedSigner && (
                 <div className="mb-2">
                   <img
-                    src={selectedSigner.signatureImage}
+                    src={selectedSigner.signatureImage || ""}
                     alt="Signature Preview"
                     className="h-16 object-contain border p-2 bg-white"
                   />
@@ -179,11 +195,11 @@ export default function CreateCheckPage() {
         {/* RIGHT SIDE — CHECK PREVIEW */}
         <div className="w-[900px]">
           <CheckPreviewCard
-            bank={bankPreview}
-            signer={selectedSigner}
+            bank={bankPreview}          // now allowed (BankProfile | null)
+            signer={selectedSigner}      // also nullable
             checkNumber={autoCheckNumber}
             payee={payee}
-            amount={parseFloat(amount || 0)}
+            amount={parseFloat(amount || "0")}
             memo={memo}
             date={dateValue}
           />

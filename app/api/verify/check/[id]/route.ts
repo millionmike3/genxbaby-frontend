@@ -25,11 +25,14 @@ export async function GET(
     amount: check.amount,
     memo: check.memo,
     status: check.status,
-    bank: {
+    bank: check.bankProfile
+  ? {
       name: check.bankProfile.bankName,
       routing: check.bankProfile.routingNumber,
       account: check.bankProfile.accountNumber,
-    },
-    anchored: check.anchoredHash ? true : false,
+    }
+  : null,
+
+   
   });
 }

@@ -1,20 +1,37 @@
-"use client"
+"use client";
 
-import FraudGraph from "./FraudGraph";
 import { useEffect, useState } from "react";
+import FraudDashboard from "./FraudDashboard";
 
-export default function FraudPage({ ownerId }) {
-  const [data, setData] = useState(null);
+interface FraudPageProps {
+  ownerId: string;
+  apiUrl: string;
+}
+
+export default function FraudPage({ ownerId, apiUrl }: FraudPageProps) {
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`/fraud/owner/${ownerId}`)
-      .then(res => res.json())
-      .then(setData);
-  }, [ownerId]);
+    async function load() {
+      try {
+        const res = await fetch(`${apiUrl}/fraud/owner/${ownerId}`);
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Failed to load fraud page:", err);
+      }
+    }
+
+    load();
+  }, [ownerId, apiUrl]);
+
+  if (!data) {
+    return <div className="gx-card p-6">Loading fraud intelligence…</div>;
+  }
 
   return (
     <div className="p-6">
-      {data ? <FraudGraph data={data.graph} /> : "Loading graph…"}
+      <FraudDashboard ownerId={ownerId} apiUrl={apiUrl} />
     </div>
   );
 }

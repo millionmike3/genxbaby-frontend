@@ -1,11 +1,20 @@
 // lib/server/getAuditTimeline.ts
 import { prisma } from "@/lib/prisma";
-
 import { publicClient } from "@/lib/viem";
 import { CHECK_REGISTRY_ADDRESS, CHECK_REGISTRY_ABI } from "@/lib/contract";
 import { decodeEventLog } from "viem";
 
 const CONTRACT_ADDRESS = CHECK_REGISTRY_ADDRESS as `0x${string}`;
+
+// Typed interface for both DB + chain details
+interface AuditDetails {
+  checkNumber?: string | number;
+  wallet?: string;
+  actor?: string;
+  address?: string;
+  email?: string;
+  [key: string]: any; // prevents TS from collapsing to {}
+}
 
 export async function getAuditTimeline() {
   // ---------------------------------------------
@@ -32,16 +41,14 @@ export async function getAuditTimeline() {
       topics: log.topics,
     });
 
-    const details = decoded.args;
+    // Force details into a typed object
+    const details = (decoded.args ?? {}) as AuditDetails;
 
-    // ---------------------------------------------
-    // Correlation key for chain logs
-    // ---------------------------------------------
     const correlationKey =
-      details?.checkNumber ||
-      details?.wallet ||
-      details?.actor ||
-      details?.address ||
+      details.checkNumber ||
+      details.wallet ||
+      details.actor ||
+      details.address ||
       null;
 
     return {
@@ -57,13 +64,13 @@ export async function getAuditTimeline() {
   // DB timeline with correlation keys
   // ---------------------------------------------
   const dbTimeline = dbLogs.map((log) => {
-    const details = log.details;
+    const details = (log.details ?? {}) as AuditDetails;
 
     const correlationKey =
-      details?.checkNumber ||
-      details?.wallet ||
-      details?.actor ||
-      details?.email ||
+      details.checkNumber ||
+      details.wallet ||
+      details.actor ||
+      details.email ||
       null;
 
     return {

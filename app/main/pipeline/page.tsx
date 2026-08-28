@@ -1,6 +1,24 @@
 "use client";
 
-const columns = [
+/* ---------------- TYPES ---------------- */
+
+type DealStage = "new" | "contacted" | "review" | "approved" | "funded";
+
+interface ColumnDef {
+  key: DealStage;
+  label: string;
+}
+
+interface Deal {
+  borrower: string;
+  amount: string;
+  score: number;
+  investor: string;
+}
+
+/* ---------------- DATA ---------------- */
+
+const columns: ColumnDef[] = [
   { key: "new", label: "New" },
   { key: "contacted", label: "Contacted" },
   { key: "review", label: "In Review" },
@@ -8,7 +26,7 @@ const columns = [
   { key: "funded", label: "Funded" },
 ];
 
-const sampleDeals = {
+const sampleDeals: Record<DealStage, Deal[]> = {
   new: [
     { borrower: "John Doe", amount: "$420,000", score: 92, investor: "PrimeVest" },
     { borrower: "Sarah Lee", amount: "$310,000", score: 88, investor: "BlueRock" },
@@ -27,6 +45,8 @@ const sampleDeals = {
   ],
 };
 
+/* ---------------- PAGE ---------------- */
+
 export default function PipelinePage() {
   return (
     <div className="p-6 space-y-8">
@@ -39,7 +59,7 @@ export default function PipelinePage() {
           <PipelineColumn
             key={col.key}
             title={col.label}
-            deals={sampleDeals[col.key]}
+            deals={sampleDeals[col.key]}  // ✔ Fully typed and safe
           />
         ))}
       </div>
@@ -54,7 +74,7 @@ function PipelineColumn({
   deals,
 }: {
   title: string;
-  deals: any[];
+  deals: Deal[];
 }) {
   return (
     <div className="gx-card p-4 flex flex-col h-full">
@@ -73,7 +93,7 @@ function PipelineColumn({
   );
 }
 
-function DealCard({ deal }: { deal: any }) {
+function DealCard({ deal }: { deal: Deal }) {
   return (
     <div className="gx-card p-4 hover:bg-white/10 transition rounded-xl cursor-pointer">
       <div className="flex items-center justify-between">

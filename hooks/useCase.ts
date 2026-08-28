@@ -1,19 +1,23 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 export function useCase(caseId: string) {
-  const [caseData, setCaseData] = useState(null);
+  const [caseData, setCaseData] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
-      const res = await api.get(`/cases/${caseId}`);
-      setCaseData(res.data);
+      try {
+        const res = await api(`/cases/${caseId}`);
+        setCaseData(res);
+      } catch (err) {
+        console.error("Failed to load case:", err);
+      }
     }
 
     load();
   }, [caseId]);
 
-  return { caseData };
+  return caseData;
 }

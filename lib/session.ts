@@ -24,8 +24,9 @@ export async function createSession(userId: string, role: Role) {
     .setIssuedAt()
     .sign(secret);
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
+   const cookieStore = await cookies();
+
+   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
@@ -34,17 +35,34 @@ export async function createSession(userId: string, role: Role) {
   });
 }
 
-export async function getSession(): Promise<Session | null> {
+ export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    const session = payload as Session;
+
+    // Validate shape
+    if (
+      typeof payload.userId !== "string" ||
+      typeof payload.role !== "string" ||
+      typeof payload.expiresAt !== "number"
+    ) {
+      return null;
+    }
+
+    const session: Session = {
+      userId: payload.userId,
+      role: payload.role as Role,
+      expiresAt: payload.expiresAt,
+    };
+
     if (session.expiresAt < Math.floor(Date.now() / 1000)) return null;
+
     return session;
   } catch {
     return null;
   }
 }
+

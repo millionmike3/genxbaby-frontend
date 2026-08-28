@@ -1,24 +1,23 @@
-"use client"
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+"use client";
+
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
 export function useCheck(checkId: string) {
-  const [check, setCheck] = useState(null);
-  const [uw, setUw] = useState(null);
+  const [check, setCheck] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
-      const res = await api.get(`/checks/${checkId}`);
-      setCheck(res.data);
+      try {
+        const res = await api(`/checks/${checkId}`); // fetch wrapper, no .get()
+        setCheck(res);
+      } catch (err) {
+        console.error("Failed to load check:", err);
+      }
     }
 
     load();
   }, [checkId]);
 
-  async function underwrite() {
-    const res = await api.get(`/checks/${checkId}/underwrite`);
-    setUw(res.data);
-  }
-
-  return { check, uw, underwrite };
+  return check;
 }

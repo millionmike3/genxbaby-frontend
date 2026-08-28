@@ -1,55 +1,69 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 
-export default function FraudInvestigatorChat({ apiUrl }) {
-  const [messages, setMessages] = useState([]);
+interface FraudInvestigatorChatProps {
+  apiUrl: string;
+}
+
+interface ChatMessage {
+  role: "user" | "system" | "assistant";
+  content: string;
+}
+
+export default function FraudInvestigatorChat({ apiUrl }: FraudInvestigatorChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
 
   async function sendMessage() {
     if (!input.trim()) return;
 
-    const userMsg = { sender: "user", text: input };
-    setMessages(prev => [...prev, userMsg]);
-
-    const res = await fetch(`${apiUrl}/dashboard/ai/investigator`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: input }),
-    });
-
-    const data = await res.json();
-
-    const aiMsg = { sender: "ai", text: data.answer };
-    setMessages(prev => [...prev, aiMsg]);
-
+    const newMessage: ChatMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, newMessage]);
     setInput("");
+
+    try {
+      const res = await fetch(`${apiUrl}/fraud/investigator/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+      const data = await res.json();
+
+      const reply: ChatMessage = { role: "assistant", content: data.reply };
+      setMessages((prev) => [...prev, reply]);
+    } catch (err) {
+      console.error("Chat request failed:", err);
+      const errorMsg: ChatMessage = { role: "system", content: "Error contacting fraud investigator service." };
+      setMessages((prev) => [...prev, errorMsg]);
+    }
   }
 
   return (
-    <div className="bg-white border rounded shadow p-6 space-y-4">
-      <h2 className="text-xl font-bold">AI Fraud Investigator</h2>
+    <div className="gx-card p-6 space-y-4">
+      <h2 className="text-lg font-bold">Fraud Investigator Chat</h2>
 
-      <div className="h-64 overflow-y-auto border rounded p-3 bg-gray-50">
-        {messages.map((m, i) => (
-          <div key={i} className={`mb-3 ${m.sender === "user" ? "text-blue-600" : "text-gray-800"}`}>
-            <strong>{m.sender === "user" ? "You" : "Investigator"}:</strong> {m.text}
+      <div className="border rounded p-4 h-64 overflow-y-auto bg-gray-50">
+        {messages.map((m, idx) => (
+          <div key={idx} className={`mb-2 ${m.role === "user" ? "text-blue-600" : m.role === "assistant" ? "text-green-600" : "text-red-600"}`}>
+            <strong>{m.role}:</strong> {m.content}
           </div>
         ))}
       </div>
 
-      <div className="flex space-x-3">
+      <div className="flex gap-2">
         <input
-          className="border rounded px-3 py-2 w-full"
-          placeholder="Ask about alerts, clusters, risk, fraud rings..."
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          className="flex-1 border rounded px-3 py-2"
+          placeholder="Type your message..."
         />
         <button
           onClick={sendMessage}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="gx-btn-primary"
         >
-          Ask
+          Send
         </button>
       </div>
     </div>

@@ -1,30 +1,54 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 
-export default function UnderwritingPanel({ ownerId, apiUrl }) {
-  const [data, setData] = useState(null);
+interface UnderwritingPanelProps {
+  ownerId: string;
+  apiUrl: string;
+}
+
+interface UnderwritingData {
+  id: string;
+  category: string;
+  score: number;
+  status: string;
+  [key: string]: any;
+}
+
+export default function UnderwritingPanel({ ownerId, apiUrl }: UnderwritingPanelProps) {
+  const [data, setData] = useState<UnderwritingData[] | null>(null);
 
   useEffect(() => {
-    fetch(`${apiUrl}/underwriting/owner/${ownerId}`)
-      .then(res => res.json())
-      .then(setData);
-  }, [ownerId]);
+    async function loadUnderwriting() {
+      try {
+        const res = await fetch(`${apiUrl}/dashboard/ai/underwriting/${ownerId}`);
+        const json: UnderwritingData[] = await res.json();
+        setData(json);
+      } catch (err) {
+        console.error("Failed to load underwriting panel:", err);
+      }
+    }
 
-  if (!data) return null;
+    loadUnderwriting();
+  }, [ownerId, apiUrl]);
+
+  if (!data) {
+    return (
+      <div className="gx-card p-6">
+        <h2 className="text-lg font-bold">Underwriting Analysis</h2>
+        <p>Loading underwriting data...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="gx-card p-6 mt-6">
-      <h2 className="text-xl font-bold mb-3">Underwriting Decision</h2>
-
-      <p className="text-3xl font-bold text-blue-400">
-        {data.decision}
-      </p>
-
-      <h3 className="font-semibold mt-4">Reasons</h3>
-      <ul className="list-disc ml-5 text-gray-400">
-        {data.reasons.map((r, idx) => (
-          <li key={idx}>{r}</li>
+    <div className="gx-card p-6">
+      <h2 className="text-lg font-bold mb-4">Underwriting Analysis</h2>
+      <ul className="list-disc pl-6">
+        {data.map((item) => (
+          <li key={item.id}>
+            {item.category}: {item.score} ({item.status})
+          </li>
         ))}
       </ul>
     </div>

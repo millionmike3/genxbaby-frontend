@@ -1,4 +1,15 @@
-export default function DestructiveButton({ children, ...props }) {
+"use client";
+
+import { ButtonHTMLAttributes, ReactNode } from "react";
+
+interface DestructiveButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+}
+
+export default function DestructiveButton(
+  { children, ...props }: DestructiveButtonProps
+) {
   return (
     <button
       {...props}

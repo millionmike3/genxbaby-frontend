@@ -1,23 +1,56 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import FraudGraph from "./FraudGraph";
 
-export default function FraudDashboard({ ownerId, apiUrl }) {
-  const [data, setData] = useState(null);
+interface FraudDashboardProps {
+  ownerId: string;
+  apiUrl: string;
+}
+
+interface FraudScore {
+  score: number;
+  issues: string[];
+}
+
+interface ClusterMember {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+interface FraudGraphData {
+  nodes: any[];
+  edges: any[];
+}
+
+interface FraudResponse {
+  score: FraudScore;
+  routingClusters: ClusterMember[];
+  deviceClusters: ClusterMember[];
+  graph: FraudGraphData;
+}
+
+export default function FraudDashboard({ ownerId, apiUrl }: FraudDashboardProps) {
+  const [data, setData] = useState<FraudResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    setLoading(true);
-    const res = await fetch(`${apiUrl}/fraud/owner/${ownerId}`);
-    const json = await res.json();
-    setData(json);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const res = await fetch(`${apiUrl}/fraud/owner/${ownerId}`);
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error("Failed to load fraud intelligence:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
     load();
-  }, [ownerId]);
+  }, [ownerId, apiUrl]);
 
   if (loading || !data) {
     return <div className="gx-card p-6">Loading fraud intelligence…</div>;

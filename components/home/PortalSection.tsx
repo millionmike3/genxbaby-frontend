@@ -1,5 +1,28 @@
 "use client";
 
+interface PillarCardProps {
+  title: string;
+  description: string;
+  accent: string;
+}
+
+function PillarCard({ title, description, accent }: PillarCardProps) {
+  return (
+    <div className="relative rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+      <div
+        className="absolute inset-x-0 -top-px h-[2px]"
+        style={{
+          background: `linear-gradient(to right, transparent, ${accent}, transparent)`
+        }}
+      />
+      <h3 className="text-lg font-semibold mb-2" style={{ color: accent }}>
+        {title}
+      </h3>
+      <p className="text-sm text-gray-300">{description}</p>
+    </div>
+  );
+}
+
 export default function PortalSection() {
   return (
     <section
@@ -14,7 +37,7 @@ export default function PortalSection() {
         <p className="text-gray-400 mb-8 max-w-2xl leading-relaxed">
           A fully integrated, AI-powered fintech operating system — combining borrower intake,
           AI underwriting, compliance audit, loan origination, investor reporting, and nonprofit
-          routing into one unified platform. Polygon Amoy verified. Merkle-tree hashed. 
+          routing into one unified platform. Polygon Amoy verified. Merkle-tree hashed.
           Institutionally ready.
         </p>
 
@@ -24,11 +47,13 @@ export default function PortalSection() {
             accent="#3CF46B"
             description="Real-time borrower scoring, intelligent risk tiering, and automated credit decisioning with explainable confidence intervals."
           />
+
           <PillarCard
             title="Resilient America Inc."
             accent="#4FB6FF"
             description="Regulatory-aligned community infrastructure powering borrower eligibility, nonprofit routing, and mission-driven capital access."
           />
+
           <PillarCard
             title="Substantial Funding LLC"
             accent="#FFB84F"
@@ -37,20 +62,5 @@ export default function PortalSection() {
         </div>
       </div>
     </section>
-  );
-}
-
-function PillarCard({ title, description, accent }) {
-  return (
-    <div className="relative rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
-      <div
-        className="absolute inset-x-0 -top-px h-[2px]"
-        style={{ background: `linear-gradient(to right, transparent, ${accent}, transparent)` }}
-      />
-      <h3 className="text-lg font-semibold mb-2" style={{ color: accent }}>
-        {title}
-      </h3>
-      <p className="text-sm text-gray-300">{description}</p>
-    </div>
   );
 }

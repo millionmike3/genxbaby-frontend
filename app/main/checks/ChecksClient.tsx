@@ -2,12 +2,21 @@
 
 import { useState } from "react";
 
-export default function ChecksClient({ profiles }) {
+interface ChecksClientProps {
+  profiles: any[];
+}
+
+interface CheckResult {
+  error?: string;
+  [key: string]: any;
+}
+
+export default function ChecksClient({ profiles }: ChecksClientProps) {
   const [bankId, setBankId] = useState("");
   const [payee, setPayee] = useState("");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<CheckResult | null>(null);
 
   async function generateCheck() {
     try {

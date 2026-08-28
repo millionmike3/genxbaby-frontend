@@ -1,79 +1,86 @@
-"use client"
+"use client";
+
 import { useEffect, useState } from "react";
-import AlertTabs from "./AlertTabs";
-import AlertSearch from "./AlertSearch";
 import AlertFilters from "./AlertFilters";
 import AlertList from "./AlertList";
 import { initAlertsSocket } from "./alerts.socket";
 
-export default function AlertCenter({ apiUrl, ownerId }) {
-  const [alerts, setAlerts] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-  const [tab, setTab] = useState("ALL");
-  const [search, setSearch] = useState("");
-  const [severity, setSeverity] = useState("ALL");
-  const [type, setType] = useState("ALL");
+interface Alert {
+  id: string;
+  severity: "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  type: string;
+  message: string;
+  timestamp: string;
+}
 
-  // Load initial alerts
-  useEffect(() => {
-    fetch(`${apiUrl}/dashboard/ai/alerts`)
-      .then((r) => r.json())
-      .then((data) => {
-        const combined = [
-          ...data.highRiskChecks.map(a => ({ ...a, source: "CHECK" })),
-          ...data.highRiskDocs.map(a => ({ ...a, source: "DOCUMENT" })),
-        ];
-        setAlerts(combined);
-        setFiltered(combined);
-      });
-  }, []);
 
-  // WebSocket real-time alerts
+
+interface AlertCenterProps {
+  apiUrl: string;
+  ownerId: string;
+}
+
+export default function AlertCenter({ apiUrl, ownerId }: AlertCenterProps) {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [filtered, setFiltered] = useState<Alert[]>([]);
+  const [tab, setTab] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW" | "INFO">("ALL");
+
+  // Fetch initial alerts
   useEffect(() => {
-    const socket = initAlertsSocket(apiUrl, ownerId, (alert) => {
-      setAlerts(prev => [alert, ...prev]);
+    async function loadAlerts() {
+      try {
+        const res = await fetch(`${apiUrl}/alerts?ownerId=${ownerId}`);
+        const data = await res.json();
+        setAlerts(data);
+        setFiltered(data);
+      } catch (err) {
+        console.error("Failed to load alerts:", err);
+      }
+    }
+
+    loadAlerts();
+  }, [apiUrl, ownerId]);
+
+  // Live socket updates
+  useEffect(() => {
+    const socket = initAlertsSocket(`${apiUrl}/alerts/stream`, (incoming) => {
+      setAlerts((prev) => [incoming, ...prev]);
+      if (tab === "ALL" || incoming.severity === tab) {
+        setFiltered((prev) => [incoming, ...prev]);
+      }
     });
 
-    return () => socket.disconnect();
-  }, []);
+    return () => socket.close();
+  }, [apiUrl, tab]);
 
-  // Filtering logic
+  // Filter by severity tab
   useEffect(() => {
-    let result = [...alerts];
-
-    if (tab !== "ALL") {
-      result = result.filter(a => a.riskLevel === tab);
+    if (tab === "ALL") {
+      setFiltered(alerts);
+    } else {
+      setFiltered(alerts.filter((a) => a.severity === tab));
     }
-
-    if (severity !== "ALL") {
-      result = result.filter(a => a.riskLevel === severity);
-    }
-
-    if (type !== "ALL") {
-      result = result.filter(a => a.type === type);
-    }
-
-    if (search.trim()) {
-      result = result.filter(a =>
-        a.type.toLowerCase().includes(search.toLowerCase()) ||
-        a.source.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    setFiltered(result);
-  }, [alerts, tab, search, severity, type]);
+  }, [tab, alerts]);
 
   return (
-    <div className="bg-white border rounded shadow p-6 space-y-6">
-      <h2 className="text-xl font-bold">Alert Center</h2>
+    <div className="gx-card p-6 rounded-xl">
+      <h2 className="text-xl font-bold gx-text-primary mb-4">Alert Center</h2>
 
-      <AlertTabs tab={tab} setTab={setTab} />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <AlertSearch search={search} setSearch={setSearch} />
-        <AlertFilters severity={severity} setSeverity={setSeverity} type={type} setType={setType} />
+      <div className="flex gap-3 mb-4">
+        {["ALL", "HIGH", "MEDIUM", "LOW", "INFO"].map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t as typeof tab)}
+            className={`px-3 py-1 rounded-lg text-sm ${
+              tab === t ? "bg-white text-black" : "bg-white/10 text-white"
+            }`}
+          >
+            {t}
+          </button>
+        ))}
       </div>
 
+      <AlertFilters alerts={alerts} onFilter={setFiltered} />
       <AlertList alerts={filtered} />
     </div>
   );

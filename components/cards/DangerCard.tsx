@@ -1,12 +1,16 @@
-export default function DangerCard({ message }) {
+"use client";
+
+interface DangerCardProps {
+  message: string;
+}
+
+export default function DangerCard({ message }: DangerCardProps) {
   return (
     <div className="bg-surface border border-danger rounded-md p-5 shadow-card">
       <div className="flex items-center gap-3">
-        <div className="h-2 w-2 rounded-full bg-danger"></div>
-        <span className="text-danger font-medium">Transaction Failed</span>
+        <div className="text-danger font-semibold text-lg">⚠️</div>
+        <div className="text-textPrimary text-sm">{message}</div>
       </div>
-
-      <p className="text-textSecondary text-sm mt-2">{message}</p>
     </div>
   );
 }

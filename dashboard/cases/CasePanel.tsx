@@ -1,29 +1,51 @@
-"use client"
+"use client";
+
 import { useEffect, useState } from "react";
 
-export default function CasePanel({ ownerId, apiUrl }) {
-  const [cases, setCases] = useState([]);
+interface CasePanelProps {
+  ownerId: string;
+  apiUrl: string;
+}
+
+interface Case {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+}
+
+export default function CasePanel({ ownerId, apiUrl }: CasePanelProps) {
+  const [cases, setCases] = useState<Case[]>([]);
 
   useEffect(() => {
-    fetch(`${apiUrl}/cases/owner/${ownerId}`)
-      .then(res => res.json())
-      .then(setCases);
-  }, [ownerId]);
+    async function fetchCases() {
+      try {
+        const res = await fetch(`${apiUrl}/cases?ownerId=${ownerId}`);
+        const data = await res.json();
+        setCases(data);
+      } catch (err) {
+        console.error("Failed to fetch cases:", err);
+      }
+    }
+
+    fetchCases();
+  }, [ownerId, apiUrl]);
 
   return (
-    <div className="gx-card p-6 mt-6">
-      <h2 className="text-xl font-bold mb-3">Cases</h2>
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">Cases</h2>
 
-      {cases.length === 0 && (
-        <p className="gx-text-muted">No cases found.</p>
-      )}
-
-      {cases.map(c => (
-        <div key={c.id} className="border-b border-gray-700 py-2">
-          <p className="font-semibold">Case #{c.id}</p>
-          <p>Status: {c.status}</p>
-        </div>
-      ))}
+      <ul className="space-y-2">
+        {cases.map((c) => (
+          <li key={c.id} className="p-3 bg-white/10 rounded">
+            <p className="font-semibold">{c.title}</p>
+            <p className="text-sm text-gray-400">{c.status}</p>
+            <p className="text-xs text-gray-500">
+              {new Date(c.createdAt).toLocaleString()}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

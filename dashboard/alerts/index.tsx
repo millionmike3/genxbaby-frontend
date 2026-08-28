@@ -1,13 +1,20 @@
-// src/dashboard/index.tsx
+"use client";
+
 import AlertsPanel from "./AlertsPanel";
 
-export default function Dashboard({ user }) {
+interface DashboardProps {
+  user: {
+    id: string;
+    name: string;
+    email?: string;
+    apiUrl: string;   // ← REQUIRED
+  };
+}
+
+export default function Dashboard({ user }: DashboardProps) {
   return (
     <div className="p-6">
-      <AlertsPanel
-        apiUrl="https://your-api-url"
-        ownerId={user.ownerId}
-      />
+      <AlertsPanel apiUrl={user.apiUrl} ownerId={user.id} />
     </div>
   );
 }

@@ -46,7 +46,7 @@ model Position {
 
 model Check {
   id            String    @id @default(uuid())
-  checkNumber   String
+  checkNumber   String    @unique // REQUIRED for findUnique
   amount        Int
   memo          String?
   payee         String?
@@ -59,31 +59,52 @@ model Check {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // ⭐ Added field — this is the correct placement
-  pdfUrl        String?
+  pdfUrl String?
 
   bankProfile BankProfile? @relation(fields: [bankProfileId], references: [id])
- 
-  fraudFlags   FraudFlag[]
+  signer      Signer?      @relation(fields: [signerId], references: [id])
+
+  fraudFlags FraudFlag[]
+  sar        SuspiciousActivityReport[]
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
   action    String
+  actor     String?
+  target    String?
   details   String?
   adminId   Int?
+  metadata  Json?
   createdAt DateTime @default(now())
 
   user User? @relation(fields: [adminId], references: [id])
 }
 
 model Lead {
-  id        String   @id @default(uuid())
-  name      String
-  email     String?
-  createdAt DateTime @default(now())
-
+  id              String           @id @default(uuid())
+  name            String
+  email           String?
+  createdAt       DateTime         @default(now())
+  scores          Json? // <--- Add this
   contactAttempts ContactAttempt[]
+  leadEvents      LeadEvent[] // <-- REQUIRED opposite relation
+}
+
+model LeadEvent {
+  id             String   @id @default(uuid())
+  leadId         String
+  eventType      String
+  page           String?
+  element        String?
+  description    String?
+  timestamp      DateTime @default(now())
+  responseTimeMs Int?
+  lateNight      Boolean?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id])
 }
 
 model ContactAttempt {
@@ -91,6 +112,9 @@ model ContactAttempt {
   leadId    String
   timestamp DateTime @default(now())
   notes     String?
+
+  channel String?
+  outcome String?
 
   lead Lead @relation(fields: [leadId], references: [id])
 }
@@ -100,10 +124,16 @@ model BankProfile {
   bankName        String
   routingNumber   String
   accountNumber   String
+  accountType     String?
+  signerName      String?
   nextCheckNumber Int      @default(1)
   createdAt       DateTime @default(now())
 
-  checks Check[]
+  signatureImage String?
+  signatureUrl   String?
+
+  checks  Check[]
+  signers Signer[]
 }
 
 model Investor {
@@ -112,10 +142,14 @@ model Investor {
   email     String?
   phone     String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  behavior   InvestorBehavior[]
-  investorPotentialScore Int      @default(0)
-  investorPotentialBand  String   @default("low")
+  investorPotentialScore Int    @default(0)
+  investorPotentialBand  String @default("low")
+
+  notes     String? // <-- ADD THIS
+  // 🔥 ADD THIS — opposite side of the relation
+  behaviors InvestorBehavior[]
 }
 
 model InvestorBehavior {
@@ -143,16 +177,19 @@ model Audit {
   adminId Int?
   admin   User? @relation(fields: [adminId], references: [id])
 }
+
 model FraudFlag {
   id        String   @id @default(uuid())
-  reason    String
   createdAt DateTime @default(now())
-
+  reason    String
+  message   String
+  severity  String // "critical" | "warning" | "info"
+  checkId   String
   resolved  Boolean  @default(false)
 
-  checkId   String
-  check     Check    @relation(fields: [checkId], references: [id])
+  check Check @relation(fields: [checkId], references: [id])
 }
+
 model PipelineDeal {
   id        String   @id @default(uuid())
   name      String?
@@ -160,4 +197,43 @@ model PipelineDeal {
   createdAt DateTime @default(now())
 }
 
+model SuspiciousActivityReport {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  description String?
+  category    String?
+  severity    String?
+
+  flagId String?
+  flag   SarFlag? @relation(fields: [flagId], references: [id])
+
+  checkId String?
+  check   Check?  @relation(fields: [checkId], references: [id])
+}
+
+model SarFlag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+  sar  SuspiciousActivityReport[]
+}
+
+model Signer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name           String
+  title          String?
+  signatureImage String?
+  signatureUrl   String?
+
+  bankProfileId Int
+  bankProfile   BankProfile @relation(fields: [bankProfileId], references: [id])
+
+  checks Check[] // Correct relation name
+}

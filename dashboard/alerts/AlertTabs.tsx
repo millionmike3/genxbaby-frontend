@@ -1,16 +1,21 @@
-"use client"
+"use client";
 
-export default function AlertTabs({ tab, setTab }) {
+interface AlertTabsProps {
+  tab: string;
+  setTab: (value: string) => void;
+}
+
+export default function AlertTabs({ tab, setTab }: AlertTabsProps) {
   const tabs = ["ALL", "HIGH", "MEDIUM", "LOW"];
 
   return (
-    <div className="flex space-x-3 border-b pb-2">
-      {tabs.map(t => (
+    <div className="flex gap-2 mb-4">
+      {tabs.map((t) => (
         <button
           key={t}
           onClick={() => setTab(t)}
-          className={`px-3 py-1 rounded font-semibold ${
-            tab === t ? "bg-blue-600 text-white" : "text-gray-600"
+          className={`px-3 py-1 rounded ${
+            tab === t ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
           }`}
         >
           {t}

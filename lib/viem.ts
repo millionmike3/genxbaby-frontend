@@ -7,8 +7,17 @@ export const publicClient = createPublicClient({
   transport: http(process.env.NEXT_PUBLIC_RPC_URL!),
 });
 
-const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY!;
+// Ensure ADMIN_PRIVATE_KEY is a hex string
+const rawKey = process.env.ADMIN_PRIVATE_KEY;
+if (!rawKey) {
+  throw new Error("ADMIN_PRIVATE_KEY is missing from environment variables");
+}
+if (!rawKey.startsWith("0x")) {
+  throw new Error("ADMIN_PRIVATE_KEY must start with 0x");
+}
+const adminPrivateKey = rawKey as `0x${string}`;
 const adminAccount = privateKeyToAccount(adminPrivateKey);
+
 
 export const walletClient = createWalletClient({
   chain: polygonAmoy,

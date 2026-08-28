@@ -10,7 +10,10 @@ export default async function anchorMerkleRoot(merkleRoot: string) {
     // Send transaction to the CheckRegistry contract
     const txHash = await walletClient.sendTransaction({
       to: process.env.CHECK_REGISTRY_ADDRESS as `0x${string}`,
-      data: merkleRoot, // Merkle root already encoded as hex string
+      data: merkleRoot.startsWith("0x")
+     ? (merkleRoot as `0x${string}`)
+     : (`0x${merkleRoot}` as `0x${string}`),
+     // Merkle root already encoded as hex string
     });
 
     return {

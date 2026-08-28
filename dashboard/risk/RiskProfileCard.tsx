@@ -1,53 +1,64 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 
-export default function RiskProfileCard({ apiUrl }) {
-  const [profile, setProfile] = useState(null);
+interface RiskProfileCardProps {
+  apiUrl: string;
+}
+
+interface RiskProfile {
+  id: string;
+  name: string;
+  score: number;
+  level: "HIGH" | "MEDIUM" | "LOW";
+  [key: string]: any;
+}
+
+export default function RiskProfileCard({ apiUrl }: RiskProfileCardProps) {
+  const [profile, setProfile] = useState<RiskProfile | null>(null);
 
   useEffect(() => {
-    fetch(`${apiUrl}/dashboard/ai/risk-profile`)
-      .then((r) => r.json())
-      .then((data) => setProfile(data));
-  }, []);
+    async function loadProfile() {
+      try {
+        const res = await fetch(`${apiUrl}/dashboard/ai/risk-profile`);
+        const json: RiskProfile = await res.json();
+        setProfile(json);
+      } catch (err) {
+        console.error("Failed to load risk profile:", err);
+      }
+    }
+
+    loadProfile();
+  }, [apiUrl]);
 
   if (!profile) {
-    return <div className="p-4 bg-white border rounded shadow">Loading risk profile…</div>;
+    return (
+      <div className="gx-card p-6">
+        <h2 className="text-lg font-bold">Risk Profile</h2>
+        <p>Loading risk profile...</p>
+      </div>
+    );
   }
 
-  const colors = {
-    HIGH: "bg-red-600 text-white",
-    MEDIUM: "bg-yellow-500 text-black",
-    LOW: "bg-green-600 text-white",
-  };
-
   return (
-    <div className="bg-white border rounded shadow p-6 space-y-4">
-      <h2 className="text-xl font-bold">Owner Risk Profile</h2>
-
-      <div className={`px-4 py-2 rounded font-bold inline-block ${colors[profile.riskLevel]}`}>
-        {profile.riskLevel} Risk
-      </div>
-
-      <p className="text-gray-700">{profile.summary}</p>
-
-      <div>
-        <h3 className="font-semibold mb-2">Recent Alerts</h3>
-        <ul className="list-disc ml-5 text-sm text-gray-600">
-          {profile.recentAlerts.map((a) => (
-            <li key={a.id}>{a.type.replace(/_/g, " ")}</li>
-          ))}
-        </ul>
-      </div>
-
-      <div>
-        <h3 className="font-semibold mb-2">Top Fraud Drivers</h3>
-        <ul className="list-disc ml-5 text-sm text-gray-600">
-          {profile.topDrivers.map((d) => (
-            <li key={d.id}>Check #{d.check.id} — Score {d.score}</li>
-          ))}
-        </ul>
-      </div>
+    <div className="gx-card p-6">
+      <h2 className="text-lg font-bold mb-4">Risk Profile</h2>
+      <p className="mb-2">Name: {profile.name}</p>
+      <p className="mb-2">Score: {profile.score}</p>
+      <p className="mb-2">
+        Level:{" "}
+        <span
+          className={
+            profile.level === "HIGH"
+              ? "text-red-600 font-bold"
+              : profile.level === "MEDIUM"
+              ? "text-yellow-600 font-bold"
+              : "text-green-600 font-bold"
+          }
+        >
+          {profile.level}
+        </span>
+      </p>
     </div>
   );
 }

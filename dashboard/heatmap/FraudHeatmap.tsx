@@ -1,24 +1,33 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import { Chart, registerables } from "chart.js";
+
 Chart.register(...registerables);
 
-export default function FraudHeatmap({ apiUrl }) {
-  const [data, setData] = useState({});
+interface FraudHeatmapProps {
+  apiUrl: string;
+}
+
+type HeatmapData = Record<string, number>;
+
+export default function FraudHeatmap({ apiUrl }: FraudHeatmapProps) {
+  const [data, setData] = useState<HeatmapData>({});
   const canvasId = "fraud-heatmap";
 
   useEffect(() => {
     fetch(`${apiUrl}/dashboard/ai/fraud-heatmap`)
       .then((r) => r.json())
-      .then((map) => {
+      .then((map: HeatmapData) => {
         setData(map);
         renderHeatmap(map);
-      });
-  }, []);
+      })
+      .catch((err) => console.error("Failed to load fraud heatmap:", err));
+  }, [apiUrl]);
 
-  function renderHeatmap(map) {
-    const ctx = document.getElementById(canvasId);
+  function renderHeatmap(map: HeatmapData) {
+    const ctx = document.getElementById(canvasId) as HTMLCanvasElement | null;
+    if (!ctx) return;
 
     const labels = Object.keys(map);
     const values = Object.values(map);
@@ -32,9 +41,9 @@ export default function FraudHeatmap({ apiUrl }) {
             label: "Fraud Density",
             data: values,
             backgroundColor: values.map((v) =>
-              v >= 6 ? "#dc2626" :      // HIGH (red)
-              v >= 3 ? "#f59e0b" :      // MEDIUM (yellow)
-                       "#16a34a"        // LOW (green)
+              v >= 6 ? "#dc2626" : // HIGH (red)
+              v >= 3 ? "#f59e0b" : // MEDIUM (yellow)
+                       "#16a34a"   // LOW (green)
             ),
           },
         ],

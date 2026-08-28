@@ -1,20 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
-export default function CheckTable({ checks, banks }) {
+interface CheckTableProps {
+  checks: {
+    id: string;
+    checkNumber: string;
+    amount: number;
+    memo?: string | null;
+    payee?: string | null;
+    createdAt: Date;
+    bankProfile?: {
+      id: number;
+      bankName: string;
+    } | null;
+  }[];
+  banks: {
+    id: number;
+    bankName: string;
+  }[];
+}
+
+export default function CheckTable({ checks, banks }: CheckTableProps) {
   const [search, setSearch] = useState("");
   const [bankFilter, setBankFilter] = useState("all");
 
   const filtered = checks.filter((c) => {
     const matchesSearch =
-      c.payee.toLowerCase().includes(search.toLowerCase()) ||
-      (c.memo || "").toLowerCase().includes(search.toLowerCase()) ||
-      String(c.checkNo).includes(search);
+      c.payee?.toLowerCase().includes(search.toLowerCase()) ||
+      c.memo?.toLowerCase().includes(search.toLowerCase()) ||
+      c.checkNumber.includes(search);
 
     const matchesBank =
-      bankFilter === "all" ? true : c.bankId === Number(bankFilter);
+      bankFilter === "all"
+        ? true
+        : c.bankProfile?.id === Number(bankFilter);
 
     return matchesSearch && matchesBank;
   });
@@ -54,34 +74,25 @@ export default function CheckTable({ checks, banks }) {
               <th className="p-2">Amount</th>
               <th className="p-2">Bank</th>
               <th className="p-2">Issued</th>
-              <th className="p-2">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {filtered.map((c) => (
               <tr key={c.id} className="border-t">
-                <td className="p-2">{c.checkNo}</td>
+                <td className="p-2">{c.checkNumber}</td>
                 <td className="p-2">{c.payee}</td>
                 <td className="p-2">${c.amount.toFixed(2)}</td>
-                <td className="p-2">{c.bank.bankName}</td>
+                <td className="p-2">{c.bankProfile?.bankName ?? "—"}</td>
                 <td className="p-2">
                   {new Date(c.createdAt).toLocaleString()}
-                </td>
-                <td className="p-2">
-                  <Link
-                    href={`/verify/check/${c.checkNo}`}
-                    className="text-blue-600 underline"
-                  >
-                    Verify
-                  </Link>
                 </td>
               </tr>
             ))}
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-4 text-center text-gray-500">
+                <td colSpan={5} className="p-4 text-center text-gray-500">
                   No checks found.
                 </td>
               </tr>

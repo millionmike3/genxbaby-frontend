@@ -1,53 +1,55 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import OwnerDrawer from "./OwnerDrawer";
 
-export default function OwnersPage({ apiUrl }) {
-  const [owners, setOwners] = useState([]);
-  const [selected, setSelected] = useState(null);
+interface OwnersPageProps {
+  apiUrl: string;
+}
+
+interface Owner {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export default function OwnersPage({ apiUrl }: OwnersPageProps) {
+  const [owners, setOwners] = useState<Owner[]>([]);
+  const [selected, setSelected] = useState<Owner | null>(null);
 
   useEffect(() => {
-    fetch(`${apiUrl}/owners`)
-      .then(res => res.json())
-      .then(setOwners);
-  }, []);
+    async function loadOwners() {
+      try {
+        const res = await fetch(`${apiUrl}/dashboard/ai/owners`);
+        const json: Owner[] = await res.json();
+        setOwners(json);
+      } catch (err) {
+        console.error("Failed to load owners:", err);
+      }
+    }
+
+    loadOwners();
+  }, [apiUrl]);
 
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold mb-4">Owners</h2>
-
-      <table className="w-full text-left">
-        <thead>
-          <tr className="text-gray-400">
-            <th>Name</th>
-            <th>Email</th>
-            <th>Risk</th>
-            <th>Fraud</th>
-            <th>Synthetic</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {owners.map(o => (
-            <tr
-              key={o.id}
-              className="border-b border-gray-700 hover:bg-white/5 cursor-pointer"
-              onClick={() => setSelected(o.id)}
+      <ul className="space-y-2">
+        {owners.map((owner) => (
+          <li key={owner.id}>
+            <button
+              onClick={() => setSelected(owner)}
+              className="w-full text-left px-3 py-2 rounded hover:bg-gray-100"
             >
-              <td>{o.fullName}</td>
-              <td>{o.email}</td>
-              <td>{o.riskScore}</td>
-              <td>{o.fraudScore}</td>
-              <td>{o.syntheticScore}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {owner.name} <span className="gx-text-muted">({owner.email})</span>
+            </button>
+          </li>
+        ))}
+      </ul>
 
       {selected && (
         <OwnerDrawer
-          ownerId={selected}
+          ownerId={selected.id}
           apiUrl={apiUrl}
           onClose={() => setSelected(null)}
         />

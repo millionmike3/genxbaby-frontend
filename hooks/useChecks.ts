@@ -1,20 +1,29 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 
-export function useChecks(bankProfileId?: string) {
-  const [checks, setChecks] = useState([]);
-  const [loading, setLoading] = useState(true);
+export function useChecks(bankProfileId: string) {
+  const [checks, setChecks] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function load() {
-      setLoading(true);
-      const res = await api.get('/checks', {
-        params: { bankProfileId },
-      });
-      setChecks(res.data);
-      setLoading(false);
+      try {
+        setLoading(true);
+
+        // Build query string manually because fetch has no "params"
+        const query = bankProfileId
+          ? `/checks?bankProfileId=${bankProfileId}`
+          : `/checks`;
+
+        const res = await api(query); // fetch wrapper, no .get()
+        setChecks(res);
+      } catch (err) {
+        console.error("Failed to load checks:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     load();

@@ -1,33 +1,32 @@
-import { useChecks } from '@/hooks/useChecks';
+import { CheckHistoryItem } from "./history/types";
 
-export default function ChecksPage() {
-  const { checks, loading } = useChecks();
+export default async function ChecksPage() {
+  // Fetch checks from your API
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/checks`, {
+    cache: "no-store",
+  });
 
-  if (loading) return <div>Loading...</div>;
+  const checks: CheckHistoryItem[] = await res.json();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Checks</h1>
-      <table className="w-full border">
-        <thead>
-          <tr>
-            <th>Check #</th>
-            <th>Payee</th>
-            <th>Amount</th>
-            <th>Status</th>
+    <table className="min-w-full border">
+      <thead>
+        <tr>
+          <th className="border px-4 py-2">Check #</th>
+          <th className="border px-4 py-2">Payee</th>
+          <th className="border px-4 py-2">Amount</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {checks.map((c) => (
+          <tr key={c.id}>
+            <td className="border px-4 py-2">{c.checkNumber}</td>
+            <td className="border px-4 py-2">{c.payee}</td>
+            <td className="border px-4 py-2">${c.amount}</td>
           </tr>
-        </thead>
-        <tbody>
-          {checks.map((c) => (
-            <tr key={c.id}>
-              <td>{c.checkNumber}</td>
-              <td>{c.payee}</td>
-              <td>${c.amount}</td>
-              <td>{c.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 }

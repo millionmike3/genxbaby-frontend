@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export default function LeadImporter() {
+interface LeadImporterProps {
+  onImported: () => Promise<void>;
+}
+
+export default function LeadImporter({ onImported }: LeadImporterProps) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,6 +30,10 @@ export default function LeadImporter() {
 
     if (data.success) {
       setMessage(`Imported ${data.count || 0} leads.`);
+
+      // 🔥 THIS IS THE IMPORTANT PART
+      // Refresh the leads list in the parent page
+      await onImported();
     } else {
       setMessage("Import failed.");
     }
@@ -33,7 +41,9 @@ export default function LeadImporter() {
 
   return (
     <div className="gx-card p-6 rounded-xl mb-6">
-      <h2 className="text-xl font-bold gx-text-primary mb-4">Import Leads (CSV)</h2>
+      <h2 className="text-xl font-bold gx-text-primary mb-4">
+        Import Leads (CSV)
+      </h2>
 
       <input
         type="file"

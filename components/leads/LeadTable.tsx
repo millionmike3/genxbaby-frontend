@@ -1,4 +1,11 @@
-export default function LeadTable({ leads }) {
+"use client";
+
+interface LeadTableProps {
+  leads: any[];
+  filters: Record<string, any>;
+}
+
+export default function LeadTable({ leads, filters }: LeadTableProps) {
   return (
     <div className="gx-card p-6 rounded-xl">
       <table className="w-full text-left">

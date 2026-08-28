@@ -1,38 +1,60 @@
 "use client";
 
-export default function CheckThumbnail({ check }) {
+interface CheckThumbnailProps {
+  check: {
+    id: string;
+    checkNumber: string;
+    amount: number;
+    memo?: string | null;
+    payee: string | null;
+    date: string | Date | null;
+    status: string;
+    createdAt: string | Date;
+
+    signer?: {
+      id: string;
+      name: string;
+      title?: string | null;
+      signatureImage?: string | null;
+    } | null;
+
+    bankProfile: {
+      id: number;
+      createdAt: Date;
+      bankName: string;
+      routingNumber: string;
+      accountNumber: string;
+      nextCheckNumber: number;
+      accountType: string | null;
+      signerName: string | null;
+      signatureImage: string | null;
+      signatureUrl: string | null;
+    } | null;
+
+       fraudFlags: {
+       id: string;
+       createdAt: Date;
+       reason: string;
+       severity: "critical" | "warning" | "info";
+       checkId: string;
+       resolved: boolean;
+       }[];
+
+  };
+}
+
+export default function CheckThumbnail({ check }: CheckThumbnailProps) {
   return (
     <div className="border rounded bg-white shadow-sm p-3 w-48 text-xs">
-      <p className="font-bold text-sm">{check.bankProfile.bankName}</p>
-
-      <div className="flex justify-between text-gray-700 mt-1">
-        <span>Routing:</span>
-        <span>{check.bankProfile.routingNumber}</span>
-      </div>
-
-      <div className="flex justify-between text-gray-700">
-        <span>Account:</span>
-        <span>{check.bankProfile.accountNumber}</span>
-      </div>
-
-      <hr className="my-2" />
-
-      <p>
-        <strong>Payee:</strong> {check.payee}
+      <p className="font-bold text-sm">
+        {check.bankProfile?.bankName ?? "N/A"}
       </p>
 
-      <p>
-        <strong>Amount:</strong> ${check.amount.toFixed(2)}
-      </p>
+      <p>#{check.checkNumber}</p>
 
-      <p>
-        <strong>Date:</strong> {check.date}
-      </p>
+      <p>{check.payee ?? "N/A"}</p>
 
-      <p className="font-mono text-xs mt-2">
-        MICR: {check.bankProfile.routingNumber} • {check.bankProfile.accountNumber} • {check.checkNumber}
-      </p>
+      <p>${check.amount.toFixed(2)}</p>
     </div>
   );
 }
-

@@ -4,7 +4,7 @@ export function generateBatchChecksPdf(checks: Array<any>) {
   const doc = new PDFDocument({ size: "LETTER", margin: 40 });
   const chunks: Uint8Array[] = [];
 
-  doc.on("data", (chunk) => chunks.push(chunk));
+  doc.on("data", (chunk: Uint8Array) => chunks.push(chunk));
   doc.on("end", () => {});
 
   doc.fontSize(20).text("Batch Check Packet", { align: "center" });

@@ -6,11 +6,17 @@ import LeadTimeline from "@/components/leads/LeadTimeline";
 import LeadDetailHeader from "@/components/leads/LeadDetailHeader";
 import LeadContactPanel from "@/components/leads/LeadContactPanel";
 
-export default function LeadDetailPage({ params }) {
+interface LeadDetailPageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default function LeadDetailPage({ params }: LeadDetailPageProps) {
   const { id } = params;
 
-  const [lead, setLead] = useState(null);
-  const [events, setEvents] = useState([]);
+  const [lead, setLead] = useState<any>(null);
+  const [events, setEvents] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchLead() {
@@ -34,9 +40,9 @@ export default function LeadDetailPage({ params }) {
   return (
     <div className="px-6 py-10 space-y-10">
       <LeadDetailHeader lead={lead} />
-<LeadContactPanel leadId={id} />
-<LeadScoreCard lead={lead} />
-<LeadTimeline events={events} />
+      <LeadContactPanel leadId={id} />
+      <LeadScoreCard lead={lead} />
+      <LeadTimeline events={events} />
     </div>
   );
 }

@@ -50,10 +50,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const docs = body.documents;
+    const docs: Array<string | Record<string, any>> = body.documents;
 
     // Normalize + hash each leaf
-    const leaves = docs.map((doc) => {
+    const leaves = docs.map((doc: string | Record<string, any>) => {
       const normalized =
         typeof doc === "string"
           ? doc

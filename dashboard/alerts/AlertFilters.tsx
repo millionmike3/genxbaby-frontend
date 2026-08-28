@@ -1,27 +1,39 @@
-export default function AlertFilters({ severity, setSeverity, type, setType }) {
-  return (
-    <div className="flex space-x-3">
-      <select
-        value={severity}
-        onChange={(e) => setSeverity(e.target.value)}
-        className="border rounded px-3 py-2 w-full"
-      >
-        <option value="ALL">All Severity</option>
-        <option value="HIGH">High</option>
-        <option value="MEDIUM">Medium</option>
-        <option value="LOW">Low</option>
-      </select>
+"use client";
 
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        className="border rounded px-3 py-2 w-full"
-      >
-        <option value="ALL">All Types</option>
-        <option value="CHECK_HIGH_RISK">Check High Risk</option>
-        <option value="DOCUMENT_HIGH_RISK">Document High Risk</option>
-        <option value="OWNER_RISK_SPIKE">Owner Risk Spike</option>
-      </select>
+interface Alert {
+  id: string;
+  severity: "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  type: string;
+  message: string;
+  timestamp: string;
+}
+
+
+interface AlertFiltersProps {
+  alerts: Alert[];
+  onFilter: (filtered: Alert[]) => void;
+}
+
+export default function AlertFilters({ alerts, onFilter }: AlertFiltersProps) {
+  function filterBySeverity(sev: string) {
+    if (sev === "ALL") {
+      onFilter(alerts);
+    } else {
+      onFilter(alerts.filter((a) => a.severity === sev));
+    }
+  }
+
+  return (
+    <div className="gx-card p-4 rounded-xl mb-4 flex gap-3">
+      {["ALL", "HIGH", "MEDIUM", "LOW", "INFO"].map((sev) => (
+        <button
+          key={sev}
+          onClick={() => filterBySeverity(sev)}
+          className="px-3 py-1 rounded-lg bg-white/10 text-white text-sm"
+        >
+          {sev}
+        </button>
+      ))}
     </div>
   );
 }

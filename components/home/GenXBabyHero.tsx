@@ -1,36 +1,55 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants, MotionProps } from "framer-motion";
+
+// -------------------------------------------------------------
+// ANIMATION VARIANTS (Framer Motion v11 strict‑mode safe)
+// -------------------------------------------------------------
+
+const container: Variants = {
+  hidden: { opacity: 0, y: 80 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      stiffness: 90,
+      damping: 18
+    }
+  }
+};
+
+const fastTitle: Variants = {
+  hidden: { opacity: 0, x: -120, skewX: -12 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    skewX: 0,
+    transition: {
+      stiffness: 140,
+      damping: 16
+    }
+  }
+};
+
+// Pulse animation — MUST be typed as MotionProps
+const xPulse: MotionProps = {
+  initial: { scale: 1, rotate: 0 },
+  animate: {
+    scale: [1, 1.2, 1],
+    rotate: [0, 6, -6, 0],
+    transition: {
+      repeat: Infinity,
+      duration: 3.2,
+      ease: "easeInOut"
+    }
+  }
+};
+
+// -------------------------------------------------------------
+// COMPONENT
+// -------------------------------------------------------------
 
 export default function GenXBabyHero() {
-  const container = {
-    hidden: { opacity: 0, y: 80 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { type: "spring", stiffness: 90, damping: 18 },
-    },
-  };
-
-  const fastTitle = {
-    hidden: { opacity: 0, x: -120, skewX: -12 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      skewX: 0,
-      transition: { type: "spring", stiffness: 140, damping: 16 },
-    },
-  };
-
-  const xPulse = {
-    initial: { scale: 1, rotate: 0 },
-    animate: {
-      scale: [1, 1.2, 1],
-      rotate: [0, 6, -6, 0],
-      transition: { repeat: Infinity, duration: 3.2, ease: "easeInOut" },
-    },
-  };
-
   return (
     <section className="relative w-full min-h-[70vh] flex items-center justify-center px-6 py-20 bg-black text-white overflow-hidden">
 
@@ -39,7 +58,12 @@ export default function GenXBabyHero() {
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F2933" strokeWidth="0.5" />
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="#1F2933"
+                strokeWidth="0.5"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -49,13 +73,15 @@ export default function GenXBabyHero() {
       {/* Glow Overlay */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(60,244,107,0.18),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(0,140,255,0.18),_transparent_60%)]" />
 
+      {/* MAIN CONTAINER */}
       <motion.div
         className="max-w-4xl text-center flex flex-col items-center"
         variants={container}
         initial="hidden"
         animate="visible"
       >
-        {/* Title */}
+
+        {/* TITLE */}
         <motion.h1
           className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-[0.25em] uppercase flex items-center justify-center gap-3"
           variants={fastTitle}
@@ -64,9 +90,7 @@ export default function GenXBabyHero() {
 
           <motion.span
             className="relative inline-flex items-center justify-center text-[#9DD431]"
-            variants={xPulse}
-            initial="initial"
-            animate="animate"
+            {...xPulse}
           >
             <span className="absolute inset-0 blur-xl bg-[conic-gradient(from_120deg,_#9DD431,_#6D5AAC,_#008CFF,_#3CF46B,_#9DD431)] opacity-70" />
             <span className="relative z-10 text-7xl font-black">X</span>
@@ -75,7 +99,7 @@ export default function GenXBabyHero() {
           <span className="text-gray-200">BABY</span>
         </motion.h1>
 
-        {/* Subtitle */}
+        {/* SUBTITLE */}
         <motion.h2
           className="mt-4 text-xl sm:text-2xl font-semibold tracking-wide text-[#9DD431]"
           initial={{ opacity: 0, y: 20 }}
@@ -85,7 +109,7 @@ export default function GenXBabyHero() {
           Institutional‑Grade Fintech Operating System
         </motion.h2>
 
-        {/* Subtext */}
+        {/* SUBTEXT */}
         <motion.p
           className="mt-4 text-lg text-gray-400 max-w-2xl leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
@@ -97,7 +121,7 @@ export default function GenXBabyHero() {
           <span className="text-[#9DD431] font-medium">Compliance‑Aligned</span>
         </motion.p>
 
-        {/* Divider */}
+        {/* DIVIDER */}
         <motion.div
           className="mt-8 w-28 h-[3px] bg-gradient-to-r from-[#9DD431] via-[#6D5AAC] to-[#008CFF] rounded-full"
           initial={{ scaleX: 0 }}
@@ -105,7 +129,7 @@ export default function GenXBabyHero() {
           transition={{ delay: 0.45 }}
         />
 
-        {/* Portal Buttons */}
+        {/* PORTAL BUTTONS */}
         <motion.div
           className="mt-10 flex flex-col sm:flex-row gap-4"
           initial={{ opacity: 0, y: 30 }}
@@ -137,4 +161,3 @@ export default function GenXBabyHero() {
     </section>
   );
 }
-

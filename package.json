@@ -14,6 +14,7 @@
     "@walletconnect/core": "^2.23.10",
     "@walletconnect/utils": "^2.23.10",
     "bcryptjs": "^3.0.3",
+    "d3": "^7.9.0",
     "framer-motion": "^12.43.0",
     "jose": "^6.2.6",
     "jsonwebtoken": "^9.0.3",
@@ -30,12 +31,15 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
+    "react-qr-code": "^2.2.0",
     "recharts": "^3.10.1",
     "viem": "^1.21.4",
     "wagmi": "^1.4.13"
   },
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.5.4",

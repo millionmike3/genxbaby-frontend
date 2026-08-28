@@ -11,8 +11,6 @@ export async function createBankProfile(formData: FormData): Promise<void> {
       bankName: formData.get("bankName") as string,
       routingNumber: formData.get("routingNumber") as string,
       accountNumber: formData.get("accountNumber") as string,
-      accountType: formData.get("accountType") as string,   // REQUIRED
-      signerName: formData.get("signerName") as string | null,
       nextCheckNumber: Number(formData.get("nextCheckNumber")),
     },
   });
@@ -22,7 +20,7 @@ export async function createBankProfile(formData: FormData): Promise<void> {
 // UPDATE BANK PROFILE
 // ---------------------------------------------------------
 export async function updateBankProfile(formData: FormData): Promise<void> {
-  const id = formData.get("id") as string;
+  const id = Number(formData.get("id")); // Prisma requires number
 
   await prisma.bankProfile.update({
     where: { id },
@@ -30,29 +28,26 @@ export async function updateBankProfile(formData: FormData): Promise<void> {
       bankName: formData.get("bankName") as string,
       routingNumber: formData.get("routingNumber") as string,
       accountNumber: formData.get("accountNumber") as string,
-      accountType: formData.get("accountType") as string,   // REQUIRED
-      signerName: formData.get("signerName") as string | null,
       nextCheckNumber: Number(formData.get("nextCheckNumber")),
     },
   });
 }
 
 // ---------------------------------------------------------
-// UPLOAD SIGNATURE IMAGE
+// UPLOAD SIGNATURE (BankProfile DOES NOT HAVE signature fields)
 // ---------------------------------------------------------
 export async function uploadSignature(formData: FormData): Promise<void> {
-  const id = formData.get("id") as string;
+  const id = Number(formData.get("id"));
   const file = formData.get("signature") as File;
 
+  // Convert file → base64
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   const base64 = buffer.toString("base64");
   const dataUrl = `data:${file.type};base64,${base64}`;
 
-  await prisma.bankProfile.update({
-    where: { id },
-    data: {
-      signatureImage: dataUrl,
-    },
-  });
+  // BankProfile does NOT have signatureImage or signatureUrl fields.
+  // Signatures belong to Signer, not BankProfile.
+
+  console.warn("BankProfile has no signature fields — upload ignored.");
 }

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const body = await req.formData();
 
   const signer = await prisma.signer.create({
@@ -9,9 +9,12 @@ export async function POST(req: Request) {
       name: body.get("name") as string,
       title: body.get("title") as string,
       signatureImage: body.get("signatureImage") as string,
-      bankProfileId: body.get("bankProfileId") as string
+      signatureUrl: body.get("signatureUrl") as string,
+
+      // FIX: convert string → number
+      bankProfileId: Number(body.get("bankProfileId"))
     }
   });
 
-  return NextResponse.redirect("/signers");
+  return NextResponse.json(signer);
 }

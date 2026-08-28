@@ -1,3 +1,5 @@
+// /lib/chains/polygonAmoy.ts
+
 import { defineChain } from "viem";
 
 export const polygonAmoy = defineChain({
@@ -11,6 +13,9 @@ export const polygonAmoy = defineChain({
   },
   rpcUrls: {
     default: {
+      http: ["https://rpc-amoy.polygon.technology"],
+    },
+    public: {
       http: ["https://rpc-amoy.polygon.technology"],
     },
   },

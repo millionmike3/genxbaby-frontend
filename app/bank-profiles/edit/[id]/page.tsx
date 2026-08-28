@@ -1,79 +1,29 @@
-export default async function EditBankProfilePage({ params }) {
+export default async function EditBankProfilePage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const backendUrl = process.env.BACKEND_URL;
 
-  const res = await fetch(`${backendUrl}/api/bank-profiles/details?id=${params.id}`, {
-    cache: "no-store"
-  });
+  const res = await fetch(
+    `${backendUrl}/api/bank-profiles/details?id=${params.id}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!res.ok) {
+    return <div className="p-10">Failed to load bank profile.</div>;
+  }
 
   const profile = await res.json();
 
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Edit Bank Profile</h1>
+    <div className="p-10 max-w-xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Edit Bank Profile</h1>
 
-      <form action="/api/bank-profiles/update" method="POST" className="space-y-4">
-        <input type="hidden" name="id" value={profile.id} />
-
-        <div>
-          <label className="block font-medium">Bank Name</label>
-          <input
-            name="bankName"
-            defaultValue={profile.bankName}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Routing Number</label>
-          <input
-            name="routingNumber"
-            defaultValue={profile.routingNumber}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Account Number</label>
-          <input
-            name="accountNumber"
-            defaultValue={profile.accountNumber}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block font-medium">Account Type</label>
-          <select
-            name="accountType"
-            defaultValue={profile.accountType}
-            className="border p-2 rounded w-full"
-            required
-          >
-            <option value="Operating">Operating</option>
-            <option value="Escrow">Escrow</option>
-            <option value="Business">Business</option>
-            <option value="Treasury">Treasury</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-medium">Next Check Number</label>
-          <input
-            name="nextCheckNumber"
-            type="number"
-            defaultValue={profile.nextCheckNumber}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
-          Update Bank Profile
-        </button>
-      </form>
+      {/* Render your edit form here */}
+      <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(profile, null, 2)}</pre>
     </div>
   );
 }
