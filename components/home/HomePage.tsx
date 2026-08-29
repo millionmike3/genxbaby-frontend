@@ -8,27 +8,39 @@ import DashboardPreview from "@/components/home/DashboardPreview";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gx-black via-[#0A0A0A] to-[#111111] text-white overflow-hidden">
+    <main className="min-h-screen w-full bg-black text-white overflow-hidden">
 
-      {/* Custom Hero */}
+      {/* SECTION 1 — HERO */}
       <GenXBabyHero />
 
-      {/* Motion Intro */}
-      <MotionIntro />
+      {/* SECTION 2 — MOTION INTRO */}
+      <section className="relative py-24 px-6 border-t border-white/10">
+        <div className="max-w-5xl mx-auto">
+          <MotionIntro />
+        </div>
+      </section>
 
-      {/* Portal Section */}
-      <PortalSection />
+      {/* SECTION 3 — ECOSYSTEM PORTALS */}
+      <section className="relative py-24 px-6 border-t border-white/10">
+        <PortalSection />
 
-      {/* Portal Row */}
-      <PortalRow />
+        <div className="mt-12 flex justify-center">
+          <PortalRow />
+        </div>
+      </section>
 
-      {/* Dashboard Preview */}
-      <DashboardPreview />
+      {/* SECTION 4 — PRODUCT PREVIEW */}
+      <section className="relative py-24 px-6 border-t border-white/10">
+        <div className="max-w-6xl mx-auto">
+          <DashboardPreview />
+        </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="py-10 text-center text-gx-grayMuted">
+      {/* SECTION 5 — FOOTER */}
+      <footer className="py-12 text-center text-gray-500 border-t border-white/10">
         © 2026 GenXBaby — All Rights Reserved
       </footer>
     </main>
   );
 }
+
