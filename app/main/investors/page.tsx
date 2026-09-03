@@ -1,4 +1,4 @@
-"use client";
+
 "use client";
 
 import { useState } from "react";
@@ -13,7 +13,6 @@ async function requestQuote(input: any) {
   return res.json();
 }
 
-import { useState } from "react";
 
 export default function InvestorsPage() {
   const [search, setSearch] = useState("");
