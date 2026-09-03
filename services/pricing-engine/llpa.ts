@@ -7,7 +7,7 @@ const LLPA_GRID: Record<LlpaGridKey, number> = {
   "700-80-owner-SFR-purchase": 0.25,
   "660-90-owner-SFR-purchase": 0.75,
   "620-95-owner-SFR-purchase": 1.50,
-  // ...expand as needed
+  // expand as needed
 };
 
 const STATE_OVERLAYS: Record<string, number> = {
@@ -17,11 +17,13 @@ const STATE_OVERLAYS: Record<string, number> = {
 };
 
 export function getLlpaAdjustment(input: LoanPricingInput, notes: string[]): number {
-  const bucketFico = bucketFico(input.fico);
-  const bucketLtv = bucketLtv(input.ltv);
-  const key: LlpaGridKey = `${bucketFico}-${bucketLtv}-${input.occupancy}-${input.propertyType}-${input.purpose}`;
+  const ficoBucket = bucketFico(input.fico);
+  const ltvBucket = bucketLtv(input.ltv);
+
+  const key: LlpaGridKey = `${ficoBucket}-${ltvBucket}-${input.occupancy}-${input.propertyType}-${input.purpose}`;
 
   let adj = LLPA_GRID[key] ?? 0;
+
   if (adj !== 0) {
     notes.push(`LLPA grid hit: ${key} → ${adj.toFixed(3)}`);
   }
@@ -32,7 +34,7 @@ export function getLlpaAdjustment(input: LoanPricingInput, notes: string[]): num
     notes.push(`State overlay for ${input.state}: ${overlay.toFixed(3)}`);
   }
 
-  return adj / 100; // convert bps to rate if you prefer; or keep as rate directly
+  return adj; // keep as raw rate adjustment
 }
 
 function bucketFico(fico: number): number {

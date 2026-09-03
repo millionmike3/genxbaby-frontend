@@ -2,6 +2,7 @@ import { getBehaviorAdjustment } from "./adjustments/behavior";
 import { getBluetoothAdjustment } from "./adjustments/bluetooth";
 import { getInvestorTierAdjustment } from "./adjustments/investor";
 import { correlatePricingBehavior } from "@/services/analytics-engine/correlation";
+import { getLlpaAdjustment } from "./llpa";
 
 import { LoanPricingInput } from "./types";
 

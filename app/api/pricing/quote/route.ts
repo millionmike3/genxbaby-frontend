@@ -6,7 +6,8 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   // Run pricing engine
-  const quote = priceLoan(body);
+  const quote = await priceLoan(body);
+
 
   // Log behavior event
   await prisma.behaviorEvent.create({

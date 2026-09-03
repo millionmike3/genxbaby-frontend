@@ -9,6 +9,8 @@ export type LoanPricingInput = {
   termMonths: number;
   state?: string;
   firstTimeHomebuyer?: boolean;
+   userId?: number;            // ⭐ ADD THIS ⭐
+  investorId?: number;        // optional but useful
 
   impulsivenessScore?: number;
   bluetoothPresent?: boolean;

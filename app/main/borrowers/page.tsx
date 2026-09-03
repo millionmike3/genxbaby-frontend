@@ -1,5 +1,6 @@
 "use client";
 
+import { LoanPricingInput } from "@/services/pricing-engine/types";
 import { useState } from "react";
 
 export default function BorrowersPage() {

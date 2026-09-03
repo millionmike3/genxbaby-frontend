@@ -188,6 +188,7 @@ model InvestorBehavior {
   timestamp  DateTime @default(now())
   notes      String?
   action      String
+  metadata    Json
 
   investor Investor @relation(fields: [investorId], references: [id])
 }
