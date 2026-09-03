@@ -2,7 +2,7 @@ import { requireRole } from "@/lib/authz";
 
 export default async function AdminHome() {
   // Enforce admin-only access
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["ADMIN", "admin"]);
 
   return (
     <div className="space-y-8">
@@ -12,7 +12,7 @@ export default async function AdminHome() {
           Admin Dashboard
         </h1>
         <p className="mt-2 text-slate-400 text-sm">
-          Welcome back, {session.userId}. System metrics and administrative tools are below.
+          Welcome back, {session.user?.id ?? "Admin"}. System metrics and administrative tools are below.
         </p>
       </div>
 

@@ -1,3 +1,15 @@
+enum Pillar {
+  STOCK_SANITIZER
+  CUSTOMER
+  INVESTOR
+}
+
+enum UserRole {
+  ADMIN
+  INVESTOR
+  BORROWER
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -17,10 +29,13 @@ model User {
   xp            Int      @default(0)
   created_at    DateTime @default(now())
 
-  borrowerDocs BorrowerDoc[]
-  positions    Position[]
-  auditLogs    AuditLog[]
-  audits       Audit[]
+  borrowerDocs     BorrowerDoc[]
+  positions        Position[]
+  auditLogs        AuditLog[]
+  audits           Audit[]
+  behaviorProfiles BehaviorProfile[]
+  behaviorEvents   BehaviorEvent[]
+  bluetoothEvents  BluetoothEvent[]
 }
 
 model BorrowerDoc {
@@ -86,9 +101,12 @@ model Lead {
   name            String
   email           String?
   createdAt       DateTime         @default(now())
-  scores          Json? // <--- Add this
+  scores          Json?
   contactAttempts ContactAttempt[]
-  leadEvents      LeadEvent[] // <-- REQUIRED opposite relation
+  leadEvents      LeadEvent[]
+
+  behaviorProfiles BehaviorProfile[]
+  behaviorEvents   BehaviorEvent[]
 }
 
 model LeadEvent {
@@ -147,9 +165,11 @@ model Investor {
   investorPotentialScore Int    @default(0)
   investorPotentialBand  String @default("low")
 
-  notes     String? // <-- ADD THIS
-  // 🔥 ADD THIS — opposite side of the relation
+  notes     String?
   behaviors InvestorBehavior[]
+
+  behaviorProfiles BehaviorProfile[]
+  behaviorEvents   BehaviorEvent[]
 }
 
 model InvestorBehavior {
@@ -236,4 +256,76 @@ model Signer {
   bankProfile   BankProfile @relation(fields: [bankProfileId], references: [id])
 
   checks Check[] // Correct relation name
+}
+
+model BluetoothEvent {
+  id             String   @id @default(cuid())
+  deviceId       String?
+  name           String
+  timestamp      DateTime
+  userId         Int?
+  sessionId      String?
+  fingerprint    String?
+  manufacturer   String?
+  model          String?
+  rssi           Int?
+  signalStrength Int?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  user    User?          @relation(fields: [userId], references: [id])
+  session BehaviorEvent? @relation(fields: [sessionId], references: [id])
+}
+
+model BehaviorProfile {
+  id         String   @id @default(cuid())
+  investorId String?
+  leadId     String?
+  userId     Int?
+  pillar     Pillar
+  score      Int
+  updatedAt  DateTime @updatedAt
+
+  investor Investor? @relation(fields: [investorId], references: [id])
+  lead     Lead?     @relation(fields: [leadId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
+}
+
+model BehaviorEvent {
+  id                 String   @id @default(cuid())
+  userId             Int?
+  leadId             String?
+  investorId         String?
+  pillar             Pillar
+  page               String
+  startedAt          DateTime
+  endedAt            DateTime
+  impulsivenessScore Int
+  timestamp          DateTime @default(now())
+  ticker             String?
+
+  user            User?            @relation(fields: [userId], references: [id])
+  lead            Lead?            @relation(fields: [leadId], references: [id])
+  investor        Investor?        @relation(fields: [investorId], references: [id])
+  bluetoothEvents BluetoothEvent[]
+}
+
+model BluetoothAlert {
+  id        String   @id @default(cuid())
+  deviceId  String?
+  message   String
+  severity  String
+  timestamp DateTime @default(now())
+}
+
+model StockEvent {
+  id             String   @id @default(cuid())
+  userId         Int?
+  investorId     String?
+  leadId         String?
+  page           String
+  timestamp      DateTime @default(now())
+  rssi           Int?
+  signalStrength Int?
+  metadata       Json?
 }

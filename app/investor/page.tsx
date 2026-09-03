@@ -24,7 +24,7 @@ export default async function InvestorPortal() {
             Investor Portal
           </h1>
           <p className="mt-2 text-slate-400 text-sm">
-            Welcome back, {session.userId}. Your positions and cash flows are updated in real time.
+            Welcome back, {session.user?.id}. Your positions and cash flows are updated in real time.
           </p>
         </div>
 

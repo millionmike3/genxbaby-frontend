@@ -10,15 +10,15 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-col gap-4 text-gx-graySoft">
-        <Link href="/owner" className="hover:text-gx-neonGreen transition">
+        <Link href="/owner-portal" className="hover:text-gx-neonGreen transition">
           Owner Portal
         </Link>
 
-        <Link href="/investor" className="hover:text-gx-royalViolet transition">
+        <Link href="/investor-portal" className="hover:text-gx-royalViolet transition">
           Investor Portal
         </Link>
 
-        <Link href="/borrower" className="hover:text-gx-electricBlue transition">
+        <Link href="/borrower-portal" className="hover:text-gx-electricBlue transition">
           Borrower Portal
         </Link>
 

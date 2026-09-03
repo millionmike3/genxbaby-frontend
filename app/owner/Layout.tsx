@@ -1,15 +1,17 @@
-import Sidebar from "@/components/Sidebar";
+"use client";
+
+import PublicSidebar from "@/components/PublicSidebar";
 import TopNav from "@/components/TopNav";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex">
-      <Sidebar />
+    <div className="min-h-screen w-full flex bg-black text-white">
+      <PublicSidebar />
 
-      <div className="ml-64 w-full">
+      <main className="flex-1 overflow-y-auto">
         <TopNav />
-        <div className="pt-20 p-6">{children}</div>
-      </div>
+        {children}
+      </main>
     </div>
   );
 }

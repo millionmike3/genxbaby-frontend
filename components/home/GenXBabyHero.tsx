@@ -1,146 +1,134 @@
 "use client";
 
-import { motion, Variants, MotionProps } from "framer-motion";
-
-// -------------------------------------------------------------
-// ANIMATION VARIANTS
-// -------------------------------------------------------------
-
-const container: Variants = {
-  hidden: { opacity: 0, y: 60 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { stiffness: 90, damping: 18 }
-  }
-};
-
-const fastTitle: Variants = {
-  hidden: { opacity: 0, x: -80, skewX: -10 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    skewX: 0,
-    transition: { stiffness: 140, damping: 16 }
-  }
-};
-
-const xPulse: MotionProps = {
-  initial: { scale: 1, rotate: 0 },
-  animate: {
-    scale: [1, 1.25, 1],
-    rotate: [0, 8, -8, 0],
-    transition: { repeat: Infinity, duration: 3.2, ease: "easeInOut" }
-  }
-};
-
-// -------------------------------------------------------------
-// COMPONENT
-// -------------------------------------------------------------
+import { motion } from "framer-motion";
 
 export default function GenXBabyHero() {
   return (
-    <section className="relative w-full min-h-[75vh] flex items-center justify-center px-6 py-24 bg-black text-white overflow-hidden">
+    <section
+      className="
+        relative w-full min-h-[70vh] flex flex-col items-center justify-center
+        text-center px-6 py-24
+        rounded-font
+      "
+    >
+      {/* STARFIELD BACKGROUND */}
+      <div className="absolute inset-0 bg-stars opacity-40"></div>
 
-      {/* Neon Grid Background */}
-      <div className="absolute inset-0 -z-10 opacity-40 mix-blend-screen">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F2933" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
+      {/* NEON GLOW ORB */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] 
+        bg-[#00FF7F]/20 blur-[180px] rounded-full pointer-events-none">
       </div>
 
-      {/* Glow Overlay */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(60,244,107,0.22),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(0,140,255,0.18),_transparent_60%)]" />
-
-      {/* MAIN CONTAINER */}
+      {/* FLOATING GRID */}
       <motion.div
-        className="max-w-4xl text-center flex flex-col items-center"
-        variants={container}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 0.25, y: 0 }}
+        transition={{ duration: 1.5 }}
+        className="absolute inset-0 bg-[url('/grid.svg')] bg-cover opacity-20"
+      />
+
+      {/* MAIN TITLE */}
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2 }}
+        className="
+          text-6xl md:text-7xl font-extrabold neon-green-glow 
+          tracking-tight mb-6 z-10
+        "
       >
+        GEN X BABY
+      </motion.h1>
 
-        {/* TITLE */}
-        <motion.h1
-          className="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-[0.25em] uppercase flex items-center justify-center gap-3"
-          variants={fastTitle}
+      {/* SUBTITLE */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.4 }}
+        className="
+          text-white 
+         text-2xl 
+         font-extrabold 
+         tracking-wide 
+         leading-relaxed 
+         max-w-4xl 
+         mx-auto 
+          mt-6 
+          neon-green-glow
+         "
+      >
+        The AI‑Powered Fintech Operating System for underwriting intelligence, 
+        investor automation, borrower analytics, and blockchain‑verified audit trails.
+      </motion.p>
+
+      {/* CTA BUTTONS */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.6 }}
+        className="flex flex-wrap gap-6 mt-12 z-10 justify-center"
+      >
+        <a
+          href="/owner-portal"
+          className="
+              px-8 py-4 rounded-xl bg-black border-glow-green text-bright
+              font-semibold hover:bg-[#00ff7f]/10 transition-all
+            "
         >
-          <span className="text-gray-200">GEN</span>
+          Owner Portal
+        </a>
 
-          <motion.span
-            className="relative inline-flex items-center justify-center text-[#9DD431]"
-            {...xPulse}
-          >
-            <span className="absolute inset-0 blur-xl bg-[conic-gradient(from_120deg,_#9DD431,_#6D5AAC,_#008CFF,_#3CF46B,_#9DD431)] opacity-70" />
-            <span className="relative z-10 text-7xl font-black">X</span>
-          </motion.span>
-
-          <span className="text-gray-200">BABY</span>
-        </motion.h1>
-
-        {/* NEW SUBTITLE */}
-        <motion.h2
-          className="mt-6 text-xl sm:text-2xl font-semibold tracking-wide text-gray-300"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+        <a
+          href="/investor-portal"
+          className="
+              px-8 py-4 rounded-xl bg-black border-glow-green text-bright
+              font-semibold hover:bg-[#00ff7f]/10 transition-all
+             "
         >
-          The AI‑Powered Fintech Operating System
-        </motion.h2>
+          Investor Portal
+        </a>
 
-        {/* NEW SUBTEXT */}
-        <motion.p
-          className="mt-4 text-lg text-gray-400 max-w-2xl leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+        <a
+          href="/borrower-portal"
+          className="
+              px-8 py-4 rounded-xl bg-black border-glow-green text-bright
+              font-semibold hover:bg-[#00ff7f]/10 transition-all
+             "
         >
-          Underwriting intelligence, investor automation, borrower analytics, and
-          blockchain‑verified audit trails — unified into one institutional‑grade platform.
-        </motion.p>
+          Borrower Portal
+        </a>
 
-        {/* DIVIDER */}
-        <motion.div
-          className="mt-8 w-28 h-[3px] bg-gradient-to-r from-[#9DD431] via-[#6D5AAC] to-[#008CFF] rounded-full"
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ delay: 0.45 }}
-        />
-
-        {/* UPDATED PORTAL BUTTONS */}
-        <motion.div
-          className="mt-10 flex flex-col sm:flex-row gap-4"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.55 }}
-        >
-          <a
-            href="/owner-portal"
-            className="px-8 py-3 rounded-lg bg-[#111] text-gray-200 border border-[#9DD431] hover:bg-[#9DD431] hover:text-black transition font-semibold"
-          >
-            Owner Portal
-          </a>
-
-          <a
-            href="/investor-portal"
-            className="px-8 py-3 rounded-lg bg-[#111] text-gray-200 border border-[#6D5AAC] hover:bg-[#6D5AAC] hover:text-black transition font-semibold"
-          >
-            Investor Portal
-          </a>
-
-          <a
-            href="/borrower-portal"
-            className="px-8 py-3 rounded-lg bg-[#111] text-gray-200 border border-[#3CF46B] hover:bg-[#3CF46B] hover:text-black transition font-semibold"
-          >
-            Borrower Portal
-          </a>
-        </motion.div>
       </motion.div>
+
+                <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.4 }}
+        className="
+          text-white 
+         text-2xl 
+         font-extrabold 
+         tracking-wide 
+         leading-relaxed 
+         max-w-4xl 
+         mx-auto 
+          mt-6 
+          neon-green-glow
+         "
+      >
+         GEN X BABY brings every major financial workflow into one unified platform 
+         — from real‑time banking and advanced deal analysis to certified check generation, 
+         mortgage underwriting, lender intelligence, and stock volatility scoring. 
+         It replaces fragmented tools with a single ecosystem that handles CRM, dialer, 
+         messaging, email, and productivity tracking, giving users a complete command center for managing clients, 
+         deals, and financial decisions.
+
+         The platform is secured by institutional‑grade blockchain technology, including smart contract verification,
+         Merkle‑based audit integrity, and QR‑enabled document validation. 
+         Every action — from underwriting to check generation — is anchored to an immutable ledger, ensuring transparency, 
+         authenticity, and trust for lenders, investors, and users across the entire financial lifecycle.
+      </motion.p>
     </section>
+             
   );
 }

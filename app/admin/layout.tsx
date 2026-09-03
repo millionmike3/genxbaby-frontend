@@ -1,77 +1,32 @@
+// app/admin/layout.tsx
 import { requireRole } from "@/lib/authz";
-import Link from "next/link";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Enforce admin role before rendering anything
   await requireRole(["admin"]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
+    <div className="min-h-screen w-full bg-black text-white flex">
+      {/* Admin Sidebar (optional) */}
+      <aside className="w-64 border-r border-gray-800 bg-gray-900/60 p-6">
+        <h2 className="text-xl font-bold mb-4">Admin Panel</h2>
 
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-slate-800 bg-slate-900/80">
-        <div className="px-4 py-5 text-lg font-semibold tracking-wide text-slate-200">
-          GEN X BABY — Admin
-        </div>
-
-        <nav className="mt-4 space-y-1 text-sm">
-          <Link
-            href="/admin"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Dashboard
-          </Link>
-
-          <Link
-            href="/admin/checks"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Checks
-          </Link>
-
-          <Link
-            href="/admin/audit"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Audit Trail
-          </Link>
-
-          <Link
-            href="/admin/roles"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Role Management
-          </Link>
-
-          <Link
-            href="/admin/users"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            User Management
-          </Link>
+        <nav className="space-y-3 text-gray-300">
+          <a href="/admin" className="block hover:text-white">Dashboard</a>
+          <a href="/admin/users" className="block hover:text-white">Users</a>
+          <a href="/admin/roles" className="block hover:text-white">Roles</a>
+          <a href="/admin/settings" className="block hover:text-white">Settings</a>
         </nav>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-
-        {/* Header */}
-        <header className="border-b border-slate-800 bg-slate-900/60 px-6 py-3 text-sm flex justify-between">
-          <span className="text-slate-400">Admin Panel</span>
-
-          <form action="/api/admin/logout" method="post">
-            <button className="text-xs text-slate-400 hover:text-slate-200">
-              Logout
-            </button>
-          </form>
-        </header>
-
-        {/* Page Content */}
-        <main className="flex-1 px-6 py-6">{children}</main>
-      </div>
+      {/* Main Admin Content */}
+      <main className="flex-1 p-8">
+        {children}
+      </main>
     </div>
   );
 }

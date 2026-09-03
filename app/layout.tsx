@@ -1,27 +1,24 @@
-import type { ReactNode } from "react";
+"use client";
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
+import "./globals.css";
 
-export default function RootLayout({ children }: RootLayoutProps) {
+import PublicSidebar from "@/components/PublicSidebar";
+
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900">
-        <div className="flex min-h-screen">
-          <aside className="w-64 bg-white border-r p-4">
-            <h2 className="text-xl font-bold mb-4">Admin Dashboard</h2>
-            <nav className="space-y-2">
-              <a href="/checks" className="block">Checks</a>
-              <a href="/cases" className="block">Cases</a>
-              <a href="/owners" className="block">Owners</a>
-            </nav>
-          </aside>
+      <body className="min-h-screen bg-black text-white flex">
 
-          <main className="flex-1 p-6">
-            {children}
-          </main>
-        </div>
+        {/* Public Sidebar */}
+        <PublicSidebar />
+
+
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
+
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SignJWT } from "jose";
+import { createSession } from "@/lib/session";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +12,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Load admin credentials from environment
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify credentials
     if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -31,33 +29,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---------------------------------------------
-    // CREATE JWT USING JOSE (ESM SAFE)
-    // ---------------------------------------------
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    // Create JWT session token
+    const token = await createSession("admin-1", "admin");
 
-    const token = await new SignJWT({
-      email,
-      role: "admin",
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("7d")
-      .sign(secret);
-
+    // Create response FIRST
     const res = NextResponse.json({ success: true });
 
-    res.cookies.set({
-      name: "session",
-      value: token,
+    // Write cookie using response.cookies.set()
+    res.cookies.set("session", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      path: "/",
       sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return res;
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
+    console.error("ADMIN LOGIN ERROR:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

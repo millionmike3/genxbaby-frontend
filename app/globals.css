@@ -1,22 +1,112 @@
-/** @type {import('tailwindcss').Config} */
-const { colors, typography, spacing, radiuses, shadows } = require("./design-system/theme");
+/* Google Fonts MUST be first */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
 
-module.exports = {
-  darkMode: "class",
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./lib/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      colors,
-      fontFamily: typography.fontFamily,
-      fontSize: typography.fontSize,
-      spacing,
-      borderRadius: radiuses,
-      boxShadow: shadows,
-    },
-  },
-  plugins: [],
-};
+/* ------------------------------
+   GLOBAL RESET & BASE STYLES
+--------------------------------*/
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  background: black;
+  color: white;
+}
+
+/* Smooth transitions for UI elements */
+* {
+  transition: all 0.25s ease;
+}
+
+/* ------------------------------
+   SPACE + NEON UTILITIES
+--------------------------------*/
+
+/* Starfield background layer */
+.bg-stars {
+  background-image: url('/stars.png');
+  background-size: cover;
+  background-repeat: repeat;
+  opacity: 0.3;
+  mix-blend-mode: screen;
+}
+
+/* Grid background layer */
+.bg-grid {
+  background-image: url('/grid.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.2;
+}
+
+/* Neon green glow */
+.neon-green-glow {
+  text-shadow: 0 0 8px #00ff7f, 0 0 16px #00ff7f;
+}
+
+/* Soft green glow for boxes */
+.box-glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 127, 0.4);
+}
+
+/* Futuristic border glow */
+.border-glow-green {
+  border: 1px solid rgba(0, 255, 127, 0.6);
+  box-shadow: 0 0 12px rgba(0, 255, 127, 0.4);
+}
+
+/* ------------------------------
+   BACKGROUND GRADIENTS
+--------------------------------*/
+
+.bg-neon-space {
+  background: linear-gradient(
+    to bottom,
+    #00ff7f,
+    #003300,
+    #000000
+  );
+}
+
+/* ------------------------------
+   TYPOGRAPHY UTILITIES
+--------------------------------*/
+
+.rounded-font {
+  font-family: 'Nunito', sans-serif;
+}
+
+.text-soft {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.text-bright {
+  color: #00ff7f;
+}
+
+/* ------------------------------
+   ANIMATION UTILITIES
+--------------------------------*/
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0px); }
+}
+
+.float-slow {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-green {
+  0% { box-shadow: 0 0 0px rgba(0,255,127,0.4); }
+  50% { box-shadow: 0 0 20px rgba(0,255,127,0.7); }
+  100% { box-shadow: 0 0 0px rgba(0,255,127,0.4); }
+}
+
+.pulse-green {
+  animation: pulse-green 3s infinite;
+}

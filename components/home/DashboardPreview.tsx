@@ -1,55 +1,97 @@
 "use client";
 
-import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function DashboardPreview() {
   return (
-    <section
-      id="dashboard"
-      className="px-6 py-12 bg-[#050607] border-t border-white/5"
-    >
-      <div className="max-w-5xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-100">
+    <section className="relative rounded-font py-20 px-6">
+
+      {/* Glow Background */}
+      <div className="absolute inset-0 bg-neon-space opacity-40 blur-xl pointer-events-none"></div>
+      <div className="absolute inset-0 bg-stars opacity-30 pointer-events-none"></div>
+
+      <div className="relative max-w-5xl mx-auto text-center">
+
+        {/* Title */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="
+            text-5xl font-extrabold text-white mb-6
+            neon-green-glow rounded-font tracking-tight
+          "
+        >
           Institutional Dashboard Preview
-        </h2>
+        </motion.h2>
 
-        <p className="text-gray-400 mb-8 max-w-2xl leading-relaxed">
-          Real-time analytics for lenders and investors — loan tapes, cohort aging, default
-          probability, yield curves, audit logs, and blockchain-verified event history. 
-          Designed for institutional clarity and regulatory-grade transparency.
-        </p>
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2 }}
+          className="
+            text-soft text-xl leading-relaxed max-w-3xl mx-auto mb-12
+            rounded-font
+          "
+        >
+          Real‑time analytics for lenders and investors — loan tapes, cohort aging,
+          default probability, yield curves, audit logs, and blockchain‑verified event
+          history. Designed for institutional clarity and regulatory‑grade transparency.
+        </motion.p>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <DashboardTile label="AI Decision Speed" value="< 48 hrs" />
-          <DashboardTile label="Blockchain Integrity" value="100% Immutable" />
-          <DashboardTile label="Investor Yield Models" value="Live" />
-        </div>
+        {/* Metrics Row */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.4 }}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10"
+        >
+          {/* Metric Card */}
+          <div className="
+            bg-black/40 border-glow-green rounded-xl p-6
+            shadow-neonGreenSoft text-white
+          ">
+            <p className="text-lg text-soft rounded-font">AI Decision Speed</p>
+            <p className="text-3xl font-bold text-bright rounded-font">&lt; 48 hrs</p>
+          </div>
 
-        <div className="mt-8">
-          <Link
-            href="/admin"
-            className="inline-flex px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 transition text-sm font-semibold"
+          <div className="
+            bg-black/40 border-glow-green rounded-xl p-6
+            shadow-neonGreenSoft text-white
+          ">
+            <p className="text-lg text-soft rounded-font">Blockchain Integrity</p>
+            <p className="text-3xl font-bold text-bright rounded-font">100% Immutable</p>
+          </div>
+
+          <div className="
+            bg-black/40 border-glow-green rounded-xl p-6
+            shadow-neonGreenSoft text-white
+          ">
+            <p className="text-lg text-soft rounded-font">Investor Yield Models</p>
+            <p className="text-3xl font-bold text-bright rounded-font">Live</p>
+          </div>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.6 }}
+          className="mt-12"
+        >
+          <a
+            href="/admin/dashboard"
+            className="
+              px-8 py-4 rounded-xl bg-black border-glow-green text-bright
+              font-semibold hover:bg-[#00ff7f]/10 transition-all
+            "
           >
             Open Admin Dashboard
-          </Link>
-        </div>
+          </a>
+        </motion.div>
+
       </div>
     </section>
   );
 }
-
-interface DashboardTileProps {
-  label: string;
-  value: string | number;
-}
-
-function DashboardTile({ label, value }: DashboardTileProps) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-black/40 p-4">
-      <div className="text-xs text-gray-400 mb-1">{label}</div>
-      <div className="text-xl font-semibold text-white">{value}</div>
-    </div>
-  );
-}
-
-
