@@ -13,6 +13,12 @@ enum UserRole {
   INVESTOR
   BORROWER
 }
+enum InvestorAction {
+  QUOTE_REQUEST
+  LOGIN
+  VIEWED_DASHBOARD
+  // add more later
+}
 
 datasource db {
   provider = "postgresql"
@@ -181,6 +187,7 @@ model InvestorBehavior {
   investorId String
   timestamp  DateTime @default(now())
   notes      String?
+  action      String
 
   investor Investor @relation(fields: [investorId], references: [id])
 }
@@ -371,3 +378,4 @@ model LLPAAdjustment {
 
   group LLPAGroup @relation(fields: [groupId], references: [id])
 }
+
