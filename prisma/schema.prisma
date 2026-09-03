@@ -2,6 +2,10 @@ enum Pillar {
   STOCK_SANITIZER
   CUSTOMER
   INVESTOR
+  BEHAVIOR
+  BLUETOOTH
+  STOCK
+  PRICING 
 }
 
 enum UserRole {
