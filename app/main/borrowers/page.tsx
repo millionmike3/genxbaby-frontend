@@ -171,3 +171,11 @@ function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
+async function requestQuote(input: LoanPricingInput) {
+  const res = await fetch("/api/pricing/quote", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+  return res.json();
+}

@@ -329,3 +329,41 @@ model StockEvent {
   signalStrength Int?
   metadata       Json?
 }
+model LLPAGroup {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  priority    Int          @default(0)
+  active      Boolean      @default(true)
+
+  adjustments LLPAAdjustment[]
+}
+
+model LLPAAdjustment {
+  id          String     @id @default(cuid())
+  groupId     String
+  name        String
+  description String?
+  bps         Int        // positive or negative
+  active      Boolean    @default(true)
+
+  // core dimensions
+  minFico     Int?
+  maxFico     Int?
+  minLtv      Float?
+  maxLtv      Float?
+  occupancy   String?    // "owner", "second", "investment"
+  propertyType String?   // "SFR", "CONDO", "2-4", etc.
+  purpose     String?    // "purchase", "refi", "cashout"
+  loanType    String?    // "conv", "fha", "va", "nonqm"
+  termMonths  Int?
+  state       String?
+  firstTimeHomebuyer Boolean?
+
+  // behavior / bluetooth hooks (for later)
+  minImpulsivenessScore Int?
+  maxImpulsivenessScore Int?
+  requiresBluetoothPresence Boolean?
+
+  group LLPAGroup @relation(fields: [groupId], references: [id])
+}

@@ -1,4 +1,17 @@
 "use client";
+"use client";
+
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+
+async function requestQuote(input: any) {
+  const res = await fetch("/api/pricing/quote", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+
+  return res.json();
+}
 
 import { useState } from "react";
 
