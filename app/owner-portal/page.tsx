@@ -1,27 +1,70 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 
-export default function OwnerPortalLanding() {
+export default function OwnerPortalPage() {
+  const [fico, setFico] = useState("");
+  const [ltv, setLtv] = useState("");
+  const [rate, setRate] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
+
+  async function handleQuote() {
+    const res = await fetch("/api/pricing/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fico: Number(fico),
+        ltv: Number(ltv),
+        occupancy: "OWNER",
+        propertyType: "SFR",
+        purpose: "PURCHASE",
+        loanType: "AGENCY",
+        termMonths: 360,
+        userId: 1, // replace with real auth user
+      }),
+    });
+
+    const data = await res.json();
+    setRate(data.finalRate.toFixed(3));
+    setNotes(data.notes);
+  }
+
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-24 flex flex-col items-center justify-center">
+    <div className="p-6 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-gx-neonGreen">Owner Portal Quote</h1>
+      <div className="flex flex-col gap-3 mb-4">
+        <input
+          className="bg-black text-white p-2 rounded"
+          placeholder="FICO"
+          value={fico}
+          onChange={(e) => setFico(e.target.value)}
+        />
+        <input
+          className="bg-black text-white p-2 rounded"
+          placeholder="LTV"
+          value={ltv}
+          onChange={(e) => setLtv(e.target.value)}
+        />
+        <button
+          onClick={handleQuote}
+          className="px-4 py-2 bg-gx-neonGreen text-black rounded font-semibold"
+        >
+          Get Quote
+        </button>
+      </div>
 
-      {/* Glow Background */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(60,244,107,0.22),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(0,140,255,0.18),_transparent_60%)]" />
-
-      <h1 className="text-4xl font-bold mb-4">Owner Portal</h1>
-
-      <p className="text-gray-300 max-w-xl text-center leading-relaxed mb-10">
-        Access your properties, equity analytics, payment history, and real‑time
-        underwriting insights — all powered by the GenXBaby Operating System.
-      </p>
-
-      <Link
-        href="/login"
-        className="px-8 py-3 rounded-lg bg-[#3CF46B] text-black font-semibold hover:bg-[#2DBA52] transition shadow-[0_0_20px_rgba(60,244,107,0.45)]"
-      >
-        Log In to Continue
-      </Link>
-    </main>
+      {rate && (
+        <div className="mt-4">
+          <p className="text-lg text-gx-graySoft">
+            Quoted rate: <span className="text-gx-neonGreen">{rate}%</span>
+          </p>
+          <ul className="mt-2 text-xs text-gx-graySoft">
+            {notes.map((n, i) => (
+              <li key={i}>• {n}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }

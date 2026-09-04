@@ -1,27 +1,73 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useEffect } from "react";
 
-export default function InvestorPortalLanding() {
+export default function InvestorPortalPage() {
+  const [investorId] = useState(1001); // from auth in real app
+  const [rate, setRate] = useState<string | null>(null);
+  const [notes, setNotes] = useState<string[]>([]);
+  const [sheets, setSheets] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/admin/investor-sheets");
+      const data = await res.json();
+      setSheets(data.sheets.filter((s: any) => s.investorId === investorId));
+    })();
+  }, [investorId]);
+
+  async function handleQuote() {
+    const res = await fetch("/api/pricing/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fico: 720,
+        ltv: 75,
+        occupancy: "INVESTMENT",
+        propertyType: "SFR",
+        purpose: "PURCHASE",
+        loanType: "NON_QM",
+        termMonths: 360,
+        investorId,
+      }),
+    });
+
+    const data = await res.json();
+    setRate(data.finalRate.toFixed(3));
+    setNotes(data.notes);
+  }
+
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-24 flex flex-col items-center justify-center">
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-gx-neonGreen">Investor Portal</h1>
 
-      {/* Glow Background */}
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(109,90,172,0.22),_transparent_60%),_radial-gradient(circle_at_bottom,_rgba(0,140,255,0.18),_transparent_60%)]" />
-
-      <h1 className="text-4xl font-bold mb-4">Investor Portal</h1>
-
-      <p className="text-gray-300 max-w-xl text-center leading-relaxed mb-10">
-        Monitor allocations, performance analytics, borrower pipelines, and
-        blockchain‑verified audit trails — built for institutional‑grade visibility.
-      </p>
-
-      <Link
-        href="/login"
-        className="px-8 py-3 rounded-lg bg-[#6D5AAC] text-white font-semibold hover:bg-[#5A4A92] transition shadow-[0_0_20px_rgba(109,90,172,0.45)]"
+      <button
+        onClick={handleQuote}
+        className="px-4 py-2 bg-gx-neonGreen text-black rounded font-semibold mb-4"
       >
-        Log In to Continue
-      </Link>
-    </main>
+        Get Investor Quote
+      </button>
+
+      {rate && (
+        <p className="text-lg text-gx-graySoft mb-2">
+          Quoted rate: <span className="text-gx-neonGreen">{rate}%</span>
+        </p>
+      )}
+
+      <ul className="text-xs text-gx-graySoft mb-6">
+        {notes.map((n, i) => (
+          <li key={i}>• {n}</li>
+        ))}
+      </ul>
+
+      <h2 className="text-xl font-semibold mb-2 text-gx-graySoft">Active Pricing Sheets</h2>
+      <ul className="text-sm text-gx-graySoft">
+        {sheets.map((s) => (
+          <li key={s.id}>
+            #{s.id} — spread {s.baseSpread} / LLPA factor {s.llpaFactor}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
