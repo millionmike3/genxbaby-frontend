@@ -41,7 +41,8 @@ export async function priceLoan(input: LoanPricingInput): Promise<PricingBreakdo
   rate += bluetoothAdj;
 
   // 7. Investor tier adjustment
-  const investorAdj = await getInvestorTierAdjustment(input, notes);
+ const investorAdj = await getInvestorTierAdjustment(input, llpaAdj, notes);
+
   rate += investorAdj;
 
   // Final rate

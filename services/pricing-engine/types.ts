@@ -11,6 +11,8 @@ export type LoanPricingInput = {
   firstTimeHomebuyer?: boolean;
    userId?: number;            // ⭐ ADD THIS ⭐
   investorId?: number;        // optional but useful
+  programName?: string;
+  dscr?: number;
 
   impulsivenessScore?: number;
   bluetoothPresent?: boolean;
@@ -25,4 +27,15 @@ export type LlpaGridQuery = {
   purpose: string;
   ficoBucket: number;
   ltvBucket: number;
+};
+export type PricingBreakdown = {
+  baseRate: number;
+  govAdj: number;
+  nonQmAdj: number;
+  llpaAdj: number;
+  behaviorAdj: number;
+  bluetoothAdj: number;
+  investorAdj: number;
+  finalRate: number;
+  notes: string[];
 };

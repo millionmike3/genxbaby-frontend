@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { LoanPricingInput } from "./types";
 
 export async function getNonQmAdjustment(input: LoanPricingInput, notes: string[]) {
-  if (input.loanType !== "NON_QM") return 0;
+  // FIX: match your actual loanType union
+  if (input.loanType !== "nonqm") return 0;
 
   const rule = await prisma.nonQMPricingRule.findFirst({
     where: {
