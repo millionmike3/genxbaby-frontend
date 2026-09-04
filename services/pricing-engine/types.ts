@@ -17,3 +17,12 @@ export type LoanPricingInput = {
   bluetoothRiskScore?: number;
   investorTier?: "A" | "B" | "C" | "D";
 };
+export type LlpaGridQuery = {
+  agency: "FNMA" | "FHLMC";
+  productType: "FIXED" | "ARM";
+  occupancy: string;
+  propertyType: string;
+  purpose: string;
+  ficoBucket: number;
+  ltvBucket: number;
+};

@@ -10,8 +10,9 @@
     "postinstall": "prisma generate"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed-llpa.js"
   },
+  
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "@tanstack/react-query": "^5.101.4",
@@ -55,4 +56,5 @@
     "ts-node": "^10.9.2",
     "typescript": "^5"
   }
+  
 }

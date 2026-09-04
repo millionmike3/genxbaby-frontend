@@ -10,20 +10,29 @@ export default function MobileNav() {
     const active = pathname.startsWith(path);
 
     return (
-      <div
+      <button
         onClick={() => router.push(path)}
-        className={`flex flex-col items-center justify-center flex-1 py-2 cursor-pointer transition ${
-          active ? "text-black font-semibold" : "text-gray-500"
+        className={`flex flex-col items-center justify-center flex-1 py-3 cursor-pointer transition ${
+          active ? "text-purple-700 font-semibold" : "text-gray-500"
         }`}
       >
-        <span className="material-icons text-2xl">{icon}</span>
+        <span className="material-icons text-3xl">{icon}</span>
         <span className="text-xs mt-1">{label}</span>
-      </div>
+      </button>
     );
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-lg border-t flex z-50">
+    <div className="
+      md:hidden
+      fixed bottom-0 left-0 w-full
+      bg-white
+      shadow-xl border-t
+      flex
+      z-50
+      h-20
+      pb-safe
+    ">
       {navItem("/dashboard", "Home", "home")}
       {navItem("/pipeline", "Pipeline", "timeline")}
       {navItem("/notifications", "Alerts", "notifications")}

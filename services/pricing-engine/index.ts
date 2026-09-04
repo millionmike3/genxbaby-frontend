@@ -1,81 +1,61 @@
-import { getBehaviorAdjustment } from "./adjustments/behavior";
-import { getBluetoothAdjustment } from "./adjustments/bluetooth";
-import { getInvestorTierAdjustment } from "./adjustments/investor";
-import { correlatePricingBehavior } from "@/services/analytics-engine/correlation";
+import { LoanPricingInput, PricingBreakdown } from "./types";
 import { getLlpaAdjustment } from "./llpa";
+import { getGovAdjustment } from "./fha-va";
+import { getNonQmAdjustment } from "./nonqm";
+import { getInvestorTierAdjustment } from "./investor-sheet";
+import { getBehaviorAdjustment } from "./behavior";
+import { getBluetoothAdjustment } from "./bluetooth";
 
-import { LoanPricingInput } from "./types";
-
-export type PricingBreakdown = {
-  baseRate: number;
-  llpaAdj: number;
-  behaviorAdj: number;
-  bluetoothAdj: number;
-  investorAdj: number;
-  finalRate: number;
-  notes: string[];
-};
+// Example base rate function (you can replace this with your own logic)
+function getBaseRate(input: LoanPricingInput): number {
+  return 6.500; // placeholder base rate
+}
 
 export async function priceLoan(input: LoanPricingInput): Promise<PricingBreakdown> {
   const notes: string[] = [];
 
+  // 1. Base rate
   const baseRate = getBaseRate(input);
-  notes.push(`Base rate for ${input.loanType} ${input.termMonths} months: ${baseRate.toFixed(3)}`);
+  notes.push(`Base rate: ${baseRate.toFixed(3)}`);
 
+  let rate = baseRate;
+
+  // 2. FHA / VA overlays
+  const govAdj = await getGovAdjustment(input, notes);
+  rate += govAdj;
+
+  // 3. Non-QM adjustments
+  const nonQmAdj = await getNonQmAdjustment(input, notes);
+  rate += nonQmAdj;
+
+  // 4. LLPA
   const llpaAdj = getLlpaAdjustment(input, notes);
+  rate += llpaAdj;
+
+  // 5. Behavior adjustment
   const behaviorAdj = getBehaviorAdjustment(input, notes);
+  rate += behaviorAdj;
+
+  // 6. Bluetooth adjustment
   const bluetoothAdj = getBluetoothAdjustment(input, notes);
-  const investorAdj = getInvestorTierAdjustment(input, notes);
+  rate += bluetoothAdj;
 
-  // ⭐⭐⭐ EXACT PLACEMENT OF YOUR NEW BLOCK ⭐⭐⭐
-  let volatilityAdj = 0;
+  // 7. Investor tier adjustment
+  const investorAdj = await getInvestorTierAdjustment(input, notes);
+  rate += investorAdj;
 
-  if (input.userId) {
-    const correlation = await correlatePricingBehavior(input.userId);
-
-    if (correlation.pricingVolatility > 70) {
-      notes.push("High pricing volatility → +0.125% rate adj");
-      volatilityAdj = 0.125;
-    }
-  }
-  // ⭐⭐⭐ END OF NEW BLOCK ⭐⭐⭐
-
-  const finalRate =
-    baseRate +
-    llpaAdj +
-    behaviorAdj +
-    bluetoothAdj +
-    investorAdj +
-    volatilityAdj;
-
-  notes.push(`Final rate: ${finalRate.toFixed(3)}`);
+  // Final rate
+  notes.push(`Final rate: ${rate.toFixed(3)}`);
 
   return {
     baseRate,
+    govAdj,
+    nonQmAdj,
     llpaAdj,
     behaviorAdj,
     bluetoothAdj,
     investorAdj,
-    finalRate,
+    finalRate: rate,
     notes,
   };
-}
-
-function getBaseRate(input: LoanPricingInput): number {
-  const { loanType, termMonths } = input;
-
-  if (loanType === "conv") {
-    return termMonths === 360 ? 6.75 : 6.50;
-  }
-
-  if (loanType === "fha") {
-    return termMonths === 360 ? 6.50 : 6.25;
-  }
-
-  if (loanType === "va") {
-    return termMonths === 360 ? 6.40 : 6.20;
-  }
-
-  // non-QM base is higher
-  return termMonths === 360 ? 8.25 : 7.75;
 }
