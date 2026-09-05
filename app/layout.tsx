@@ -1,21 +1,18 @@
 "use client";
 
 import "./globals.css";
-
-import PublicSidebar from "@/components/PublicSidebar";
-
+import Navbar from "@/components/ui/Navbar";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-black text-white flex">
-
-        {/* Public Sidebar */}
-        <PublicSidebar />
-
+      <body className="min-h-screen bg-black text-white">
+        
+        {/* Global Navbar */}
+        <Navbar />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="pt-16">
           {children}
         </main>
 
