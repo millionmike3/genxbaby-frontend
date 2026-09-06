@@ -5,7 +5,7 @@ enum Pillar {
   BEHAVIOR
   BLUETOOTH
   STOCK
-  PRICING 
+  PRICING
 }
 
 enum UserRole {
@@ -13,6 +13,7 @@ enum UserRole {
   INVESTOR
   BORROWER
 }
+
 enum InvestorAction {
   QUOTE_REQUEST
   LOGIN
@@ -187,8 +188,8 @@ model InvestorBehavior {
   investorId String
   timestamp  DateTime @default(now())
   notes      String?
-  action      String
-  metadata    Json
+  action     String
+  metadata   Json
 
   investor Investor @relation(fields: [investorId], references: [id])
 }
@@ -341,110 +342,117 @@ model StockEvent {
   signalStrength Int?
   metadata       Json?
 }
+
 model LLPAGroup {
-  id          String       @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   description String?
-  priority    Int          @default(0)
-  active      Boolean      @default(true)
+  priority    Int     @default(0)
+  active      Boolean @default(true)
 
   adjustments LLPAAdjustment[]
 }
 
 model LLPAAdjustment {
-  id          String     @id @default(cuid())
+  id          String  @id @default(cuid())
   groupId     String
   name        String
   description String?
-  bps         Int        // positive or negative
-  active      Boolean    @default(true)
+  bps         Int // positive or negative
+  active      Boolean @default(true)
 
   // core dimensions
-  minFico     Int?
-  maxFico     Int?
-  minLtv      Float?
-  maxLtv      Float?
-  occupancy   String?    // "owner", "second", "investment"
-  propertyType String?   // "SFR", "CONDO", "2-4", etc.
-  purpose     String?    // "purchase", "refi", "cashout"
-  loanType    String?    // "conv", "fha", "va", "nonqm"
-  termMonths  Int?
-  state       String?
+  minFico            Int?
+  maxFico            Int?
+  minLtv             Float?
+  maxLtv             Float?
+  occupancy          String? // "owner", "second", "investment"
+  propertyType       String? // "SFR", "CONDO", "2-4", etc.
+  purpose            String? // "purchase", "refi", "cashout"
+  loanType           String? // "conv", "fha", "va", "nonqm"
+  termMonths         Int?
+  state              String?
   firstTimeHomebuyer Boolean?
 
   // behavior / bluetooth hooks (for later)
-  minImpulsivenessScore Int?
-  maxImpulsivenessScore Int?
+  minImpulsivenessScore     Int?
+  maxImpulsivenessScore     Int?
   requiresBluetoothPresence Boolean?
 
   group LLPAGroup @relation(fields: [groupId], references: [id])
 }
+
 model LlpaGridRow {
-  id           Int      @id @default(autoincrement())
-  agency       String   // 'FNMA' | 'FHLMC'
-  productType  String   // 'FIXED' | 'ARM'
-  occupancy    String   // 'OWNER' | 'INVESTOR' | 'SECOND'
-  propertyType String   // 'SFR' | 'CONDO' | '2-4'
-  purpose      String   // 'PURCHASE' | 'RATE_TERM' | 'CASH_OUT'
+  id           Int    @id @default(autoincrement())
+  agency       String // 'FNMA' | 'FHLMC'
+  productType  String // 'FIXED' | 'ARM'
+  occupancy    String // 'OWNER' | 'INVESTOR' | 'SECOND'
+  propertyType String // 'SFR' | 'CONDO' | '2-4'
+  purpose      String // 'PURCHASE' | 'RATE_TERM' | 'CASH_OUT'
   ficoBucket   Int
   ltvBucket    Int
-  adjustment   Float    // in rate
+  adjustment   Float // in rate
 }
+
 model ProductOverlay {
   id          Int    @id @default(autoincrement())
   productType String // 'FHA', 'VA', 'USDA'
   ltvMax      Float
   ficoMin     Int
-  overlayRate Float  // +/‑ to base rate
+  overlayRate Float // +/‑ to base rate
 }
+
 model NonQMPricingRule {
-  id           Int    @id @default(autoincrement())
-  programName  String // 'Bank Statement', 'DSCR', etc.
-  dscrMin      Float?
-  ficoMin      Int?
-  ltvMax       Float?
-  rateAdd      Float
+  id          Int    @id @default(autoincrement())
+  programName String // 'Bank Statement', 'DSCR', etc.
+  dscrMin     Float?
+  ficoMin     Int?
+  ltvMax      Float?
+  rateAdd     Float
 }
+
 model InvestorPricingSheet {
   id          Int      @id @default(autoincrement())
   investorId  Int
   name        String
   effectiveAt DateTime
-  baseSpread  Float    // over agency
-  llpaFactor  Float    // multiplier on LLPA
+  baseSpread  Float // over agency
+  llpaFactor  Float // multiplier on LLPA
   active      Boolean  @default(true)
 }
+
 model BorrowerQuote {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  createdAt   DateTime @default(now())
-  input       Json     // LoanPricingInput snapshot
-  result      Json     // PricingBreakdown snapshot
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime @default(now())
+  input     Json // LoanPricingInput snapshot
+  result    Json // PricingBreakdown snapshot
 }
+
 model InvestorQuote {
-  id          Int      @id @default(autoincrement())
-  investorId  Int
-  createdAt   DateTime @default(now())
-  input       Json
-  result      Json
+  id         Int      @id @default(autoincrement())
+  investorId Int
+  createdAt  DateTime @default(now())
+  input      Json
+  result     Json
 }
+
 model Loan {
-  id            Int      @id @default(autoincrement())
-  borrowerId    Int
-  investorId    Int?
-  principal     Float
-  rate          Float
-  termMonths    Int
-  startDate     DateTime
-  status        String   // 'ACTIVE', 'PAID_OFF', 'DELINQUENT'
+  id         Int      @id @default(autoincrement())
+  borrowerId Int
+  investorId Int?
+  principal  Float
+  rate       Float
+  termMonths Int
+  startDate  DateTime
+  status     String // 'ACTIVE', 'PAID_OFF', 'DELINQUENT'
 }
 
 model Payment {
-  id        Int      @id @default(autoincrement())
-  loanId    Int
-  dueDate   DateTime
-  paidDate  DateTime?
-  amount    Float
-  status    String   // 'DUE', 'PAID', 'LATE'
+  id       Int       @id @default(autoincrement())
+  loanId   Int
+  dueDate  DateTime
+  paidDate DateTime?
+  amount   Float
+  status   String // 'DUE', 'PAID', 'LATE'
 }
-m
