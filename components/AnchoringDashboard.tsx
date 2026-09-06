@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 
 type CaseSummary = {
@@ -10,14 +12,14 @@ type CaseSummary = {
   anchoredTxHash: string | null;
 };
 
-export const AnchoringDashboard: React.FC = () => {
+export default function AnchoringDashboard() {
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [selectedTx, setSelectedTx] = useState<string | null>(null);
   const [verification, setVerification] = useState<any>(null);
 
   useEffect(() => {
     fetch("/admin/underwriting/cases")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setCases);
   }, []);
 
@@ -29,32 +31,37 @@ export const AnchoringDashboard: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Anchored Underwriting Cases</h2>
-      <table>
-        <thead>
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-white">Anchored Underwriting Cases</h2>
+
+      <table className="w-full text-left border border-slate-700 bg-slate-900 text-slate-200">
+        <thead className="bg-slate-800">
           <tr>
-            <th>Case</th>
-            <th>Borrower</th>
-            <th>Property</th>
-            <th>Loan</th>
-            <th>Decision</th>
-            <th>Tx Hash</th>
-            <th>Verify</th>
+            <th className="p-2">Case</th>
+            <th className="p-2">Borrower</th>
+            <th className="p-2">Property</th>
+            <th className="p-2">Loan</th>
+            <th className="p-2">Decision</th>
+            <th className="p-2">Tx Hash</th>
+            <th className="p-2">Verify</th>
           </tr>
         </thead>
+
         <tbody>
-          {cases.map(c => (
-            <tr key={c.id}>
-              <td>{c.id}</td>
-              <td>{c.borrowerName}</td>
-              <td>{c.propertyAddress}</td>
-              <td>{c.loanAmount}</td>
-              <td>{c.decision}</td>
-              <td>{c.anchoredTxHash ?? "Pending"}</td>
-              <td>
+          {cases.map((c) => (
+            <tr key={c.id} className="border-t border-slate-700">
+              <td className="p-2">{c.id}</td>
+              <td className="p-2">{c.borrowerName}</td>
+              <td className="p-2">{c.propertyAddress}</td>
+              <td className="p-2">${c.loanAmount.toLocaleString()}</td>
+              <td className="p-2">{c.decision}</td>
+              <td className="p-2">{c.anchoredTxHash ?? "Pending"}</td>
+              <td className="p-2">
                 {c.anchoredTxHash && (
-                  <button onClick={() => verify(c.anchoredTxHash!)}>
+                  <button
+                    onClick={() => verify(c.anchoredTxHash!)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500"
+                  >
                     Verify
                   </button>
                 )}
@@ -65,11 +72,15 @@ export const AnchoringDashboard: React.FC = () => {
       </table>
 
       {verification && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Verification for {selectedTx}</h3>
-          <pre>{JSON.stringify(verification, null, 2)}</pre>
+        <div className="mt-6 bg-slate-800 p-4 rounded border border-slate-700">
+          <h3 className="text-lg font-semibold text-white">
+            Verification for {selectedTx}
+          </h3>
+          <pre className="text-slate-300 mt-2">
+            {JSON.stringify(verification, null, 2)}
+          </pre>
         </div>
       )}
     </div>
   );
-};
+}

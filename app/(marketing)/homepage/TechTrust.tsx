@@ -1,6 +1,6 @@
 "use client";
 
-export function TechTrust() {
+export default function TechTrust() {
   return (
     <section className="w-full py-20 px-6 md:px-12 lg:px-20 bg-slate-800 text-white">
       <h2 className="text-3xl font-bold mb-6">Technology & Trust</h2>

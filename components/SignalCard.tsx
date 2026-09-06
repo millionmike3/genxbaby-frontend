@@ -1,39 +1,46 @@
 "use client";
 
-import { motion } from "framer-motion";
+interface SignalCardProps {
+  title: string;
+  value: number | string | null;
+  status?: string;        // added
+  description?: string;   // added
+}
 
 export default function SignalCard({
   title,
   value,
-}: {
-  title: string;
-  value: any;
-}) {
-  const color =
-    value >= 80
-      ? "from-green-500 to-emerald-600"
-      : value >= 50
-      ? "from-yellow-500 to-amber-600"
-      : "from-red-500 to-rose-600";
+  status,
+  description,
+}: SignalCardProps) {
+  // Determine color based on status
+  function getStatusColor(status: string | undefined) {
+    if (!status) return "text-gray-400";
+
+    const s = status.toLowerCase();
+
+    if (s.includes("good")) return "text-green-500";
+    if (s.includes("warn")) return "text-yellow-500";
+    return "text-red-500";
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.03 }}
-      transition={{ duration: 0.25 }}
-      className="p-6 rounded-2xl shadow-xl bg-gradient-to-br text-white cursor-pointer
-      backdrop-blur-xl border border-white/10"
-    >
-      <div className="text-sm opacity-80">{title}</div>
+    <div className="bg-white/5 p-6 rounded-xl border border-white/10 shadow">
+      <h2 className="text-lg font-semibold mb-2 text-white">{title}</h2>
 
-      <div
-        className={`mt-3 text-4xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}
-      >
+      <div className="text-4xl font-bold text-white mb-3">
         {value ?? "—"}
       </div>
 
-      <div className="mt-2 text-xs opacity-70">Updated just now</div>
-    </motion.div>
+      {description && (
+        <p className="text-gray-400 text-sm mb-3">{description}</p>
+      )}
+
+      {status && (
+        <span className={`text-sm font-semibold ${getStatusColor(status)}`}>
+          {status}
+        </span>
+      )}
+    </div>
   );
 }

@@ -20,13 +20,15 @@ export default function AdminDashboard() {
       <main className="flex-1 p-6 space-y-8 overflow-y-auto">
         <AdminIdentityBanner />
 
-        <QuickActionsDock />
+        <QuickActionsDock collapsed={false} />
+
 
         <AnchoringDashboard />
 
         <BluetoothScanner />
 
-        <UltraFavorable />
+        <UltraFavorable active={false} />
+
 
         <RiskPanel userId={DEMO_USER_ID} />
 

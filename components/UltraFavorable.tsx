@@ -2,7 +2,11 @@
 
 import { motion } from "framer-motion";
 
-export default function UltraFavorable({ active }: { active: boolean }) {
+interface UltraFavorableProps {
+  active: boolean;
+}
+
+export default function UltraFavorable({ active }: UltraFavorableProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

@@ -91,8 +91,12 @@ export const GenXBabyLogoDark: React.FC<React.SVGProps<SVGSVGElement>> = (
    MOBILE LOGO — For Navbar
 -------------------------------------------------------- */
 
-export const GenXBabyLogoMobile = () => (
-  <div className="flex items-center gap-3">
+export const GenXBabyLogoMobile = ({
+  className = "",
+}: {
+  className?: string;
+}) => (
+  <div className={`flex items-center gap-3 ${className}`}>
     <Symbol size={40} />
 
     <span className="text-white font-bold tracking-wide text-lg">
@@ -100,6 +104,7 @@ export const GenXBabyLogoMobile = () => (
     </span>
   </div>
 );
+
 
 /* -------------------------------------------------------
    FULL LOGO — For Marketing Pages

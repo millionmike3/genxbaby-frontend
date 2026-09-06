@@ -20,7 +20,8 @@ export default function InvestorDashboard() {
           </p>
         </header>
 
-        <UltraFavorable />
+        <UltraFavorable active={true} />
+
 
         <RiskPanel userId={DEMO_USER_ID} />
 

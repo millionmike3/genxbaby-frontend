@@ -7,7 +7,7 @@ import { getRiskScore, getRiskSignals } from "@/services/analytics-engine/riskEn
 type RiskSignal = {
   title: string;
   value: string | number;
-  status: "good" | "warning" | "bad";
+  status: string; 
   description: string;
 };
 

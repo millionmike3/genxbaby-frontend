@@ -7,11 +7,15 @@ import TestimonialCarousel from "@/components/ui/TestimonialCarousel";
 import WhyGenXBaby from "@/components/ui/WhyGenXBaby";
 
 // Marketing components
-import { PortalTabs } from "@/app/(marketing)/homepage/PortalTabs";
-import { FeatureGrid } from "@/app/(marketing)/homepage/FeatureGrid";
-import { SplitSection } from "@/app/(marketing)/homepage/SplitSection";
-import { TechTrust } from "@/app/(marketing)/homepage/TechTrust";
-import { Footer } from "@/app/(marketing)/homepage/Footer";
+
+import PortalTabs from "@/app/(marketing)/homepage/PortalTabs";
+import FeatureGrid from "@/app/(marketing)/homepage/FeatureGrid";
+import TechTrust from "@/app/(marketing)/homepage/TechTrust";
+import Footer from "@/app/(marketing)/homepage/Footer";
+import SplitSection from "@/components/SplitSection";
+
+
+
 
 export default function HomePage() {
   return (

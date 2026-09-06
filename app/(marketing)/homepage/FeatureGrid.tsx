@@ -1,6 +1,6 @@
 "use client";
 
-export function FeatureGrid() {
+export default function FeatureGrid() {
   const features = [
     {
       title: "Real‑Time Pricing",

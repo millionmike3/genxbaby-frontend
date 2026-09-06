@@ -3,8 +3,11 @@ export default function TimelineEventItem({ event }) {
     <div className="border border-gray-700 bg-black p-4 rounded-lg shadow">
       <div className="flex justify-between">
         <h3 className="text-neon-green font-semibold">{event.title}</h3>
+
         <span className="text-gray-400 text-sm">
-          {new Date(event.createdAt).toLocaleString()}
+          {event?.createdAt
+            ? new Date(event.createdAt).toLocaleString()
+            : "No timestamp"}
         </span>
       </div>
 

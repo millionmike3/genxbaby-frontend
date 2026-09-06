@@ -1,8 +1,8 @@
 "use client";
 
-import { GenXBabyLogoMobile } from "@/components/branding/genxbaby-logos";
+import GenXBabyLogoMobile from "@/components/ui/GenXBabyLogoMobile";
 
-export function Footer() {
+export default function Footer() {
   return (
     <footer className="w-full py-16 px-6 md:px-12 lg:px-20 bg-black text-white border-t border-white/10">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">

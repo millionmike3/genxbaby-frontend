@@ -447,3 +447,4 @@ model Payment {
   amount    Float
   status    String   // 'DUE', 'PAID', 'LATE'
 }
+m

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-export function PortalTabs() {
+export default function PortalTabs() {
   const tabs = [
     { label: "Borrower Portal", href: "/borrower" },
     { label: "Investor Portal", href: "/investor" },
