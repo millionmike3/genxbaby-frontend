@@ -3,15 +3,16 @@
 import React from "react";
 
 /* -------------------------------------------------------
-   SHARED GEOMETRY — Your exact star + pentagon symbol
+   SHARED GEOMETRY — Star + Pentagon Symbol (Fixed Sizing)
 -------------------------------------------------------- */
 
 const Symbol = ({ size = 80 }: { size?: number }) => (
   <svg
     width={size}
-    height={(size * 200) / 320}
+    height={size}
     viewBox="0 0 320 200"
     xmlns="http://www.w3.org/2000/svg"
+    className="shrink-0"
   >
     <g transform="translate(160,70)">
       {/* Black fintech star */}
@@ -80,42 +81,3 @@ export const GenXBabyLogoDark: React.FC<React.SVGProps<SVGSVGElement>> = (
       fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       fontSize="28"
       fontWeight={700}
-      fill="#E5E7EB"
-    >
-      GEN+X=BABY
-    </text>
-  </svg>
-);
-
-/* -------------------------------------------------------
-   MOBILE LOGO — For Navbar
--------------------------------------------------------- */
-
-export const GenXBabyLogoMobile = ({
-  className = "",
-}: {
-  className?: string;
-}) => (
-  <div className={`flex items-center gap-3 ${className}`}>
-    <Symbol size={40} />
-
-    <span className="text-white font-bold tracking-wide text-lg">
-      GEN<span className="text-[#4EE38A]">X</span>BABY
-    </span>
-  </div>
-);
-
-
-/* -------------------------------------------------------
-   FULL LOGO — For Marketing Pages
--------------------------------------------------------- */
-
-export const GenXBabyLogoFull = () => (
-  <div className="flex items-center gap-4">
-    <Symbol size={60} />
-
-    <span className="text-white font-extrabold tracking-wider text-3xl">
-      GEN<span className="text-[#4EE38A]">X</span>BABY
-    </span>
-  </div>
-);
