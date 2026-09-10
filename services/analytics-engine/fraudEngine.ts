@@ -1,13 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function getFraudSignals(userId: number) {
-  const events = await prisma.behaviorEvent.findMany({
+  // Strong typing from Prisma
+  type BehaviorEvent = Prisma.BehaviorEventGetPayload<true>;
+
+  const events: BehaviorEvent[] = await prisma.behaviorEvent.findMany({
     where: { userId },
     orderBy: { timestamp: "desc" },
     take: 100,
   });
 
-  const rapidEvents = events.filter((e, i, arr) => {
+  const rapidEvents = events.filter((e: BehaviorEvent, i: number, arr: BehaviorEvent[]) => {
     if (i === 0) return false;
     const prev = arr[i - 1];
     return (
@@ -16,7 +20,8 @@ export async function getFraudSignals(userId: number) {
   });
 
   const highRiskPillars = events.filter(
-    (e) => e.pillar === "PRICING" && (e.impulsivenessScore ?? 0) > 75
+    (e: BehaviorEvent) =>
+      e.pillar === "PRICING" && (e.impulsivenessScore ?? 0) > 75
   );
 
   const score = Math.min(

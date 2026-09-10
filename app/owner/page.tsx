@@ -1,99 +1,45 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Navbar from "@/components/ui/Navbar";
-import { Card } from "@/components/ui/DesignSystem";
-
-export default function OwnerPortal() {
+export default function OwnerPortalPage() {
   return (
-    <main className="bg-slate-900 text-slate-100 min-h-screen">
-      <Navbar />
+    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
+        <img 
+  src="/images/owner.jpg" 
+  alt="Owner Portal" 
+  className="w-full max-w-4xl rounded-xl mb-10"
+/>
 
-      <section className="px-4 py-10 mx-auto max-w-6xl">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="mb-10"
-        >
-          <h1 className="text-3xl md:text-4xl font-bold">
-            Owner Dashboard
-          </h1>
-          <p className="mt-2 text-slate-300">
-            Real‑time property intelligence, Bluetooth signals, risk scoring, and servicing insights.
-          </p>
-        </motion.div>
+      <h1 className="text-4xl font-bold mb-6">Owner Portal</h1>
 
-        {/* Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <p className="text-slate-300 leading-relaxed mb-6">
+        This is the control room for organizations—nonprofits, portfolio owners, funds, and enterprises.
+      </p>
 
-          {/* Property Overview */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={Card}
-          >
-            <h3 className="text-lg font-semibold mb-2">Property Overview</h3>
-            <p className="text-slate-300 text-sm">1234 Liberty Ave, Queens NY</p>
-            <p className="text-slate-300 text-sm">Loan Balance: <span className="text-white font-semibold">$482,000</span></p>
-            <p className="text-slate-300 text-sm">Equity: <span className="text-[#3CF46B] font-semibold">$118,000</span></p>
-          </motion.div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Core Purpose</h2>
+      <p className="text-slate-300 leading-relaxed">
+        Give owners a single pane of glass to oversee deals, people, behavior, compliance, and risk across the entire ecosystem.
+      </p>
 
-          {/* Bluetooth Signals */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={Card}
-          >
-            <h3 className="text-lg font-semibold mb-2">Bluetooth Intelligence</h3>
-            <p className="text-slate-300 text-sm">Signal Strength: <span className="text-[#3CF46B] font-semibold">92%</span></p>
-            <p className="text-slate-300 text-sm">Device Count: <span className="text-white font-semibold">4</span></p>
-            <p className="text-slate-300 text-sm">Behavior Score: <span className="text-[#3CF46B] font-semibold">A‑</span></p>
-          </motion.div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Key Capabilities</h2>
+      <ul className="list-disc pl-6 text-slate-300 leading-relaxed space-y-3">
+        <li>Portfolio & deal oversight.</li>
+        <li>Compliance routing.</li>
+        <li>Behavior heatmaps.</li>
+        <li>Fraud & anomaly alerts.</li>
+        <li>Certified check & POF management.</li>
+        <li>Role‑based access & governance.</li>
+      </ul>
 
-          {/* Risk Score */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={Card}
-          >
-            <h3 className="text-lg font-semibold mb-2">Risk Score</h3>
-            <p className="text-4xl font-bold text-[#3CF46B]">12.4%</p>
-            <p className="text-slate-300 text-sm mt-2">Low risk — stable payment history and strong Bluetooth consistency.</p>
-          </motion.div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Behavioral Intelligence</h2>
+      <ul className="list-disc pl-6 text-slate-300 leading-relaxed space-y-3">
+        <li>Cross‑persona insight.</li>
+        <li>Risk dashboards with trend lines and alerts.</li>
+      </ul>
 
-          {/* Payment Schedule */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={Card}
-          >
-            <h3 className="text-lg font-semibold mb-2">Payment Schedule</h3>
-            <p className="text-slate-300 text-sm">Next Payment: <span className="text-white font-semibold">Oct 1</span></p>
-            <p className="text-slate-300 text-sm">Amount: <span className="text-[#3CF46B] font-semibold">$2,842.00</span></p>
-            <p className="text-slate-300 text-sm">Status: <span className="text-white font-semibold">On Time</span></p>
-          </motion.div>
-
-          {/* Portfolio Analytics */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className={Card}
-          >
-            <h3 className="text-lg font-semibold mb-2">Portfolio Analytics</h3>
-            <p className="text-slate-300 text-sm">Total Properties: <span className="text-white font-semibold">3</span></p>
-            <p className="text-slate-300 text-sm">Avg Behavior Score: <span className="text-[#3CF46B] font-semibold">A</span></p>
-            <p className="text-slate-300 text-sm">Bluetooth Coverage: <span className="text-white font-semibold">89%</span></p>
-          </motion.div>
-
-        </div>
-      </section>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Why This Matters</h2>
+      <p className="text-slate-300 leading-relaxed">
+        The owner portal makes GenXBaby an enterprise‑grade governance and intelligence platform.
+      </p>
     </main>
   );
 }

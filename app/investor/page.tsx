@@ -1,99 +1,55 @@
-import { requireRole } from "@/lib/authz";
+"use client";
 
-export default async function InvestorPortal() {
-  // Enforce investor-only access
-  const session = await requireRole(["investor"]);
-
-  // Placeholder data — replace with your DAL later
-  const portfolioValue = "$482,900";
-  const activeNotes = 12;
-  const avgYield = "8.4%";
-  const recentActivity = [
-    { id: 1, type: "Funding", amount: "$25,000", date: "2026-07-12" },
-    { id: 2, type: "Interest Payment", amount: "$1,480", date: "2026-07-01" },
-    { id: 3, type: "Funding", amount: "$10,000", date: "2026-06-22" },
-  ];
-
+export default function InvestorPortalPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-6xl px-6 py-12 space-y-12">
+    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
+        <img 
+  src="/images/investor.jpg" 
+  alt="Investor Portal" 
+  className="w-full max-w-4xl rounded-xl mb-10"
+/>
 
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-semibold text-slate-50">
-            Investor Portal
-          </h1>
-          <p className="mt-2 text-slate-400 text-sm">
-            Welcome back, {session.user?.id}. Your positions and cash flows are updated in real time.
-          </p>
-        </div>
+      <h1 className="text-4xl font-bold mb-6">Investor Portal</h1>
 
-        {/* Portfolio Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-            <p className="text-xs text-slate-400">Portfolio Value</p>
-            <p className="mt-2 text-2xl font-semibold text-emerald-400">
-              {portfolioValue}
-            </p>
-          </div>
+      <p className="text-slate-300 leading-relaxed mb-6">
+        This is where GenXBaby feels like a weapon—built for serious investors who want speed, clarity, and edge.
+      </p>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-            <p className="text-xs text-slate-400">Active Notes</p>
-            <p className="mt-2 text-2xl font-semibold text-blue-400">
-              {activeNotes}
-            </p>
-          </div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Core Purpose</h2>
+      <p className="text-slate-300 leading-relaxed">
+        Give investors real‑time deal intelligence, comps, underwriting metrics, and lender fit—without spreadsheets or guesswork.
+      </p>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-            <p className="text-xs text-slate-400">Average Yield</p>
-            <p className="mt-2 text-2xl font-semibold text-purple-400">
-              {avgYield}
-            </p>
-          </div>
-        </div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Key Capabilities</h2>
+      <ul className="list-disc pl-6 text-slate-300 leading-relaxed space-y-3">
+        <li>
+          <strong>Deal intake & property analysis:</strong> Upload or enter property details; GenXBaby runs comps, ARV, DSCR, NOI, cap rate, rent comps, and market risk scoring.
+        </li>
+        <li>
+          <strong>Investment strategy alignment:</strong> Tailored metrics for fix & flip, buy & hold, BRRRR, wholesale, commercial acquisition.
+        </li>
+        <li>
+          <strong>Lender suitability scoring:</strong> Matches deals with lender profiles and approval likelihood.
+        </li>
+        <li>
+          <strong>Portfolio analytics:</strong> Track performance, risk exposure, cash flow, returns, leverage.
+        </li>
+        <li>
+          <strong>Certified check & proof‑of‑funds integration:</strong> Blockchain‑anchored financial instruments.
+        </li>
+      </ul>
 
-        {/* Recent Activity */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-          <h2 className="text-xl font-semibold text-slate-200 mb-4">
-            Recent Activity
-          </h2>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Behavioral Intelligence</h2>
+      <ul className="list-disc pl-6 text-slate-300 leading-relaxed space-y-3">
+        <li>Deal selection behavior tracking.</li>
+        <li>Risk tolerance profiling: Conservative → Speculative.</li>
+        <li>Underwriting & lender signals based on investor behavior.</li>
+      </ul>
 
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-slate-400 border-b border-slate-800">
-                <th className="py-2 text-left">Type</th>
-                <th className="py-2 text-left">Amount</th>
-                <th className="py-2 text-left">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentActivity.map((item) => (
-                <tr key={item.id} className="border-b border-slate-800">
-                  <td className="py-2 text-slate-300">{item.type}</td>
-                  <td className="py-2 text-slate-300">{item.amount}</td>
-                  <td className="py-2 text-slate-400">{item.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Documents & Statements */}
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6">
-          <h2 className="text-xl font-semibold text-slate-200 mb-4">
-            Documents & Statements
-          </h2>
-
-          <p className="text-slate-400 text-sm mb-4">
-            Your monthly statements, agreements, and tax documents will appear here.
-          </p>
-
-          <div className="text-slate-500 text-xs">
-            (Integrate your PDF generation + storage layer here)
-          </div>
-        </div>
-
-      </div>
-    </div>
+      <h2 className="text-2xl font-semibold mt-10 mb-4">Why This Matters</h2>
+      <p className="text-slate-300 leading-relaxed">
+        The investor portal turns GenXBaby into a real estate intelligence platform—not just a mortgage tool.
+      </p>
+    </main>
   );
 }

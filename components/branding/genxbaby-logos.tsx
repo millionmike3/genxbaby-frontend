@@ -3,13 +3,13 @@
 import React from "react";
 
 /* -------------------------------------------------------
-   SHARED GEOMETRY — Star + Pentagon Symbol (Fixed Sizing)
+   SHARED GEOMETRY — Star + Pentagon Symbol
 -------------------------------------------------------- */
 
 const Symbol = ({ size = 80 }: { size?: number }) => (
   <svg
     width={size}
-    height={size}
+    height={(size * 200) / 320}
     viewBox="0 0 320 200"
     xmlns="http://www.w3.org/2000/svg"
     className="shrink-0"
@@ -25,10 +25,14 @@ const Symbol = ({ size = 80 }: { size?: number }) => (
    LIGHT MODE LOGO
 -------------------------------------------------------- */
 
-export const GenXBabyLogoLight: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props
-) => (
-  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" {...props}>
+export const GenXBabyLogoLight = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width={320}
+    height={200}
+    viewBox="0 0 320 200"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
     <rect width="100%" height="100%" fill="#FFFFFF" />
 
     <g transform="translate(160,70)">
@@ -54,10 +58,14 @@ export const GenXBabyLogoLight: React.FC<React.SVGProps<SVGSVGElement>> = (
    DARK MODE LOGO
 -------------------------------------------------------- */
 
-export const GenXBabyLogoDark: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props
-) => (
-  <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" {...props}>
+export const GenXBabyLogoDark = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    width={320}
+    height={200}
+    viewBox="0 0 320 200"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
     <rect width="100%" height="100%" fill="#0F172A" />
 
     <g transform="translate(160,70)">

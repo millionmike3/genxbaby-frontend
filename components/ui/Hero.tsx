@@ -51,7 +51,7 @@ export default function Hero() {
         transition={{ duration: 1.1, ease: "easeOut", delay: 0.6 }}
         className="mt-6 text-base sm:text-lg text-slate-300 max-w-xl md:max-w-2xl leading-relaxed rounded-font text-center"
       >
-        Behavioral Intelligence Meets Real‑Time Mortgage Pricing.  
+        Behavioral Intelligence Meets Financial Confidence. Real‑Time Mortgage Pricing,  
         LLPA automation, Bluetooth analytics, underwriting AI, and institutional‑grade investor reporting — unified into one intelligent ecosystem.
       </motion.p>
 
@@ -66,21 +66,21 @@ export default function Hero() {
           href="/owner-portal"
           className="px-6 py-3 rounded-full bg-[#3CF46B] text-black font-semibold"
         >
-          Owner Portal
+          Borrow
         </Link>
 
         <Link
           href="/investor-portal"
           className="px-6 py-3 rounded-full border border-slate-600 text-slate-200 hover:bg-white/5 transition"
         >
-          Investor Portal
+          Invest
         </Link>
 
         <Link
           href="/admin"
           className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-500 transition"
         >
-          Admin Dashboard
+          Purchase 
         </Link>
       </motion.div>
     </section>

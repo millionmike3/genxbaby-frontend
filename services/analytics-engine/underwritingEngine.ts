@@ -1,15 +1,35 @@
 import { correlatePricingBehavior } from "./correlation";
-import { getBehaviorVolatility } from "@/services/behavior-engine/volatilityEngine";
-import { getLlpaRisk } from "@/services/pricing-engine/llpaRiskEngine";
-import { getBluetoothAnomalies } from "@/services/bluetooth-engine/anomalyEngine";
-import { getFraudSignals } from "./fraudEngine";
+import type { CorrelationResult } from "./correlation";
 
-export async function getUnderwritingProfile(userId: number) {
-  const correlation = await correlatePricingBehavior(userId);
-  const volatility = await getBehaviorVolatility(userId);
-  const llpa = await getLlpaRisk(userId);
-  const bt = await getBluetoothAnomalies(userId);
-  const fraud = await getFraudSignals(userId);
+import { getBehaviorVolatility } from "@/services/behavior-engine/volatilityEngine";
+import type { VolatilityResult } from "@/services/behavior-engine/volatilityEngine";
+
+import { getLlpaRisk } from "@/services/pricing-engine/llpaRiskEngine";
+import type { LlpaRiskResult } from "@/services/pricing-engine/llpaRiskEngine";
+
+import { getBluetoothAnomalies } from "@/services/bluetooth-engine/anomalyEngine";
+import type { BluetoothAnomalyResult } from "@/services/bluetooth-engine/anomalyEngine";
+
+import { getFraudSignals } from "./fraudEngine";
+import type { FraudResult } from "./fraudEngine";
+
+export interface UnderwritingProfile {
+  underwritingScore: number;
+  correlation: CorrelationResult;
+  volatility: VolatilityResult;
+  llpa: LlpaRiskResult;
+  bluetooth: BluetoothAnomalyResult;
+  fraud: FraudResult;
+}
+
+export async function getUnderwritingProfile(
+  userId: number
+): Promise<UnderwritingProfile> {
+  const correlation: CorrelationResult = await correlatePricingBehavior(userId);
+  const volatility: VolatilityResult = await getBehaviorVolatility(userId);
+  const llpa: LlpaRiskResult = await getLlpaRisk(userId);
+  const bt: BluetoothAnomalyResult = await getBluetoothAnomalies(userId);
+  const fraud: FraudResult = await getFraudSignals(userId);
 
   const baseScore =
     100 -

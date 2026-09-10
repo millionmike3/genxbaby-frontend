@@ -1,5 +1,10 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { getServerSession } from "next-auth";
+
+export async function auth() {
+  return await getServerSession();
+}
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret");
 

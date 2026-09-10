@@ -1,19 +1,24 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function correlatePricingBehavior(userId: number) {
-  const behavior = await prisma.behaviorEvent.findMany({
+  // Strongly typed payloads from Prisma
+  type BehaviorEvent = Prisma.BehaviorEventGetPayload<true>;
+  type BluetoothEvent = Prisma.BluetoothEventGetPayload<true>;
+
+  const behavior: BehaviorEvent[] = await prisma.behaviorEvent.findMany({
     where: { userId },
     orderBy: { timestamp: "desc" },
     take: 50,
   });
 
-  const bluetooth = await prisma.bluetoothEvent.findMany({
+  const bluetooth: BluetoothEvent[] = await prisma.bluetoothEvent.findMany({
     where: { userId },
     orderBy: { timestamp: "desc" },
     take: 50,
   });
 
-  const quotes = await prisma.behaviorEvent.findMany({
+  const quotes: BehaviorEvent[] = await prisma.behaviorEvent.findMany({
     where: { userId, pillar: "PRICING" },
     orderBy: { timestamp: "desc" },
     take: 20,
@@ -21,15 +26,21 @@ export async function correlatePricingBehavior(userId: number) {
 
   return {
     impulsivenessAvg:
-      behavior.reduce((acc, b) => acc + (b.impulsivenessScore ?? 0), 0) /
-      behavior.length,
+      behavior.reduce(
+        (acc: number, b: BehaviorEvent) => acc + (b.impulsivenessScore ?? 0),
+        0
+      ) / behavior.length,
 
     bluetoothRiskAvg:
-      bluetooth.reduce((acc, b) => acc + (b.signalStrength ?? 0), 0) /
-      bluetooth.length,
+      bluetooth.reduce(
+        (acc: number, b: BluetoothEvent) => acc + (b.signalStrength ?? 0),
+        0
+      ) / bluetooth.length,
 
     pricingVolatility:
-      quotes.reduce((acc, q) => acc + (q.impulsivenessScore ?? 0), 0) /
-      quotes.length,
+      quotes.reduce(
+        (acc: number, q: BehaviorEvent) => acc + (q.impulsivenessScore ?? 0),
+        0
+      ) / quotes.length,
   };
 }

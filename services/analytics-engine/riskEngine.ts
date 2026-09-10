@@ -1,4 +1,5 @@
 import { correlatePricingBehavior } from "./correlation";
+import type { CorrelationResult } from "./correlation";
 
 /**
  * Unified Risk Score
@@ -7,14 +8,11 @@ import { correlatePricingBehavior } from "./correlation";
  *  - Impulsiveness (behavior)
  *  - Bluetooth risk
  *  - Pricing volatility
- *
- * You can add underwriting, fraud, or other engines later.
  */
 
 export async function getRiskScore(userId: number): Promise<number> {
-  const correlation = await correlatePricingBehavior(userId);
+  const correlation: CorrelationResult = await correlatePricingBehavior(userId);
 
-  // Weighted risk score based on your correlation engine
   const score =
     100 -
     (correlation.impulsivenessAvg * 0.4 +
@@ -31,7 +29,7 @@ export async function getRiskScore(userId: number): Promise<number> {
  */
 
 export async function getRiskSignals(userId: number) {
-  const correlation = await correlatePricingBehavior(userId);
+  const correlation: CorrelationResult = await correlatePricingBehavior(userId);
 
   return [
     {

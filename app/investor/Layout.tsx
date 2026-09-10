@@ -1,15 +1,33 @@
-"use client";
+import "@/app/globals.css";
+import { ReactNode } from "react";
+import { auth } from "@/lib/auth";
+import InvestorSidebar from "@/dashboard/layout/investor/sidebar";
 
-import PublicSidebar from "@/components/PublicSidebar";
+export default async function InvestorLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await auth();
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  if (!session?.user || session.user.role !== "investor") {
+    return (
+      <html>
+        <body className="bg-slate-950 text-white p-6">
+          <div>Unauthorized</div>
+        </body>
+      </html>
+    );
+  }
+
   return (
-    <div className="min-h-screen w-full flex bg-black text-white">
-      <PublicSidebar />
-
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
-    </div>
+    <html>
+      <body className="bg-slate-950 text-white">
+        <div className="flex min-h-screen">
+          <InvestorSidebar />
+          <main className="flex-1">{children}</main>
+        </div>
+      </body>
+    </html>
   );
 }

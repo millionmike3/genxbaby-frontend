@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,35 +18,28 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-
-    // 🔥 Ensures your custom module declarations (like qrcode.d.ts) are loaded
-    "typeRoots": ["./types", "./node_modules/@types"],
-
+    "typeRoots": [
+      "./types",
+      "./node_modules/@types"
+    ],
     "incremental": true,
-
     "plugins": [
       {
         "name": "next"
       }
     ]
   },
-
   "include": [
-    "next-env.d.ts",
-
-    // 🔥 Load your custom declarations FIRST
-    "types/**/*.d.ts",
-
-    // Then load all TS/TSX files
     "**/*.ts",
     "**/*.tsx",
-
-    // Next.js generated types
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

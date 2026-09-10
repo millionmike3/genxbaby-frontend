@@ -1,6 +1,6 @@
 "use client";
 
-import GenXBabyLogoMobile from "@/components/ui/GenXBabyLogoMobile";
+import { GenXBabyLogoMobile } from "@/components/branding/genxbaby-logos";
 
 export default function Footer() {
   return (
