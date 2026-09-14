@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { createSession } from "@/lib/session";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const { email, password } = await req.json();
+    const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { applyInvestorPricing } from "@/lib/services/pricing";
 
-export async function POST(req: Request) {
-  const body = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.json();
   const applicationId = body.applicationId;
 
   const result = await applyInvestorPricing(applicationId);

@@ -2,10 +2,11 @@ import { ScoringDAL } from "@/lib/dal/scoring";
 
 type ScoreRecord = {
   id: string;
-  userId: number;
-  fraudScore: number | null;
-  riskScore: number | null;
-  impulsivenessScore: number | null;
+  userId: null;
+  fraudScore: null;
+  riskScore: null;
+  impulsivenessScore: null;
+  factors: {},
   createdAt: string | Date;
   rawData?: any;
 };

@@ -1,35 +1,30 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const body = await req.json();
+    const body = await request.json();
+    const { checkNumber, routingNumber, accountNumber } = body;
 
-    if (!body.checkNumber) {
-      return NextResponse.json(
-        { error: "Missing checkNumber" },
-        { status: 400 }
-      );
-    }
-
-    const backendUrl = process.env.BACKEND_URL;
-
-    const response = await fetch(`${backendUrl}/api/checks/verify`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: req.headers.get("cookie") || "",
+    const check = await prisma.check.findFirst({
+      where: {
+        checkNumber,
+        routingNumber,
+        accountNumber,
       },
-      body: JSON.stringify(body),
+      select: {
+        id: true,
+        amount: true,
+        status: true,
+        bankProfileId: true,
+        signerId: true,
+        createdAt: true,
+      },
     });
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-
+    return NextResponse.json({ success: true, data: check ?? null });
   } catch (err) {
-    console.error("FRONTEND VERIFY ERROR:", err);
-    return NextResponse.json(
-      { error: "Failed to verify check" },
-      { status: 500 }
-    );
+    console.error("Check Verify Error:", err);
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

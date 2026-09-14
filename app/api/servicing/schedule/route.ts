@@ -1,7 +1,7 @@
 import { generateAmortization } from "@/services/servicing";
 
-export async function POST(req: Request) {
-  const { principal, rate, termMonths } = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { principal, rate, termMonths } = await request.json();
   const schedule = generateAmortization(principal, rate, termMonths);
-  return Response.json({ schedule });
+  return NextResponse.json({ schedule });
 }

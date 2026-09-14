@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateInitialDisclosures } from "@/lib/services/disclosures";
 
-export async function POST(req: Request) {
-  const formData = await req.formData();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const formData = await request.formData();
   const applicationId = formData.get("applicationId") as string | null;
 
   if (!applicationId) {

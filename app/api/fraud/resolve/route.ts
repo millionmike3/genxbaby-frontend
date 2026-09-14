@@ -1,16 +1,16 @@
 "use server";
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 import { jwtVerify } from "jose";
 import { logAudit } from "@/lib/logAudit";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = (req as any).cookies.get("admin_session")?.value;
+    const cookie = (request as any).cookies.get("admin_session")?.value;
 
     if (!cookie) {
       return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     // ---------------------------------------------
     // 3. Parse request body
     // ---------------------------------------------
-    const { id } = await req.json();
+    const { id } = await request.json();
 
     if (!id) {
       return NextResponse.json(

@@ -10,24 +10,20 @@ export default async function InvestorLayout({
 }) {
   const session = await auth();
 
+  // Unauthorized users see a simple wrapper (NOT html/body)
   if (!session?.user || session.user.role !== "investor") {
     return (
-      <html>
-        <body className="bg-slate-950 text-white p-6">
-          <div>Unauthorized</div>
-        </body>
-      </html>
+      <section className="bg-slate-950 text-white p-6 min-h-screen">
+        <div>Unauthorized</div>
+      </section>
     );
   }
 
+  // Authorized investor layout
   return (
-    <html>
-      <body className="bg-slate-950 text-white">
-        <div className="flex min-h-screen">
-          <InvestorSidebar />
-          <main className="flex-1">{children}</main>
-        </div>
-      </body>
-    </html>
+    <section className="bg-slate-950 text-white min-h-screen flex">
+      <InvestorSidebar />
+      <main className="flex-1 p-6">{children}</main>
+    </section>
   );
 }

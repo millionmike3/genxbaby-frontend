@@ -1,12 +1,12 @@
 console.log("LOADING CHECK CREATE ROUTE");
 
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   console.log("POST /api/checks/create HIT");
 
   try {
-    const body = await req.json();
+    const body = await request.json();
     console.log("RAW BODY:", body);
 
     const {

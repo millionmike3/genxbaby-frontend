@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = (req as any).cookies.get("admin_session")?.value;
+    const cookie = (request as any).cookies.get("admin_session")?.value;
 
     if (!cookie) {
       return NextResponse.json(

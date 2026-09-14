@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import { getFilteredLeads } from "@/lib/db/leads";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { searchParams } = new URL(request.url);
 
   const filters = {
     hardshipBand: searchParams.get("hardshipBand") || undefined,
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
   return NextResponse.json(leads);
 }
 
-export async function POST() {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   return NextResponse.json({
     error: "Use /api/leads/import for CSV uploads",
   });

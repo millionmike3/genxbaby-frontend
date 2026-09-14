@@ -1,48 +1,30 @@
 import { prisma } from "@/lib/prisma";
 
 export const FraudDAL = {
-  saveFraudScore: async (
-    userId: string,
-    fraudScore: number,
-    rawData: any,
-    anchorTxHash?: string
-  ) => {
-    return prisma.fraudScore.create({
-      data: {
-        userId,
-        fraudScore,
-        rawData,
-        anchorTxHash,
-      },
+  async getByApplication(applicationId: string) {
+    return prisma.fraud.findUnique({
+      where: { applicationId },
     });
   },
 
-  logFraudEvent: async (
-    userId: string,
-    event: any,
-    anchorTxHash?: string
-  ) => {
-    return prisma.fraudEvent.create({
-      data: {
-        userId,
-        ...event,
-        anchorTxHash,
-      },
+  async save(applicationId: string, data: any) {
+    return prisma.fraud.upsert({
+      where: { applicationId },
+      update: data,
+      create: { applicationId, ...data },
     });
   },
 
-  getFraudEventsForUser: async (userId: string) => {
-    return prisma.fraudEvent.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+  async addTimelineEvent(applicationId: string, label: string) {
+    return prisma.fraudTimeline.create({
+      data: { applicationId, label },
     });
   },
 
-  // Optional alias if you want a shorter name
-  getFraudEvents: async (userId: string) => {
-    return prisma.fraudEvent.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+  async getTimeline(applicationId: string) {
+    return prisma.fraudTimeline.findMany({
+      where: { applicationId },
+      orderBy: { timestamp: "asc" },
     });
   },
 };

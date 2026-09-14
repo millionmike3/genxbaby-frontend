@@ -1,14 +1,46 @@
 "use client";
 
-import { LoanPricingInput } from "@/services/pricing-engine/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+interface BorrowerRow {
+  id: string;
+  fullName: string;
+  email: string;
+  latestApplication?: {
+    id: string;
+    loanAmount?: number;
+    creditScore?: number;
+    dti?: number;
+    status?: string;
+  };
+  latestScore?: {
+    fraudScore: number;
+    riskScore: number;
+    impulsivenessScore: number;
+  };
+}
 
 export default function BorrowersPage() {
   const [search, setSearch] = useState("");
+  const [borrowers, setBorrowers] = useState<BorrowerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch("/api/admin/borrowers");
+      const data = await res.json();
+      setBorrowers(data.borrowers);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const filtered = borrowers.filter((b) =>
+    b.fullName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-6 space-y-8">
-
       {/* PAGE HEADER */}
       <div className="flex items-center justify-between">
         <h1 className="gx-text-primary text-2xl font-bold">Borrowers</h1>
@@ -61,85 +93,75 @@ export default function BorrowersPage() {
 
       {/* BORROWERS TABLE */}
       <div className="gx-card p-6">
-        <h2 className="gx-text-primary text-lg font-semibold mb-4">Borrower List</h2>
+        <h2 className="gx-text-primary text-lg font-semibold mb-4">
+          Borrower List
+        </h2>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="gx-text-secondary text-sm border-b border-[#2A2A33]">
-                <th className="py-2">Name</th>
-                <th className="py-2">Loan Amount</th>
-                <th className="py-2">Credit Score</th>
-                <th className="py-2">DTI</th>
-                <th className="py-2">Signal Score</th>
-                <th className="py-2">Status</th>
-                <th className="py-2 text-right">Action</th>
-              </tr>
-            </thead>
-
-            <tbody className="gx-text-secondary">
-              {sampleBorrowers.map((b, idx) => (
-                <tr key={idx} className="border-b border-[#1A1A22] hover:bg-white/5 transition">
-                  <td className="py-3">{b.name}</td>
-                  <td className="py-3">{b.amount}</td>
-                  <td className="py-3">{b.credit}</td>
-                  <td className="py-3">{b.dti}</td>
-                  <td className="py-3">
-                    <ScoreChip score={b.score} />
-                  </td>
-                  <td className="py-3">
-                    <StatusBadge status={b.status} />
-                  </td>
-                  <td className="py-3 text-right">
-                    <button className="gx-btn-secondary px-3 py-1 text-sm">View</button>
-                  </td>
+        {loading ? (
+          <div className="gx-text-secondary text-sm">Loading...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="gx-text-secondary text-sm border-b border-[#2A2A33]">
+                  <th className="py-2">Name</th>
+                  <th className="py-2">Loan Amount</th>
+                  <th className="py-2">Credit Score</th>
+                  <th className="py-2">DTI</th>
+                  <th className="py-2">Behavior Score</th>
+                  <th className="py-2">Status</th>
+                  <th className="py-2 text-right">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </thead>
 
+              <tbody className="gx-text-secondary">
+                {filtered.map((b) => (
+                  <tr
+                    key={b.id}
+                    className="border-b border-[#1A1A22] hover:bg-white/5 transition"
+                  >
+                    <td className="py-3">{b.fullName}</td>
+                    <td className="py-3">
+                      {b.latestApplication?.loanAmount
+                        ? `$${b.latestApplication.loanAmount.toLocaleString()}`
+                        : "—"}
+                    </td>
+                    <td className="py-3">
+                      {b.latestApplication?.creditScore ?? "—"}
+                    </td>
+                    <td className="py-3">
+                      {b.latestApplication?.dti
+                        ? `${b.latestApplication.dti.toFixed(1)}%`
+                        : "—"}
+                    </td>
+                    <td className="py-3">
+                      <ScoreChip
+                        score={b.latestScore?.impulsivenessScore ?? 0}
+                      />
+                    </td>
+                    <td className="py-3">
+                      <StatusBadge
+                        status={b.latestApplication?.status ?? "New"}
+                      />
+                    </td>
+                    <td className="py-3 text-right">
+                      <a
+                        href={`/admin/borrowers/${b.id}`}
+                        className="gx-btn-secondary px-3 py-1 text-sm"
+                      >
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-/* ---------------- SAMPLE DATA ---------------- */
-
-const sampleBorrowers = [
-  {
-    name: "John Doe",
-    amount: "$420,000",
-    credit: 720,
-    dti: "32%",
-    score: 92,
-    status: "New",
-  },
-  {
-    name: "Sarah Lee",
-    amount: "$310,000",
-    credit: 680,
-    dti: "41%",
-    score: 88,
-    status: "In Review",
-  },
-  {
-    name: "Marcus Hill",
-    amount: "$780,000",
-    credit: 740,
-    dti: "28%",
-    score: 95,
-    status: "Approved",
-  },
-  {
-    name: "Emily Carter",
-    amount: "$250,000",
-    credit: 660,
-    dti: "47%",
-    score: 90,
-    status: "Funded",
-  },
-];
 
 /* ---------------- COMPONENTS ---------------- */
 
@@ -152,7 +174,9 @@ function ScoreChip({ score }: { score: number }) {
       : "bg-purple-600";
 
   return (
-    <span className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${color}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${color}`}
+    >
       {score}
     </span>
   );
@@ -167,16 +191,10 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${map[status]}`}>
+    <span
+      className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${map[status]}`}
+    >
       {status}
     </span>
   );
-}
-async function requestQuote(input: LoanPricingInput) {
-  const res = await fetch("/api/pricing/quote", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-
-  return res.json();
 }

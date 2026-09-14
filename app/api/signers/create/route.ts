@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest) {
-  const body = await req.formData();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.formData();
 
   const signer = await prisma.signer.create({
     data: {

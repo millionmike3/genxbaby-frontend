@@ -7,7 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 // ------------------------------------------------------------
 // ENUMS
 // ------------------------------------------------------------
@@ -39,33 +38,42 @@ enum InvestorAction {
 // ------------------------------------------------------------
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
+  id            Int             @id @default(autoincrement())
+  email         String          @unique
   username      String?
   phone         String?
   passwordHash  String?
-  role          String   @default("user")
+  role          String          @default("user")
   walletAddress String?
   ownerId       String?
-  xp            Int      @default(0)
-  createdAt     DateTime @default(now())
+  xp            Int             @default(0)
+  createdAt     DateTime        @default(now())
+  riskScore     UserRiskScore?
+  riskSignal    UserRiskSignal?
 
-  positions                Position[]
-  auditLogs                AuditLog[]
-  audits                   Audit[]
-  behaviorProfiles         BehaviorProfile[]
-  behaviorEvents           BehaviorEvent[]
-  bluetoothEvents          BluetoothEvent[]
-  investors                Investor[]
-  leads                    Lead[]
-  fraudScores              FraudScore[]
-  FraudPipeline            FraudPipeline[]
-  FraudSignal              FraudSignal[]
+  positions        Position[]
+  auditLogs        AuditLog[]
+  audits           Audit[]
+  behaviorProfiles BehaviorProfile[]
+  behaviorEvents   BehaviorEvent[]
+  bluetoothEvents  BluetoothEvent[]
+  investors        Investor[]
+  investorScores   InvestorScoringResult[]
+  leads            Lead[]
+  leadScores       LeadScoringResult[]
+  fraudEvents      FraudEvent[]
+  fraudScores      FraudScore[]
+  FraudPipeline    FraudPipeline[]
+
+  fraudSignals             FraudSignal[]
   FraudCaseHistory         FraudCaseHistory[]
   FraudFlag                FraudFlag[]
+  scoreRecords             ScoreRecord[]
   SuspiciousActivityReport SuspiciousActivityReport[]
   BehavioralScoringLayer   BehavioralScoringLayer[]
   BehavioralTrendAnalytics BehavioralTrendAnalytics[]
+  bluetoothAlerts          BluetoothAlert[]
+  bluetoothRiskEvents      BluetoothRiskEvent[]
 }
 
 // ------------------------------------------------------------
@@ -73,15 +81,18 @@ model User {
 // ------------------------------------------------------------
 
 model Borrower {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  employer String?
-  email    String  @unique
-  fullName String
-  phone    String?
-  userId   String?
+  employer       String?
+  email          String                  @unique
+  fullName       String
+  phone          String?
+  userId         Int?                    @unique
+  riskScore      BorrowerRiskScore?
+  behaviorScore  BorrowerBehaviorScore?
+  financialScore BorrowerFinancialScore?
 
   applications                Application[]
   BorrowerBehavioralRiskLayer BorrowerBehavioralRiskLayer[]
@@ -99,12 +110,19 @@ model Borrower {
 // ------------------------------------------------------------
 
 model Investor {
-  id     String  @id @default(cuid())
-  name   String
-  email  String?
-  phone  String?
-  userId Int?
-  user   User?   @relation(fields: [userId], references: [id])
+  id                     String                  @id @default(cuid())
+  name                   String
+  email                  String?
+  phone                  String?
+  userId                 Int?
+  user                   User?                   @relation(fields: [userId], references: [id])
+  pricingSheet           InvestorPricingSheet?   @relation("InvestorPricingSheetRelation")
+  InvestorRiskScore      InvestorRiskScore?      @relation("PrimaryInvestorRiskScoreRelation")
+  InvestorBehaviorScore  InvestorBehaviorScore?  @relation("PrimaryInvestorBehaviorScoreRelation")
+  InvestorLiquidityScore InvestorLiquidityScore? @relation("PrimaryInvestorLiquidityScoreRelation")
+  riskScore              InvestorRiskScore?      @relation("SecondaryInvestorRiskScoreRelation")
+  behaviorScore          InvestorBehaviorScore?  @relation("SecondaryInvestorBehaviorScoreRelation")
+  liquidityScore         InvestorLiquidityScore? @relation("SecondaryInvestorLiquidityScoreRelation")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,9 +141,9 @@ model Investor {
   InvestorCapitalFlow              InvestorCapitalFlow[]
   InvestorAllocationDynamics       InvestorAllocationDynamics[]
   InvestorDiversificationAnalytics InvestorDiversificationAnalytics[]
+  pipelineDeals                    PipelineDeal[]
 }
 
-// Investor Behavior
 model InvestorBehavior {
   id         String   @id @default(uuid())
   investorId String
@@ -155,6 +173,7 @@ model Lead {
   behaviorProfiles BehaviorProfile[]
   behaviorEvents   BehaviorEvent[]
   BluetoothEvent   BluetoothEvent[]
+  scoringResults   LeadScoringResult[]
 }
 
 model LeadEvent {
@@ -249,12 +268,12 @@ model EnvironmentReading {
 // ------------------------------------------------------------
 
 model Application {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  borrowerId String
-  borrower   Borrower @relation(fields: [borrowerId], references: [id])
+  borrowerId String?
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
 
   employer           String?
   underwritingStatus String?
@@ -280,7 +299,6 @@ model Application {
   loanAmount    Int?
   totalLiens    Int?
 
-  // Relations
   timelineEvents TimelineEvent[]
   timeline       Timeline[]
   documents      Document[]
@@ -289,7 +307,6 @@ model Application {
   fraudEvents    FraudEvent[]
   milestones     ApplicationMilestone[]
 
-  // Analytics / AI / Scoring
   scoringPipelines     ApplicationScoringPipeline[]
   workflowLayers       ApplicationWorkflowAiLayer[]
   aiScoring            ApplicationAiScoring[]
@@ -300,7 +317,6 @@ model Application {
   fraudChains          ApplicationFraudSignalChain[]
   documentCompleteness ApplicationDocumentCompleteness[]
 
-  // Loan Performance
   amortization                 LoanAmortization?
   payoff                       LoanPayoff?
   delinquency                  LoanDelinquency?
@@ -334,6 +350,24 @@ model Application {
   LoanRepaymentCurve           LoanRepaymentCurve?
   LoanStressTest               LoanStressTest?
   Check                        Check?
+  PricingScenario              PricingScenario?
+  PricingResult                PricingResult?
+
+  FraudResult        FraudResult?
+  FraudSignalOutput  FraudSignalOutput?
+  FraudAnomalyOutput FraudAnomalyOutput?
+
+  CovenantBreach       CovenantBreach?
+  CovenantStressResult CovenantStressResult?
+  StressTestScenario   StressTestScenario?
+  StressTestResult     StressTestResult?
+
+  ServicingEventScore ServicingEventScore?
+  ServicingRiskSignal ServicingRiskSignal?
+  ScoringResult       ScoringResult?
+  AnchorRecord        AnchorRecord?
+  pipelineDeals       PipelineDeal[]
+  scoreRecords        ScoreRecord[]
 }
 
 // ------------------------------------------------------------
@@ -345,7 +379,7 @@ model TimelineEvent {
   createdAt DateTime @default(now())
   message   String?
 
-  applicationId String      @unique
+  applicationId String
   application   Application @relation(fields: [applicationId], references: [id])
 
   type     String
@@ -354,7 +388,7 @@ model TimelineEvent {
 
 model Timeline {
   id            String      @id @default(uuid())
-  applicationId String      @unique
+  applicationId String
   application   Application @relation(fields: [applicationId], references: [id])
 
   type      String?
@@ -369,7 +403,7 @@ model Timeline {
 
 model ApplicationMilestone {
   id            String       @id @default(cuid())
-  applicationId String?      @unique
+  applicationId String?
   application   Application? @relation(fields: [applicationId], references: [id])
 
   milestone String?
@@ -377,219 +411,6 @@ model ApplicationMilestone {
   metadata  Json?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-}
-
-// ------------------------------------------------------------
-// LOAN SERVICING EVENTS
-// ------------------------------------------------------------
-
-model LoanServicingEvent {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  eventType String?
-  payload   Json?
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// LOAN AMORTIZATION
-// ------------------------------------------------------------
-
-model LoanAmortization {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  schedule      Json?
-  totalInterest Float?
-  totalPaid     Float?
-  metadata      Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// LOAN PAYOFF
-// ------------------------------------------------------------
-
-model LoanPayoff {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  payoffAmount Float?
-  payoffDate   DateTime?
-  metadata     Json?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-}
-
-// ------------------------------------------------------------
-// LOAN DELINQUENCY
-// ------------------------------------------------------------
-
-model LoanDelinquency {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  daysLate         Int?
-  delinquencyLevel String?
-  history          Json?
-  metadata         Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION SCORING PIPELINE
-// ------------------------------------------------------------
-
-model ApplicationScoringPipeline {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  pipelineName String?
-  layers       Json?
-  finalScore   Float?
-  metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION WORKFLOW AI LAYER
-// ------------------------------------------------------------
-
-model ApplicationWorkflowAiLayer {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  layerName  String?
-  inference  Json?
-  confidence Float?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION AI SCORING
-// ------------------------------------------------------------
-
-model ApplicationAiScoring {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  modelVersion String?
-  score        Float?
-  features     Json?
-  metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION RISK LADDER
-// ------------------------------------------------------------
-
-model ApplicationRiskLadder {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  ladder    Json?
-  finalRisk Float?
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION COMPLIANCE LADDER
-// ------------------------------------------------------------
-
-model ApplicationComplianceLadder {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  ladder          Json?
-  complianceScore Float?
-  metadata        Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION FRAUD RISK LADDER
-// ------------------------------------------------------------
-
-model ApplicationFraudRiskLadder {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  ladder     Json?
-  fraudScore Float?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION COMPLIANCE SIGNAL CHAIN
-// ------------------------------------------------------------
-
-model ApplicationComplianceSignalChain {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  chain           Json?
-  complianceScore Float?
-  metadata        Json?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION FRAUD SIGNAL CHAIN
-// ------------------------------------------------------------
-
-model ApplicationFraudSignalChain {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  chain      Json?
-  finalScore Float?
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION DOCUMENT COMPLETENESS
-// ------------------------------------------------------------
-
-model ApplicationDocumentCompleteness {
-  id            String       @id @default(cuid())
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  completenessScore Float?
-  missingItems      Json?
-  metadata          Json?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -620,10 +441,14 @@ model Document {
   transformations     DocumentTransformationLog[]
   extractionPipelines DocumentExtractionPipeline[]
   aiLayers            DocumentAiClassificationLayer[]
+
+  embeddings     DocumentEmbedding[]
+  semanticScores DocumentSemanticScore[]
+  riskSignals    DocumentRiskSignal[]
 }
 
 // ------------------------------------------------------------
-// DOCUMENT CLASSIFICATION
+// DOCUMENT SUBMODELS
 // ------------------------------------------------------------
 
 model DocumentClassification {
@@ -631,7 +456,7 @@ model DocumentClassification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
   category   String?
@@ -639,16 +464,12 @@ model DocumentClassification {
   metadata   Json?
 }
 
-// ------------------------------------------------------------
-// DOCUMENT OCR EXTRACTION
-// ------------------------------------------------------------
-
 model DocumentOcrExtraction {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
   text       String?
@@ -657,26 +478,18 @@ model DocumentOcrExtraction {
   metadata   Json?
 }
 
-// ------------------------------------------------------------
-// DOCUMENT VERSIONING
-// ------------------------------------------------------------
-
 model DocumentVersion {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
   version  Int?
   url      String?
   metadata Json?
 }
-
-// ------------------------------------------------------------
-// DOCUMENT LINEAGE
-// ------------------------------------------------------------
 
 model DocumentLineage {
   id        String   @id @default(cuid())
@@ -691,27 +504,6 @@ model DocumentLineage {
   metadata Json?
 }
 
-// ------------------------------------------------------------
-// DOCUMENT COMPLIANCE SCORE
-// ------------------------------------------------------------
-
-model DocumentComplianceScore {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  documentId String?   @unique
-  document   Document? @relation(fields: [documentId], references: [id])
-
-  score    Float?
-  issues   Json?
-  metadata Json?
-}
-
-// ------------------------------------------------------------
-// DOCUMENT SEMANTIC EXTRACTION
-// ------------------------------------------------------------
-
 model DocumentSemanticExtraction {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -725,16 +517,12 @@ model DocumentSemanticExtraction {
   metadata   Json?
 }
 
-// ------------------------------------------------------------
-// DOCUMENT STRUCTURAL ANALYSIS
-// ------------------------------------------------------------
-
 model DocumentStructuralAnalysis {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String    @unique
   document   Document? @relation(fields: [documentId], references: [id])
 
   structure Json?
@@ -742,33 +530,12 @@ model DocumentStructuralAnalysis {
   metadata  Json?
 }
 
-// ------------------------------------------------------------
-// DOCUMENT TRANSFORMATION LOG
-// ------------------------------------------------------------
-
-model DocumentTransformationLog {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  documentId String?   @unique
-  document   Document? @relation(fields: [documentId], references: [id])
-
-  transformationType String?
-  details            Json?
-  metadata           Json?
-}
-
-// ------------------------------------------------------------
-// DOCUMENT EXTRACTION PIPELINE
-// ------------------------------------------------------------
-
 model DocumentExtractionPipeline {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String    @unique
   document   Document? @relation(fields: [documentId], references: [id])
 
   pipelineName String?
@@ -777,20 +544,43 @@ model DocumentExtractionPipeline {
 }
 
 // ------------------------------------------------------------
-// DOCUMENT AI CLASSIFICATION LAYER
+// DOCUMENT AI OUTPUT MODELS (TS-Referenced)
 // ------------------------------------------------------------
 
-model DocumentAiClassificationLayer {
+model DocumentEmbedding {
+  id        String   @id @unique @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  vector   Json?
+  metadata Json?
+}
+
+model DocumentSemanticScore {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  documentId String?   @unique
+  documentId String?
   document   Document? @relation(fields: [documentId], references: [id])
 
-  layerName  String?
-  category   String?
-  confidence Float?
+  score    Float?
+  metadata Json?
+}
+
+model DocumentRiskSignal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  signalType String?
+  strength   Float?
   metadata   Json?
 }
 
@@ -824,7 +614,7 @@ model Disclosure {
 }
 
 // ------------------------------------------------------------
-// DISCLOSURE COMPLIANCE
+// DISCLOSURE SUBMODELS
 // ------------------------------------------------------------
 
 model DisclosureCompliance {
@@ -832,7 +622,7 @@ model DisclosureCompliance {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String?
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   compliant Boolean?
@@ -840,16 +630,12 @@ model DisclosureCompliance {
   metadata  Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE TRACKING
-// ------------------------------------------------------------
-
 model DisclosureTracking {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String?
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   viewedAt   DateTime?
@@ -857,16 +643,12 @@ model DisclosureTracking {
   metadata   Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE AUDIT TRAIL
-// ------------------------------------------------------------
-
 model DisclosureAuditTrail {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String?
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   eventType String?
@@ -874,16 +656,12 @@ model DisclosureAuditTrail {
   metadata  Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE COMPLIANCE SNAPSHOT
-// ------------------------------------------------------------
-
 model DisclosureComplianceSnapshot {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String?
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   compliant Boolean?
@@ -891,16 +669,12 @@ model DisclosureComplianceSnapshot {
   metadata  Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE LIFECYCLE ANALYTICS
-// ------------------------------------------------------------
-
 model DisclosureLifecycleAnalytics {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   lifecycleStage String?
@@ -908,16 +682,12 @@ model DisclosureLifecycleAnalytics {
   metadata       Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE COMPLIANCE LAYER
-// ------------------------------------------------------------
-
 model DisclosureComplianceLayer {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   layerName       String?
@@ -926,16 +696,12 @@ model DisclosureComplianceLayer {
   metadata        Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE BEHAVIOR ANALYTICS
-// ------------------------------------------------------------
-
 model DisclosureBehaviorAnalytics {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   behaviorScore Float?
@@ -943,16 +709,12 @@ model DisclosureBehaviorAnalytics {
   metadata      Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE BEHAVIOR TRAJECTORY
-// ------------------------------------------------------------
-
 model DisclosureBehaviorTrajectory {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   trajectory    Json?
@@ -960,16 +722,12 @@ model DisclosureBehaviorTrajectory {
   metadata      Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE SENTIMENT ANALYTICS
-// ------------------------------------------------------------
-
 model DisclosureSentimentAnalytics {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   sentiment String?
@@ -977,16 +735,12 @@ model DisclosureSentimentAnalytics {
   metadata  Json?
 }
 
-// ------------------------------------------------------------
-// DISCLOSURE ENGAGEMENT ANALYTICS
-// ------------------------------------------------------------
-
 model DisclosureEngagementAnalytics {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  disclosureId String?     @unique
+  disclosureId String      @unique
   disclosure   Disclosure? @relation(fields: [disclosureId], references: [id])
 
   engagementScore Float?
@@ -999,7 +753,7 @@ model DisclosureEngagementAnalytics {
 // ------------------------------------------------------------
 
 model UnderwritingCase {
-  id            String      @id @default(cuid())
+  id            String      @id @unique @default(cuid())
   applicationId String      @unique
   application   Application @relation(fields: [applicationId], references: [id])
 
@@ -1036,6 +790,11 @@ model UnderwritingCase {
   probabilistic      UnderwritingProbabilisticScoring?
   decisionTree       UnderwritingDecisionTree?
   calibrationLogs    UnderwritingCalibrationLog[]
+
+  scoreResults    UnderwritingScoreResult[]
+  pipelineOutputs UnderwritingPipelineOutput[]
+  riskFactors     UnderwritingRiskFactors[]
+  decisionOutputs UnderwritingDecisionOutput[]
 }
 
 // ------------------------------------------------------------
@@ -1047,7 +806,7 @@ model UnderwritingEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   eventType String?
@@ -1063,7 +822,7 @@ model UnderwritingStep {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   stepName String?
@@ -1081,7 +840,7 @@ model UnderwritingDecision {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   decision String?
@@ -1104,9 +863,10 @@ model UnderwritingRule {
   outcome     String?
   metadata    Json?
 
-  evaluations        UnderwritingRuleEvaluation[]
-  UnderwritingCase   UnderwritingCase?            @relation(fields: [underwritingCaseId], references: [id])
+  evaluations UnderwritingRuleEvaluation[]
+
   underwritingCaseId String?
+  UnderwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 }
 
 // ------------------------------------------------------------
@@ -1118,15 +878,15 @@ model UnderwritingRuleEvaluation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  ruleName           String?
-  passed             Boolean?
-  details            Json?
-  metadata           Json?
-  UnderwritingRule   UnderwritingRule? @relation(fields: [underwritingRuleId], references: [id])
-  underwritingRuleId String?
+  ruleId String?
+  rule   UnderwritingRule? @relation(fields: [ruleId], references: [id])
+
+  passed   Boolean?
+  score    Float?
+  metadata Json?
 }
 
 // ------------------------------------------------------------
@@ -1138,11 +898,11 @@ model UnderwritingAutomation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   automationType String?
-  result         String?
+  result         Json?
   metadata       Json?
 }
 
@@ -1155,7 +915,7 @@ model UnderwritingExceptionLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   exceptionType String?
@@ -1172,12 +932,12 @@ model UnderwritingExceptionEscalation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  level    String?
-  reason   String?
-  metadata Json?
+  escalationLevel String?
+  reason          String?
+  metadata        Json?
 }
 
 // ------------------------------------------------------------
@@ -1189,11 +949,10 @@ model UnderwritingSnapshot {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  status   String?
-  findings Json?
+  snapshot Json?
   metadata Json?
 }
 
@@ -1206,12 +965,12 @@ model UnderwritingAiDecisionLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   modelVersion String?
   decision     String?
-  reasoning    Json?
+  confidence   Float?
   metadata     Json?
 }
 
@@ -1224,13 +983,11 @@ model UnderwritingRuleChain {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  chainName String?
-  steps     Json?
-  result    String?
-  metadata  Json?
+  chain    Json?
+  metadata Json?
 }
 
 // ------------------------------------------------------------
@@ -1242,12 +999,10 @@ model UnderwritingChainAnalytics {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  chainName String?
   analytics Json?
-  outcome   String?
   metadata  Json?
 }
 
@@ -1260,7 +1015,7 @@ model UnderwritingOverrideLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   overrideType String?
@@ -1277,12 +1032,11 @@ model UnderwritingProbabilisticScoring {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
-  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
+  underwritingCaseId String           @unique
+  underwritingCase   UnderwritingCase @relation(fields: [underwritingCaseId], references: [id])
 
-  probability Float?
-  factors     Json?
-  metadata    Json?
+  scores   Json?
+  metadata Json?
 }
 
 // ------------------------------------------------------------
@@ -1294,12 +1048,11 @@ model UnderwritingDecisionTree {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
-  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
+  underwritingCaseId String           @unique
+  underwritingCase   UnderwritingCase @relation(fields: [underwritingCaseId], references: [id])
 
-  treeStructure Json?
-  finalDecision String?
-  metadata      Json?
+  tree     Json?
+  metadata Json?
 }
 
 // ------------------------------------------------------------
@@ -1311,374 +1064,67 @@ model UnderwritingCalibrationLog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  underwritingCaseId String?           @unique
+  underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   calibrationType String?
-  adjustments     Json?
+  details         Json?
   metadata        Json?
 }
 
 // ------------------------------------------------------------
-// FRAUD SCORE (User-Level)
+// TS-REFERENCED UNDERWRITING OUTPUT MODELS
 // ------------------------------------------------------------
 
-model FraudScore {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
+model UnderwritingScoreResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  underwritingCaseId String?
+  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
   score    Float?
-  signals  Json?
+  factors  Json?
   metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------------
-// FRAUD EVENT (Application-Level)
-// ------------------------------------------------------------
-
-model FraudEvent {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  eventType String?
-  payload   Json?
-  metadata  Json?
-
+model UnderwritingPipelineOutput {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-// ------------------------------------------------------------
-// FRAUD PIPELINE (Multi-Layer Scoring)
-// ------------------------------------------------------------
+  underwritingCaseId String?
+  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-model FraudPipeline {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
-
-  layers     Json?
+  steps      Json?
   finalScore Float?
   metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------------
-// FRAUD SIGNAL (Atomic Fraud Indicators)
-// ------------------------------------------------------------
-
-model FraudSignal {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
-
-  signalType String?
-  value      Float?
-  metadata   Json?
-
+model UnderwritingRiskFactors {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-// ------------------------------------------------------------
-// FRAUD CASE HISTORY
-// ------------------------------------------------------------
+  underwritingCaseId String?
+  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-model FraudCaseHistory {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
-
-  events   Json?
-  status   String?
+  factors  Json?
   metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------------
-// FRAUD FLAG
-// ------------------------------------------------------------
+model UnderwritingDecisionOutput {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model FraudFlag {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
+  underwritingCaseId String?
+  underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  flagType String?
-  reason   String?
+  decision String?
+  reasons  Json?
   metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// SUSPICIOUS ACTIVITY REPORT (SAR)
-// ------------------------------------------------------------
-
-model SuspiciousActivityReport {
-  id     String @id @default(cuid())
-  userId Int?
-  user   User?  @relation(fields: [userId], references: [id])
-
-  report   Json?
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  flags SarFlag[]
-}
-
-// ------------------------------------------------------------
-// SAR FLAG
-// ------------------------------------------------------------
-
-model SarFlag {
-  id    String                    @id @default(cuid())
-  sarId String?
-  sar   SuspiciousActivityReport? @relation(fields: [sarId], references: [id])
-
-  flagType String?
-  details  Json?
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD AI INFERENCE LOG
-// ------------------------------------------------------------
-
-model FraudAiInferenceLog {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  modelVersion String?
-  score        Float?
-  features     Json?
-  metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD ESCALATION
-// ------------------------------------------------------------
-
-model FraudEscalation {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  level    String?
-  reason   String?
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD ESCALATION PIPELINE LAYER
-// ------------------------------------------------------------
-
-model FraudEscalationPipelineLayer {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  layerName String?
-  score     Float?
-  signals   Json?
-  metadata  Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD ANOMALY DETECTION
-// ------------------------------------------------------------
-
-model FraudAnomalyDetection {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  anomalyScore Float?
-  signals      Json?
-  metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD FEATURE STORE
-// ------------------------------------------------------------
-
-model FraudFeatureStore {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  features Json?
-  version  String?
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD CLUSTER
-// ------------------------------------------------------------
-
-model FraudCluster {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  clusterId String?
-  score     Float?
-  signals   Json?
-  metadata  Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD TRAJECTORY MODEL
-// ------------------------------------------------------------
-
-model FraudTrajectoryModel {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  trajectory Json?
-  riskLevel  String?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD PROPAGATION MODEL
-// ------------------------------------------------------------
-
-model FraudPropagationModel {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  propagationGraph Json?
-  riskShift        String?
-  metadata         Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD CONTAGION MAPPING
-// ------------------------------------------------------------
-
-model FraudContagionMapping {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  contagionGraph Json?
-  spreadScore    Float?
-  metadata       Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD TEMPORAL EVOLUTION
-// ------------------------------------------------------------
-
-model FraudTemporalEvolution {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  evolution Json?
-  riskTrend Float?
-  metadata  Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD NETWORK MAPPING
-// ------------------------------------------------------------
-
-model FraudNetworkMapping {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  networkGraph Json?
-  riskNodes    Json?
-  metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD PATTERN EVOLUTION
-// ------------------------------------------------------------
-
-model FraudPatternEvolution {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  patterns  Json?
-  evolution Json?
-  riskShift String?
-  metadata  Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// FRAUD SIGNAL CHAIN
-// ------------------------------------------------------------
-
-model FraudSignalChain {
-  id            String       @id @default(cuid())
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
-
-  chain      Json?
-  finalScore Float?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1686,17 +1132,16 @@ model FraudSignalChain {
 // ------------------------------------------------------------
 
 model PricingEngineAudit {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
-  runId      String?
-  parameters Json?
-  result     Json?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  auditType String?
+  details   Json?
+  metadata  Json?
 }
 
 // ------------------------------------------------------------
@@ -1704,17 +1149,17 @@ model PricingEngineAudit {
 // ------------------------------------------------------------
 
 model PricingEngineInferenceLog {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   modelVersion String?
   inference    Json?
-  finalRate    Float?
+  confidence   Float?
   metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1722,7 +1167,10 @@ model PricingEngineInferenceLog {
 // ------------------------------------------------------------
 
 model PricingComponentScoring {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
@@ -1730,9 +1178,6 @@ model PricingComponentScoring {
   score         Float?
   factors       Json?
   metadata      Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1740,7 +1185,10 @@ model PricingComponentScoring {
 // ------------------------------------------------------------
 
 model PricingOptimizationLayer {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
@@ -1748,9 +1196,6 @@ model PricingOptimizationLayer {
   adjustments   Json?
   optimizedRate Float?
   metadata      Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1758,16 +1203,16 @@ model PricingOptimizationLayer {
 // ------------------------------------------------------------
 
 model PricingSensitivityLayer {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   sensitivityType String?
   impact          Json?
   metadata        Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1775,16 +1220,16 @@ model PricingSensitivityLayer {
 // ------------------------------------------------------------
 
 model PricingAnomalyDetection {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   anomalyScore Float?
   signals      Json?
   metadata     Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1792,7 +1237,10 @@ model PricingAnomalyDetection {
 // ------------------------------------------------------------
 
 model PricingCurveFitting {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
@@ -1800,9 +1248,6 @@ model PricingCurveFitting {
   curveData  Json?
   fitQuality Float?
   metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1810,16 +1255,16 @@ model PricingCurveFitting {
 // ------------------------------------------------------------
 
 model PricingVolatilityTracking {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   volatilityScore Float?
   history         Json?
   metadata        Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -1827,16 +1272,416 @@ model PricingVolatilityTracking {
 // ------------------------------------------------------------
 
 model PricingElasticityAnalytics {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   elasticity     Float?
   behaviorImpact Json?
   metadata       Json?
+}
 
+// ------------------------------------------------------------
+// TS-REFERENCED PRICING MODELS
+// ------------------------------------------------------------
+
+model InvestorPricingSheet {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  investorId String?   @unique
+  investor   Investor? @relation("InvestorPricingSheetRelation", fields: [investorId], references: [id])
+
+  effectiveAt DateTime?
+  programName String?
+  baseRate    Float?
+  adjustments Json?
+  metadata    Json?
+
+  llpaRows   LlpaGridRow[]
+  overlays   ProductOverlay[]
+  nonqmRules NonQMPricingRule[]
+}
+
+model LlpaGridRow {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pricingSheetId String?
+  pricingSheet   InvestorPricingSheet? @relation(fields: [pricingSheetId], references: [id])
+
+  ltv         Float?
+  creditScore Int?
+  llpaFactor  Float?
+  metadata    Json?
+}
+
+model ProductOverlay {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pricingSheetId String?
+  pricingSheet   InvestorPricingSheet? @relation(fields: [pricingSheetId], references: [id])
+
+  productType String?
+  overlayRate Float?
+  metadata    Json?
+}
+
+model NonQMPricingRule {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pricingSheetId String?
+  pricingSheet   InvestorPricingSheet? @relation(fields: [pricingSheetId], references: [id])
+
+  ruleName   String?
+  adjustment Float?
+  criteria   Json?
+  metadata   Json?
+}
+
+model PricingScenario {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  scenarioType String?
+  inputs       Json?
+  outputs      Json?
+  metadata     Json?
+}
+
+model PricingResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  finalRate  Float?
+  components Json?
+  metadata   Json?
+}
+
+// ------------------------------------------------------------
+// FRAUD DOMAIN
+// ------------------------------------------------------------
+
+model FraudScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  score    Float?
+  factors  Json?
+  metadata Json?
+}
+
+model FraudPipeline {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  pipelineName String?
+  steps        Json?
+  finalScore   Float?
+  metadata     Json?
+}
+
+model FraudSignal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  signalType String?
+  strength   Float?
+  metadata   Json?
+}
+
+model FraudCaseHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  caseType String?
+  details  Json?
+  metadata Json?
+}
+
+model FraudFlag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  flagType String?
+  reason   String?
+  metadata Json?
+  checkId  String?
+  check    Check?  @relation(fields: [checkId], references: [id])
+}
+
+model SuspiciousActivityReport {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  reportType String?
+  details    Json?
+  metadata   Json?
+  checkId    String?
+  check      Check?  @relation(fields: [checkId], references: [id])
+}
+
+model FraudEvent {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id])
+  anchorTxHash String?
+
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  eventType String?
+  signal    Json?
+  payload   Json?
+  metadata  Json?
+}
+
+model FraudAiInferenceLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  modelVersion String?
+  inference    Json?
+  confidence   Float?
+  metadata     Json?
+}
+
+model FraudEscalation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  escalationLevel String?
+  reason          String?
+  metadata        Json?
+}
+
+model FraudEscalationPipelineLayer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  layerName String?
+  output    Json?
+  metadata  Json?
+}
+
+model FraudAnomalyDetection {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  anomalyScore Float?
+  signals      Json?
+  metadata     Json?
+}
+
+model FraudFeatureStore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  features Json?
+  metadata Json?
+}
+
+model FraudCluster {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  clusterId String?
+  signals   Json?
+  metadata  Json?
+}
+
+model FraudTrajectoryModel {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  trajectory Json?
+  metadata   Json?
+}
+
+model FraudPropagationModel {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  propagation Json?
+  metadata    Json?
+}
+
+model FraudContagionMapping {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  contagion Json?
+  metadata  Json?
+}
+
+model FraudTemporalEvolution {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  evolution Json?
+  metadata  Json?
+}
+
+model FraudNetworkMapping {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  network  Json?
+  metadata Json?
+}
+
+model FraudPatternEvolution {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  patterns Json?
+  metadata Json?
+}
+
+model FraudSignalChain {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  chain    Json?
+  metadata Json?
+}
+
+// ------------------------------------------------------------
+// TS-REFERENCED FRAUD OUTPUT MODELS
+// ------------------------------------------------------------
+
+model FraudResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  score    Float?
+  signals  Json?
+  metadata Json?
+}
+
+model FraudSignalOutput {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  signalType String?
+  strength   Float?
+  metadata   Json?
+}
+
+model FraudAnomalyOutput {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  anomalyScore Float?
+  details      Json?
+  metadata     Json?
 }
 
 // ------------------------------------------------------------
@@ -1882,15 +1727,16 @@ model BehaviorEvent {
   investorId String?
   investor   Investor? @relation(fields: [investorId], references: [id])
 
-  eventType         String?
-  page              String?
-  element           String?
-  description       String?
-  responseTimeMs    Int?
-  lateNight         Boolean?
-  metadata          Json?
-  BehaviorProfile   BehaviorProfile? @relation(fields: [behaviorProfileId], references: [id])
+  eventType      String?
+  page           String?
+  element        String?
+  description    String?
+  responseTimeMs Int?
+  lateNight      Boolean?
+  metadata       Json?
+
   behaviorProfileId String?
+  BehaviorProfile   BehaviorProfile? @relation(fields: [behaviorProfileId], references: [id])
 }
 
 // ------------------------------------------------------------
@@ -1928,142 +1774,6 @@ model BehavioralTrendAnalytics {
 }
 
 // ------------------------------------------------------------
-// BORROWER BEHAVIORAL RISK LAYER
-// ------------------------------------------------------------
-
-model BorrowerBehavioralRiskLayer {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  riskScore Float?
-  factors   Json?
-  metadata  Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER BEHAVIORAL DRIFT
-// ------------------------------------------------------------
-
-model BorrowerBehavioralDrift {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  drift      Json?
-  driftScore Float?
-  metadata   Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER REPAYMENT RESILIENCE
-// ------------------------------------------------------------
-
-model BorrowerRepaymentResilience {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  resilienceScore Float?
-  factors         Json?
-  metadata        Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER RETENTION ANALYTICS
-// ------------------------------------------------------------
-
-model BorrowerRetentionAnalytics {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  retentionScore Float?
-  signals        Json?
-  metadata       Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER HARDSHIP ANALYTICS
-// ------------------------------------------------------------
-
-model BorrowerHardshipAnalytics {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  hardshipScore Float?
-  indicators    Json?
-  metadata      Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER FINANCIAL STABILITY
-// ------------------------------------------------------------
-
-model BorrowerFinancialStability {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  stabilityScore Float?
-  factors        Json?
-  metadata       Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER FINANCIAL DRIFT
-// ------------------------------------------------------------
-
-model BorrowerFinancialDrift {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  driftScore Float?
-  drift      Json?
-  metadata   Json?
-}
-
-// ------------------------------------------------------------
-// BORROWER MACRO RISK EXPOSURE
-// ------------------------------------------------------------
-
-model BorrowerMacroRiskExposure {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  borrowerId String?
-  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
-
-  macroFactors  Json?
-  exposureScore Float?
-  metadata      Json?
-}
-
-// ------------------------------------------------------------
 // BLUETOOTH EVENT (Atomic Bluetooth Signals)
 // ------------------------------------------------------------
 
@@ -2085,19 +1795,351 @@ model BluetoothEvent {
 }
 
 // ------------------------------------------------------------
-// ENVIRONMENT READING (Environmental Density + Risk)
+// TS-REFERENCED BLUETOOTH OUTPUT MODELS
 // ------------------------------------------------------------
-model InvestorScoringResult {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
+
+model BluetoothAlert {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  alertType String?
+  deviceId  String?
+  rssi      Int?
+  metadata  Json?
+}
+
+model BluetoothRiskEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  riskScore Float?
+  signals   Json?
+  metadata  Json?
+}
+
+model BluetoothAnomalyResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  anomalyScore Float?
+  signals      Json?
+  metadata     Json?
+}
+
+// ------------------------------------------------------------
+// BORROWER ANALYTICS
+// ------------------------------------------------------------
+
+model BorrowerBehavioralRiskLayer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  riskScore Float?
+  factors   Json?
+  metadata  Json?
+}
+
+model BorrowerBehavioralDrift {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  drift      Json?
+  driftScore Float?
+  metadata   Json?
+}
+
+model BorrowerRepaymentResilience {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  resilienceScore Float?
+  factors         Json?
+  metadata        Json?
+}
+
+model BorrowerRetentionAnalytics {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  retentionScore Float?
+  signals        Json?
+  metadata       Json?
+}
+
+model BorrowerHardshipAnalytics {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  hardshipScore Float?
+  indicators    Json?
+  metadata      Json?
+}
+
+model BorrowerFinancialStability {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  stabilityScore Float?
+  factors        Json?
+  metadata       Json?
+}
+
+model BorrowerFinancialDrift {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  driftScore Float?
+  drift      Json?
+  metadata   Json?
+}
+
+model BorrowerMacroRiskExposure {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  macroFactors  Json?
+  exposureScore Float?
+  metadata      Json?
+}
+
+// ------------------------------------------------------------
+// TS-REFERENCED BORROWER SCORING MODELS
+// ------------------------------------------------------------
+
+model BorrowerRiskScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
 
   score    Float?
   factors  Json?
   metadata Json?
+}
 
+model BorrowerBehaviorScore {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  behaviorScore Float?
+  patterns      Json?
+  metadata      Json?
+}
+
+model BorrowerFinancialScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?   @unique
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  financialScore Float?
+  metrics        Json?
+  metadata       Json?
+}
+
+// ------------------------------------------------------------
+// INVESTOR ANALYTICS
+// ------------------------------------------------------------
+
+model ScoringResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model InvestorLiquidity {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  liquidityScore Float?
+  factors        Json?
+  metadata       Json?
+}
+
+model InvestorPerformanceSnapshot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  metrics  Json?
+  metadata Json?
+}
+
+model InvestorRiskBandHistory {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  band      String?
+  timestamp DateTime?
+  metadata  Json?
+}
+
+model InvestorCapitalFlow {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  flowAmount Float?
+  flowType   String?
+  metadata   Json?
+}
+
+model InvestorAllocationDynamics {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  allocation Json?
+  dynamics   Json?
+  metadata   Json?
+}
+
+model InvestorDiversificationAnalytics {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  diversificationScore Float?
+  factors              Json?
+  metadata             Json?
+}
+
+// ------------------------------------------------------------
+// TS-REFERENCED INVESTOR SCORING MODELS
+// ------------------------------------------------------------
+
+model InvestorRiskScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Primary relation
+  investorId String?   @unique
+  investor   Investor? @relation("PrimaryInvestorRiskScoreRelation", fields: [investorId], references: [id])
+
+  // Secondary relation
+  investorSecondaryId String?   @unique
+  investorSecondary   Investor? @relation("SecondaryInvestorRiskScoreRelation", fields: [investorSecondaryId], references: [id])
+
+  score    Float?
+  factors  Json?
+  metadata Json?
+}
+
+model InvestorBehaviorScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Primary relation
+  investorId String?   @unique
+  investor   Investor? @relation("PrimaryInvestorBehaviorScoreRelation", fields: [investorId], references: [id])
+
+  // Secondary relation
+  investorSecondaryId String?   @unique
+  investorSecondary   Investor? @relation("SecondaryInvestorBehaviorScoreRelation", fields: [investorSecondaryId], references: [id])
+
+  behaviorScore Float?
+  patterns      Json?
+  metadata      Json?
+}
+
+model InvestorLiquidityScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Primary relation
+  investorId String?   @unique
+  investor   Investor? @relation("PrimaryInvestorLiquidityScoreRelation", fields: [investorId], references: [id])
+
+  // Secondary relation
+  investorSecondaryId String?   @unique
+  investorSecondary   Investor? @relation("SecondaryInvestorLiquidityScoreRelation", fields: [investorSecondaryId], references: [id])
+
+  liquidityScore Float?
+  metrics        Json?
+  metadata       Json?
 }
 
 // ------------------------------------------------------------
@@ -2144,165 +2186,44 @@ model PipelineVelocity {
 }
 
 // ------------------------------------------------------------
-// INVESTOR LIQUIDITY
+// TS-REFERENCED PIPELINE OUTPUT MODELS
 // ------------------------------------------------------------
 
-model InvestorLiquidity {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
-  liquidityScore Float?
-  factors        Json?
-  metadata       Json?
-
+model PipelineStageResult {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
 
-// ------------------------------------------------------------
-// INVESTOR PERFORMANCE SNAPSHOT
-// ------------------------------------------------------------
-
-model InvestorPerformanceSnapshot {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
+  stage    String?
   metrics  Json?
   metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------------
-// INVESTOR RISK BAND HISTORY
-// ------------------------------------------------------------
-
-model InvestorRiskBandHistory {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
-  band      String?
-  timestamp DateTime?
-  metadata  Json?
-
+model PipelineVelocityResult {
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  velocity Float?
+  factors  Json?
+  metadata Json?
 }
-
-// ------------------------------------------------------------
-// INVESTOR CAPITAL FLOW
-// ------------------------------------------------------------
-
-model InvestorCapitalFlow {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
-  flowAmount Float?
-  flowType   String?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// INVESTOR ALLOCATION DYNAMICS
-// ------------------------------------------------------------
-
-model InvestorAllocationDynamics {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
-  allocation Json?
-  dynamics   Json?
-  metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// INVESTOR DIVERSIFICATION ANALYTICS
-// ------------------------------------------------------------
-
-model InvestorDiversificationAnalytics {
-  id         String    @id @default(cuid())
-  investorId String?
-  investor   Investor? @relation(fields: [investorId], references: [id])
-
-  diversificationScore Float?
-  factors              Json?
-  metadata             Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ------------------------------------------------------------
-// APPLICATION SCORING PIPELINE (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION WORKFLOW AI LAYER (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION AI SCORING (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION RISK LADDER (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION COMPLIANCE LADDER (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION FRAUD RISK LADDER (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION COMPLIANCE SIGNAL CHAIN (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// APPLICATION FRAUD SIGNAL CHAIN (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// LOAN AMORTIZATION (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// LOAN PAYOFF (Already defined earlier)
-// ------------------------------------------------------------
-
-// ------------------------------------------------------------
-// LOAN DELINQUENCY (Already defined earlier)
-// ------------------------------------------------------------
 
 // ------------------------------------------------------------
 // LOAN RESTRUCTURING ANALYTICS
 // ------------------------------------------------------------
 
 model LoanRestructuringAnalytics {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   restructuringScore Float?
   factors            Json?
   metadata           Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -2310,16 +2231,16 @@ model LoanRestructuringAnalytics {
 // ------------------------------------------------------------
 
 model LoanCovenantTracking {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   covenants Json?
   status    String?
   metadata  Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -2327,16 +2248,16 @@ model LoanCovenantTracking {
 // ------------------------------------------------------------
 
 model LoanCovenantStress {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   stressScore Float?
   factors     Json?
   metadata    Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -2344,16 +2265,16 @@ model LoanCovenantStress {
 // ------------------------------------------------------------
 
 model LoanPerformanceTrajectory {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   trajectory       Json?
   performanceScore Float?
   metadata         Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -2361,15 +2282,15 @@ model LoanPerformanceTrajectory {
 // ------------------------------------------------------------
 
 model LoanRepaymentCurve {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   curve    Json?
   metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
@@ -2377,20 +2298,109 @@ model LoanRepaymentCurve {
 // ------------------------------------------------------------
 
 model LoanStressTest {
-  id            String       @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   applicationId String?      @unique
   application   Application? @relation(fields: [applicationId], references: [id])
 
   stressType String?
   results    Json?
   metadata   Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 // ------------------------------------------------------------
-// CHECK (Physical or Digital Check)
+// TS-REFERENCED COVENANT + STRESS MODELS
+// ------------------------------------------------------------
+
+model CovenantBreach {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  breachType String?
+  details    Json?
+  metadata   Json?
+}
+
+model CovenantStressResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  stressScore Float?
+  factors     Json?
+  metadata    Json?
+}
+
+model StressTestScenario {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  scenarioType String?
+  parameters   Json?
+  metadata     Json?
+}
+
+model StressTestResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  results  Json?
+  metadata Json?
+}
+
+// ------------------------------------------------------------
+// LOAN SERVICING EVENT
+// ------------------------------------------------------------
+
+model LoanServicingEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  eventType String?
+  payload   Json?
+  metadata  Json?
+}
+
+// ------------------------------------------------------------
+// TS-REFERENCED SERVICING MODELS
+// ------------------------------------------------------------
+
+model ServicingEventScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  score    Float?
+  factors  Json?
+  metadata Json?
+}
+
+// ------------------------------------------------------------
+// BANKING DOMAIN
 // ------------------------------------------------------------
 
 model Check {
@@ -2409,32 +2419,41 @@ model Check {
   routingNumber String?
   accountNumber String?
   metadata      Json?
+  payee         String?
+  memo          String?
+  status        String?
+  pdfUrl        String?
+  date          DateTime?
+
+  fraudFlags FraudFlag[]
+  sar        SuspiciousActivityReport[]
+
+  anchorRecordId String?       @unique
+  anchorRecord   AnchorRecord? @relation(fields: [anchorRecordId], references: [id])
 
   signerId String?
   signer   Signer? @relation(fields: [signerId], references: [id])
 }
 
-// ------------------------------------------------------------
-// BANK PROFILE (Bank Metadata + Risk Signals)
-// ------------------------------------------------------------
-
 model BankProfile {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  name          String?
-  routingNumber String?
-  riskScore     Float?
-  metadata      Json?
+  name            String?
+  routingNumber   String?
+  riskScore       Float?
+  metadata        Json?
+  bankName        String?
+  accountNumber   String?
+  accountType     String?
+  signatureImage  String?
+  nextCheckNumber Int?
+  signerName      String?
 
   checks  Check[]
   signers Signer[]
 }
-
-// ------------------------------------------------------------
-// SIGNER (Authorized Signer for Checks / Accounts)
-// ------------------------------------------------------------
 
 model Signer {
   id        String   @id @default(cuid())
@@ -2449,4 +2468,332 @@ model Signer {
   bankProfile   BankProfile? @relation(fields: [bankProfileId], references: [id])
 
   checks Check[]
+}
+
+model ApplicationScoringPipeline {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+  pipelineName  String?
+  steps         Json?
+  finalScore    Float?
+  metadata      Json?
+}
+
+model ApplicationWorkflowAiLayer {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+  layerName     String?
+  output        Json?
+  metadata      Json?
+}
+
+model ApplicationAiScoring {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+  score         Float?
+  factors       Json?
+  metadata      Json?
+}
+
+model ApplicationRiskLadder {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+  ladder        Json?
+  metadata      Json?
+}
+
+model ApplicationComplianceLadder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  ladder   Json?
+  metadata Json?
+}
+
+model ApplicationFraudRiskLadder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  ladder   Json?
+  metadata Json?
+}
+
+model ApplicationComplianceSignalChain {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  chain    Json?
+  metadata Json?
+}
+
+model ApplicationFraudSignalChain {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  chain    Json?
+  metadata Json?
+}
+
+model ApplicationDocumentCompleteness {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  completenessScore Float?
+  missingDocuments  Json?
+  metadata          Json?
+}
+
+model LoanAmortization {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  schedule Json?
+  metadata Json?
+}
+
+model LoanPayoff {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  payoffAmount Float?
+  payoffDate   DateTime?
+  metadata     Json?
+}
+
+model LoanDelinquency {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  delinquencyStatus String?
+  daysLate          Int?
+  metadata          Json?
+}
+
+model DocumentComplianceScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  score    Float?
+  issues   Json?
+  metadata Json?
+}
+
+model DocumentTransformationLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  transformationType String?
+  details            Json?
+  metadata           Json?
+}
+
+model DocumentAiClassificationLayer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  layerName  String?
+  category   String?
+  confidence Float?
+  metadata   Json?
+}
+
+model PipelineDeal {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  name     String?
+  status   String?
+  metadata Json?
+}
+
+model AnchorRecord {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  check         Check?
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  merkleRoot   String?
+  txHash       String?
+  anchorTxHash String?
+  metadata     Json?
+}
+
+model ScoreRecord {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model UserRiskScore {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One-to-one relation with User
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  // Full scoring fields
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model LeadScoringResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model UserRiskSignal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One-to-one relation with User
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  // Full risk signal fields
+  signalType         String?
+  strength           Float?
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model InvestorScoringResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Many scoring results can belong to one investor
+  investorId String?
+  investor   Investor? @relation(fields: [investorId], references: [id])
+
+  // One-to-one relation with User (must be unique)
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id])
+
+  // Full scoring fields
+  fraudScore         Float?
+  riskScore          Float?
+  impulsivenessScore Float?
+
+  signals  Json?
+  factors  Json?
+  metadata Json?
+}
+
+model ServicingRiskSignal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  signalType String?
+  strength   Float?
+  metadata   Json?
 }

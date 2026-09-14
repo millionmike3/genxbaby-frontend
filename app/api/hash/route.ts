@@ -1,10 +1,11 @@
+import { NextRequest, NextResponse } from "next/server";
 // app/api/hash/route.ts
-import { NextResponse } from "next/server";
+
 import crypto from "crypto";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const body = await req.json();
+    const body = await request.json();
 
     if (!body || typeof body !== "object") {
       return NextResponse.json(

@@ -1,14 +1,25 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
-export async function POST(req: Request) {
-  const body = await req.formData();
-  const caseId = body.get("caseId") as string | null;
-  const decision = body.get("decision") as string | null;
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.formData();
+  const caseIdRaw = body.get("caseId");
+  const decision = body.get("decision");
 
-  if (!caseId || !decision) {
+  if (!caseIdRaw || !decision) {
     return NextResponse.json(
       { error: "Missing caseId or decision" },
+      { status: 400 }
+    );
+  }
+
+  // Convert to number (Prisma requires numeric id)
+  const caseId = Number(caseIdRaw);
+
+  if (isNaN(caseId)) {
+    return NextResponse.json(
+      { error: "Invalid caseId" },
       { status: 400 }
     );
   }

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const url = new URL(req.url);
+    const url = new URL(request.url);
     const signerId = url.searchParams.get("id");
 
     if (!signerId) {
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const response = await fetch(`${backendUrl}/api/checks/signer?id=${signerId}`, {
       method: "GET",
       headers: {
-        Cookie: req.headers.get("cookie") || "",
+        Cookie: request.headers.get("cookie") || "",
       },
     });
 

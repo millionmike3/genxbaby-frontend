@@ -63,24 +63,24 @@ export default function Hero() {
         className="mt-10 flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
       >
         <Link
-          href="/owner-portal"
-          className="px-6 py-3 rounded-full bg-[#3CF46B] text-black font-semibold"
+          href="/borrow"
+          className="px-6 py-3 rounded-full bg-[#3CF46B] text-black font-semibold hover:bg-[#32d45f] transition"
         >
           Borrow
         </Link>
 
         <Link
-          href="/investor-portal"
+          href="/invest"
           className="px-6 py-3 rounded-full border border-slate-600 text-slate-200 hover:bg-white/5 transition"
         >
           Invest
         </Link>
 
         <Link
-          href="/admin"
+          href="/purchase"
           className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-500 transition"
         >
-          Purchase 
+          Purchase
         </Link>
       </motion.div>
     </section>

@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { generateCheckPdf } from "@/lib/pdf/checkGenerator";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const { checkIds } = await req.json();
+    const { checkIds } = await request.json();
 
     if (!checkIds || !Array.isArray(checkIds) || checkIds.length === 0) {
       return NextResponse.json(

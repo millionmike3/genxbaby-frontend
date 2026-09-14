@@ -11,9 +11,29 @@ export const InvestorDAL = {
     return prisma.investor.findUnique({
       where: { id: investorId },
       include: {
-        scoringResults: {
+        scoreRecords: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            createdAt: true,
+            updatedAt: true,
+            applicationId: true,
+            userId: true,
+
+            fraudScore: true,
+            riskScore: true,
+            impulsivenessScore: true,
+            factors: true,
+            signals: true,
+            metadata: true,
+          },
+        },
+
+        InvestorScoringResult: {
           orderBy: { createdAt: "desc" },
         },
+
+        ScoringResult: true,
       },
     });
   },
@@ -33,4 +53,4 @@ export const InvestorDAL = {
       },
     });
   },
-}; // ✅ THIS IS NOW VALID — object closes cleanly
+};

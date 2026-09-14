@@ -1,13 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { priceLoan } from "@/services/pricing-engine";
 import { prisma } from "@/lib/prisma";
+import { ScoringDAL } from "@/lib/dal/scoring";
 
-export async function POST(req: Request) {
-  const body = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.json();
 
   // Run pricing engine
   const quote = await priceLoan(body);
 
+  // Pull latest scoring (works for borrower, lead, investor)
+  const latest = await ScoringDAL.getLatestScores(
+    body.userId ?? body.investorId ?? body.leadId ?? null
+  );
+
+  const impulsivenessScore =
+    latest?.impulsivenessScore ?? body.impulsivenessScore ?? 0;
 
   // Log behavior event
   await prisma.behaviorEvent.create({
@@ -19,7 +27,7 @@ export async function POST(req: Request) {
       page: "/pricing/quote",
       startedAt: new Date(),
       endedAt: new Date(),
-      impulsivenessScore: body.impulsivenessScore ?? 0,
+      impulsivenessScore,
     },
   });
 

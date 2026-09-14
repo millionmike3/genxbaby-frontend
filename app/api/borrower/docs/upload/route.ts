@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const form = await req.formData();
+    const form = await request.formData();
 
     const file = form.get("file") as File;
     const userId = form.get("userId") as string;

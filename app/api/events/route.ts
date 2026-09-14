@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import { getLeadEvents } from "@/lib/db/events";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { searchParams } = new URL(request.url);
   const leadId = searchParams.get("leadId");
 
   if (!leadId) {

@@ -1,15 +1,16 @@
-import { auth } from "@/lib/auth"; // your real auth
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { scoreFraud, scoreRisk, scoreImpulsiveness } from "@/lib/scoring";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   const user = await auth();
 
   if (!user) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json("Unauthorized", { status: 401 });
   }
 
-  const body = await req.json();
+  const body = await request.json();
 
   const fraudScore = scoreFraud(body);
   const riskScore = scoreRisk(body);
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
 
   await prisma.scoringResult.create({
     data: {
-      userId: parseInt(user.user.id, 10), // ✔ FIXED comma + correct ID
+      userId: parseInt(user.user.id, 10),
       fraudScore,
       riskScore,
       impulsivenessScore,
@@ -25,5 +26,9 @@ export async function POST(req: Request) {
     },
   });
 
-  return Response.json({ fraudScore, riskScore, impulsivenessScore });
+  return NextResponse.json({
+    fraudScore,
+    riskScore,
+    impulsivenessScore,
+  });
 }

@@ -9,7 +9,7 @@ async function logContactAttempt(
   return;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     const body = await request.json();
 

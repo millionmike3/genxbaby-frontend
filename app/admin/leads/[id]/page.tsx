@@ -64,8 +64,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
             <div>
               <strong>Classification:</strong>{" "}
-              classify(latest.impulsivenessScore, "INVESTOR")
-
+              {classify(latest.impulsivenessScore ?? 0, "LEAD")}
             </div>
 
             <div>

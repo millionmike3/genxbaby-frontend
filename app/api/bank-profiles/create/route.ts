@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const form = await req.formData();
+    const form = await request.formData();
 
     const bankName = form.get("bankName") as string;
     const routingNumber = form.get("routingNumber") as string;

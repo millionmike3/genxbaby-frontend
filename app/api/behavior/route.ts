@@ -1,12 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
 import { ScoringDAL } from "@/lib/dal/scoring";
 import { FraudDAL } from "@/lib/dal/fraud";
 import { PolygonAuditService } from "@/lib/services/polygonAudit";
-
 import { keccak256 } from "js-sha3";
-
 import {
   scoreStockSanitizer,
   scoreCustomer,
@@ -15,7 +12,7 @@ import {
   normalizeInput,
 } from "@/lib/scoring";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     // Authenticate user
     const session = await auth();
@@ -23,7 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const {
       leadId,
       investorId,
@@ -39,7 +36,6 @@ export async function POST(req: Request) {
 
     // Compute pillar-specific impulsiveness score
     let impulsivenessScore = 0;
-
     if (pillar === "STOCK_SANITIZER") {
       impulsivenessScore = scoreStockSanitizer(metrics);
     } else if (pillar === "CUSTOMER") {
@@ -51,23 +47,26 @@ export async function POST(req: Request) {
     // Compute risk score
     const riskScore = scoreRisk(normalized);
 
-    // Fraud score (your stock sanitizer pillar is your fraud pillar)
+    // Fraud score (same engine as stock sanitizer)
     const fraudScore = scoreStockSanitizer(metrics);
 
     // Classification
     const impulsivenessLevel = classify(impulsivenessScore, pillar);
 
-    // Save scores locally (frontend-side DAL)
-    await ScoringDAL.saveScores(session.user.id, {
-      fraud: fraudScore,
-      risk: riskScore,
-      impulsiveness: impulsivenessScore,
-    }, metrics);
+    // Save scores locally
+    await ScoringDAL.saveScores(
+      session.user.id,
+      {
+        fraud: fraudScore,
+        risk: riskScore,
+        impulsiveness: impulsivenessScore,
+      },
+      metrics
+    );
 
     // ---------------------------------------------------------
     // FRAUD + RISK THRESHOLD → POLYGON ANCHORING
     // ---------------------------------------------------------
-
     const eventId = crypto.randomUUID();
     const timestamp = new Date();
 
@@ -97,7 +96,6 @@ export async function POST(req: Request) {
     // ---------------------------------------------------------
     // PROXY TO BACKEND (authoritative ingestion)
     // ---------------------------------------------------------
-
     const backendUrl = process.env.BACKEND_URL;
 
     const response = await fetch(`${backendUrl}/api/behavior`, {
@@ -120,10 +118,11 @@ export async function POST(req: Request) {
     });
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
 
+    return NextResponse.json(data, { status: response.status });
   } catch (err) {
     console.error("BEHAVIOR ERROR:", err);
+
     return NextResponse.json(
       { error: "Failed to record behavior" },
       { status: 500 }

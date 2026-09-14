@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
-import { runUnderwriting } from "@/lib/services/underwriting";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  const applicationId = body.applicationId as string | undefined;
+import { ApplicationDAL } from "@/lib/dal/application";
+import { ScoringDAL } from "@/lib/dal/scoring";
+import { FraudDAL } from "@/lib/dal/fraud";
+import { runUnderwriting } from "@/lib/engines/underwriting";
 
-  if (!applicationId) {
-    return NextResponse.json(
-      { error: "Missing applicationId" },
-      { status: 400 }
-    );
-  }
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { applicationId } = await request.json();
 
-  const uwCase = await runUnderwriting({ applicationId });
+  const app = await ApplicationDAL.getById(applicationId);
+  const scoring = await ScoringDAL.getLatest(applicationId);
+  const fraud = await FraudDAL.getLatest(applicationId);
 
-  return NextResponse.json({ uwCase });
+  const result = await runUnderwriting(app, scoring, fraud);
+
+  return NextResponse.json({ data: result });
 }

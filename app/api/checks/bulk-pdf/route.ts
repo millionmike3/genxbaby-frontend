@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const { checks } = await req.json();
+    const { checks } = await request.json();
 
     if (!checks || !Array.isArray(checks) || checks.length === 0) {
       return NextResponse.json(

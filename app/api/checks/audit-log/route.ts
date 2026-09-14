@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     const backendUrl = process.env.BACKEND_URL;
 
     const response = await fetch(`${backendUrl}/api/checks/audit-log`, {
       method: "GET",
       headers: {
-        Cookie: req.headers.get("cookie") || "",
+        Cookie: request.headers.get("cookie") || "",
       },
     });
 

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateCertifiedCheckPdf } from "@/lib/pdf/check";
 
-export async function POST(req: NextRequest) {
-  const { profileId, payee, amount, memo } = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { profileId, payee, amount, memo } = await request.json();
 
   const updatedProfile = await prisma.bankProfile.update({
     where: { id: profileId },

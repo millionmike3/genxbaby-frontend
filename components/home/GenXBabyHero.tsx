@@ -116,7 +116,7 @@ export default function GenXBabyHero() {
           neon-green-glow
          "
       >
-         GEN X BABY brings every major financial workflow into one unified platform 
+        GEN X BABY brings every major financial workflow into one unified platform 
          — from real‑time banking and advanced deal analysis to certified check generation, 
          mortgage underwriting, lender intelligence, and stock volatility scoring. 
          It replaces fragmented tools with a single ecosystem that handles CRM, dialer, 

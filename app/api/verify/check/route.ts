@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
 
     // checkNumber MUST remain a string because Prisma expects a string
     const checkNumber = searchParams.get("checkNumber");

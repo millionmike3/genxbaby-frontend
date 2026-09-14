@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/authz";
 
-export async function POST(req: Request): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const session = await requireRole(["borrower"]);
 
   if (!session || !session.user || !session.user.id) {
@@ -39,7 +39,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       fullName: user.username ?? "Unknown",
       phone: user.phone ?? "",
       employer: null,
-      userId: user.id.toString(), // ✔ REQUIRED FIELD
+      userId: user.id.toString(), // REQUIRED FIELD
     },
   });
 

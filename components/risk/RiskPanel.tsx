@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import SignalCard from "@/components/SignalCard";
-import { getRiskScore, getRiskSignals } from "@/services/analytics-engine/riskEngine";
 
 type RiskSignal = {
   title: string;
   value: string | number;
-  status: string; 
+  status: string;
   description: string;
 };
 
@@ -19,16 +18,22 @@ export default function RiskPanel({ userId }: { userId: number }) {
   useEffect(() => {
     async function load() {
       try {
-        const s = await getRiskScore(userId);
-        const sig = await getRiskSignals(userId);
-        setScore(s);
-        setSignals(sig);
+        const res = await fetch(`/api/risk/${userId}`);
+        const json = await res.json();
+
+        if (res.ok) {
+          setScore(json.score);
+          setSignals(json.signals);
+        } else {
+          console.error("RiskPanel API error:", json.error);
+        }
       } catch (err) {
-        console.error("RiskPanel error:", err);
+        console.error("RiskPanel fetch error:", err);
       } finally {
         setLoading(false);
       }
     }
+
     load();
   }, [userId]);
 

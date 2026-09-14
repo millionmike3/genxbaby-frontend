@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const body = await req.json();
+    const body = await request.json();
     const backendUrl = process.env.BACKEND_URL;
 
     const response = await fetch(`${backendUrl}/api/auth/login`, {

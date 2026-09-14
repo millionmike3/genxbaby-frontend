@@ -21,14 +21,14 @@ interface AuthSession {
   role?: string | null;
 }
 
-export async function POST(req: NextRequest) {
-  const user = (await auth(req)) as AuthSession | null;
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const user = (await auth(request)) as AuthSession | null;
 
   if (!user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const body = (await req.json()) as ScoringInput;
+  const body = (await request.json()) as ScoringInput;
 
   const fraudScore = scoreFraud(body);
   const riskScore = scoreRisk(body);
@@ -44,5 +44,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return Response.json({ fraudScore, riskScore, impulsivenessScore });
+  return NextResponse.json({ fraudScore, riskScore, impulsivenessScore });
 }

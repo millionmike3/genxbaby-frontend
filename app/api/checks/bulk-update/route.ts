@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const body = await req.json();
+    const body = await request.json();
 
     if (!Array.isArray(body.checks) || body.checks.length === 0) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Cookie: req.headers.get("cookie") || "",
+        Cookie: request.headers.get("cookie") || "",
       },
       body: JSON.stringify(body),
     });

@@ -1,9 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ bankProfileID: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
     // Next.js 16 requires awaiting params
     const { bankProfileID } = await context.params;

@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
-  const { profileId, payee, amount, memo, date } = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const { profileId, payee, amount, memo, date } = await request.json();
 
   // 1. Atomically increment nextCheckNumber
   const updated = await prisma.bankProfile.update({

@@ -1,5 +1,6 @@
 "use client";
 
+
 import Navbar from "@/components/ui/Navbar";
 import Hero from "@/components/ui/Hero";
 import PricingDemo from "@/components/ui/PricingDemo";
@@ -13,6 +14,7 @@ import FeatureGrid from "@/app/(marketing)/homepage/FeatureGrid";
 import TechTrust from "@/app/(marketing)/homepage/TechTrust";
 import Footer from "@/app/(marketing)/homepage/Footer";
 import SplitSection from "@/components/SplitSection";
+
 
 
 

@@ -1,41 +1,36 @@
 import { prisma } from "@/lib/prisma";
 
 export const ScoringDAL = {
-  saveScores: async (
-    userId: string,
-    scores: { fraud: number; risk: number; impulsiveness: number },
-    rawData: any
-  ) => {
-    return prisma.scoringResult.create({
-      data: {
-        userId,
-        fraudScore: scores.fraud,
-        riskScore: scores.risk,
-        impulsivenessScore: scores.impulsiveness,
-        rawData,
-      },
-    });
-  },
-
-  getScoresForUser: async (userId: string) => {
-    return prisma.scoringResult.findMany({
-      where: { userId },
+  async getByApplication(applicationId: string) {
+    return prisma.scoring.findMany({
+      where: { applicationId },
       orderBy: { createdAt: "desc" },
     });
   },
 
-  getLatestScores: async (userId: string) => {
-    return prisma.scoringResult.findFirst({
-      where: { userId },
+  async getLatest(applicationId: string) {
+    return prisma.scoring.findFirst({
+      where: { applicationId },
       orderBy: { createdAt: "desc" },
     });
   },
 
-  getRecentScores: async (limit = 100, since?: Date) => {
-    return prisma.scoringResult.findMany({
-      where: since ? { createdAt: { gte: since } } : {},
-      orderBy: { createdAt: "desc" },
-      take: limit,
+  async save(applicationId: string, data: any) {
+    return prisma.scoring.create({
+      data: { applicationId, ...data },
+    });
+  },
+
+  async addTimelineEvent(applicationId: string, label: string) {
+    return prisma.scoringTimeline.create({
+      data: { applicationId, label },
+    });
+  },
+
+  async getTimeline(applicationId: string) {
+    return prisma.scoringTimeline.findMany({
+      where: { applicationId },
+      orderBy: { timestamp: "asc" },
     });
   },
 };

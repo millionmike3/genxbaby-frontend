@@ -1,5 +1,5 @@
 // app/api/merkle/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import crypto from "crypto";
 
 // Hash helper (SHA-256 → hex → 0x-prefixed)
@@ -39,9 +39,9 @@ function buildMerkleTree(leaves: string[]) {
   };
 }
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   try {
-    const body = await req.json();
+    const body = await request.json();
 
     if (!body || !Array.isArray(body.documents)) {
       return NextResponse.json(

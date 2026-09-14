@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest,  NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 import { keccak256, stringToBytes } from "viem";
@@ -29,7 +29,7 @@ function buildMerkleRoot(leaves: string[]) {
   return level[0];
 }
 
-export async function POST() {
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
   // 1. Load audit logs
   const logs = await prisma.audit.findMany({
     orderBy: { createdAt: "asc" },

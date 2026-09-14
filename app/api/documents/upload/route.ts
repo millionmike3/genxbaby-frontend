@@ -1,54 +1,18 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { NextRequest,  NextResponse } from "next/server";
+import { DocumentDAL } from "@/lib/dal/document";
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.json();
 
-  const formData = await req.formData();
-  const file = formData.get("file") as File | null;
-  const type = formData.get("type") as string | null;
-
-  if (!file || !type) {
-    return NextResponse.json(
-      { error: "Missing file or type" },
-      { status: 400 }
-    );
-  }
-
-  // TODO: upload to S3 / storage; placeholder URL:
-  const url = `https://storage.example.com/${session.user.id}/${file.name}`;
-
-  const application = await prisma.application.findFirst({
-    where: { borrower: { userId: session.user.id } },
-    orderBy: { createdAt: "desc" },
+  const doc = await DocumentDAL.create({
+    applicationId: body.applicationId,
+    borrowerId: body.borrowerId,
+    investorId: body.investorId,
+    name: body.name,
+    type: body.type,
+    url: body.url,
+    metadata: body.metadata,
   });
 
-  if (!application) {
-    return NextResponse.json(
-      { error: "No application found" },
-      { status: 404 }
-    );
-  }
-
-  await prisma.document.create({
-    data: {
-      applicationId: application.id,
-      type,
-      url,
-    },
-  });
-
-  await prisma.timelineEvent.create({
-    data: {
-      applicationId: application.id,
-      type: "document_upload",
-      message: `${type} uploaded`,
-    },
-  });
-
-  return NextResponse.json({ url });
+  return NextResponse.json({ data: doc });
 }

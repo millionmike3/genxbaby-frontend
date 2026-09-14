@@ -13,7 +13,26 @@ export const LeadDAL = {
       where: { id: leadId },
       include: {
         user: true,
-        scoringResults: { orderBy: { createdAt: "desc" } },
+
+        scoreRecords: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            createdAt: true,
+            updatedAt: true,
+            applicationId: true,
+            userId: true,
+
+            fraudScore: true,
+            riskScore: true,
+            impulsivenessScore: true,
+            factors: true,
+            signals: true,
+            metadata: true,
+          },
+        },
+
+        ScoringResult: true,
       },
     });
   },

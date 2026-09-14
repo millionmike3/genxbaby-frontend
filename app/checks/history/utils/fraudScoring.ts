@@ -11,7 +11,10 @@ export interface FraudFlag {
   createdAt: Date | string;
   reason: string;
   message: string;
-  severity: string; // Prisma returns string
+
+  // Prisma returns string, so we accept any string
+  severity: string;
+
   checkId: string;
   resolved: boolean;
 }
@@ -31,7 +34,7 @@ export function getFraudScore(flags: FraudFlag[]): number {
     .reduce((score, flag) => {
       const sev = flag.severity as FraudSeverity;
 
-      // If severity is unknown, treat as "info"
+      // Unknown severities default to "info"
       const weight = weights[sev] ?? weights["info"];
 
       return score + weight;

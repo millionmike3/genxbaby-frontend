@@ -1,14 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
 import { ScoringDAL } from "@/lib/dal/scoring";
 import { FraudDAL } from "@/lib/dal/fraud";
 import { PolygonAuditService } from "@/lib/services/polygonAudit";
 import { keccak256 } from "js-sha3";
 import { randomUUID } from "crypto";
 
-export async function POST(req: Request) {
-  const body = await req.json();
+export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  const body = await request.json();
 
   const {
     applicationId,
@@ -36,18 +35,18 @@ export async function POST(req: Request) {
     );
   }
 
-  // 2. Update borrower (fullName, email, phone, employer)
+  // 2. Update borrower
   await prisma.borrower.update({
     where: { id: app.borrowerId },
     data: {
       fullName,
       email,
       phone,
-      employer, // ✔ now valid because schema was updated
+      employer,
     },
   });
 
-  // 3. Update application (ONLY fields that exist in Application)
+  // 3. Update application
   const updatedApp = await prisma.application.update({
     where: { id: applicationId },
     data: {
@@ -93,16 +92,16 @@ export async function POST(req: Request) {
 
   // 6. Update application with underwriting result
   const finalApp = await prisma.application.update({
-  where: { id: applicationId },
-  data: {
-    underwritingStatus: uwData.status,           // ✔ String?
-    underwritingScore: uwData.score ?? null,     // ✔ Int?
-    routingScore: uwData.routingScore ?? null,   // ✔ Float?
-    fraudScore: fraudScore,                      // ✔ Float?
-    behaviorScore: riskScore,                    // ✔ Float? (or whatever your engine returns)
-    loanType: uwData.loanType ?? "conventional", // ✔ String?
-    status: "underwriting",                      // ✔ String
-  },
+    where: { id: applicationId },
+    data: {
+      underwritingStatus: uwData.status,
+      underwritingScore: uwData.score ?? null,
+      routingScore: uwData.routingScore ?? null,
+      fraudScore,
+      behaviorScore: impulsivenessScore,
+      loanType: uwData.loanType ?? "conventional",
+      status: "underwriting",
+    },
   });
 
   // 7. Create or update underwriting case
@@ -139,6 +138,7 @@ export async function POST(req: Request) {
     };
 
     const hash = keccak256(JSON.stringify(payload));
+
     const txHash = await PolygonAuditService.anchorEvent(
       hash,
       eventId,

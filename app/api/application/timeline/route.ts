@@ -1,13 +1,19 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { DAL } from "@/lib/dal";
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  const { applicationId, type, metadata } = body;
+export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+  try {
+    const { id } = await context.params;
 
-  await prisma.timelineEvent.create({
-    data: { applicationId, type, metadata },
-  });
+    const timeline = await DAL.Application.Timeline.getTimeline(id);
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ success: true, data: timeline });
+  } catch (err) {
+    console.error("Application Timeline API Error:", err);
+
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
