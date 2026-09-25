@@ -360,7 +360,8 @@ export default function CheckHistoryClient({ checks }: CheckHistoryClientProps) 
                 : "bg-yellow-200 text-yellow-800"
             }`}
           >
-            {check.status.toUpperCase()}
+            {(check.status || "unknown").toUpperCase()}
+
           </span>
 
           <p><strong>Payee:</strong> {check.payee}</p>

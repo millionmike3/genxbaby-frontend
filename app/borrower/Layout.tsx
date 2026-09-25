@@ -17,27 +17,28 @@ export default async function BorrowerLayout({
         </div>
 
         <nav className="mt-4 space-y-1 text-sm">
-          <Link
-            href="/borrower-portal"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Overview
-          </Link>
+       <Link
+         href="/borrower"
+         className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
+         >
+         Overview
+       </Link>
 
           <Link
-            href="/borrower/docs"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
+           href="/borrower/docs"
+           className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
+           >
             Documents
-          </Link>
+           </Link>
 
-          <Link
-            href="/borrower/status"
-            className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
-          >
-            Loan Status
-          </Link>
-        </nav>
+           <Link
+           href="/borrower/status"
+           className="block px-4 py-2 hover:bg-slate-800 text-slate-300"
+           >
+           Loan Status
+           </Link>
+           </nav>
+
       </aside>
 
       <main className="flex-1 px-6 py-6">{children}</main>

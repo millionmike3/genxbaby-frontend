@@ -1,0 +1,101 @@
+import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  try {
+    // ---------------------------------------------
+    // 1. Extract session cookie
+    // ---------------------------------------------
+    const cookie = request.cookies.get("admin_session")?.value;
+
+    if (!cookie) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    // ---------------------------------------------
+    // 2. Verify JWT using JOSE
+    // ---------------------------------------------
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET missing");
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
+
+    let payload: any;
+    try {
+      const verified = await jwtVerify(
+        cookie,
+        new TextEncoder().encode(secret)
+      );
+      payload = verified.payload;
+    } catch (err) {
+      console.error("JWT VERIFY ERROR:", err);
+      return NextResponse.json(
+        { error: "Invalid or expired session" },
+        { status: 401 }
+      );
+    }
+
+    // ---------------------------------------------
+    // 3. Ensure admin role
+    // ---------------------------------------------
+    if (!payload?.role || payload.role !== "admin") {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    // ---------------------------------------------
+    // 4. Validate backend URL
+    // ---------------------------------------------
+    const backendUrl = process.env.BACKEND_URL;
+    if (!backendUrl) {
+      console.error("BACKEND_URL missing");
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
+
+    // ---------------------------------------------
+    // 5. Proxy admin lookup to backend
+    // ---------------------------------------------
+    const response = await fetch(`${backendUrl}/api/admin/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        adminId: payload.adminId ?? null,
+      }),
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      console.error("BACKEND JSON PARSE ERROR:", err);
+      return NextResponse.json(
+        { error: "Invalid backend response" },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json(data, { status: response.status });
+  } catch (err) {
+    console.error("FRONTEND ADMIN ME ERROR:", err);
+    return NextResponse.json(
+      { error: "Invalid session" },
+      { status: 401 }
+    );
+  }
+}

@@ -1,22 +1,18 @@
 "use client";
 
 import DashboardSidebar from "@/components/DashboardSidebar";
-import "../globals.css";
+import { useState } from "react";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
-    <section className="min-h-screen bg-black text-white flex">
-      {/* Dashboard Sidebar */}
-      <DashboardSidebar />
-
-      {/* Dashboard Content */}
-      <main className="flex-1 overflow-y-auto p-6">
-        {children}
-      </main>
-    </section>
+    <div className="flex min-h-screen bg-[#0B0B0F]">
+      {/* your entire dashboard code */}
+      {children}
+    </div>
   );
 }

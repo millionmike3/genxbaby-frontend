@@ -74,6 +74,8 @@ model User {
   BehavioralTrendAnalytics BehavioralTrendAnalytics[]
   bluetoothAlerts          BluetoothAlert[]
   bluetoothRiskEvents      BluetoothRiskEvent[]
+  OwnershipEntity          OwnershipEntity[]
+  MortgageAsset            MortgageAsset[]
 }
 
 // ------------------------------------------------------------
@@ -103,6 +105,7 @@ model Borrower {
   BorrowerFinancialStability  BorrowerFinancialStability[]
   BorrowerFinancialDrift      BorrowerFinancialDrift[]
   BorrowerMacroRiskExposure   BorrowerMacroRiskExposure[]
+  MortgageAsset               MortgageAsset[]
 }
 
 // ------------------------------------------------------------
@@ -846,6 +849,7 @@ model UnderwritingDecision {
   decision String?
   reason   String?
   metadata Json?
+  
 }
 
 // ------------------------------------------------------------
@@ -2796,4 +2800,171 @@ model ServicingRiskSignal {
   signalType String?
   strength   Float?
   metadata   Json?
+}
+
+model OwnershipEntity {
+  id               Int     @id @default(autoincrement())
+  ownerId          Int
+  owner            User    @relation(fields: [ownerId], references: [id])
+  name             String
+  ein              String?
+  type             String // LLC, LP, Corp, etc.
+  ownershipPercent Float?
+
+  properties Property[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Property {
+  id                Int             @id @default(autoincrement())
+  ownershipEntityId Int
+  ownershipEntity   OwnershipEntity @relation(fields: [ownershipEntityId], references: [id])
+
+  address         String
+  city            String
+  state           String
+  zip             String
+  type            String // SFR, MF, Mixed-Use, Commercial
+  purchasePrice   Int
+  currentValue    Int?
+  acquisitionDate DateTime?
+
+  rentRoll    RentRoll[]
+  financials  PropertyFinancials?
+  ownerEquity OwnerEquity?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RentRoll {
+  id         Int      @id @default(autoincrement())
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  unitNumber String?
+  rent       Int
+  leaseStart DateTime?
+  leaseEnd   DateTime?
+  tenantName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PropertyFinancials {
+  id         Int      @id @default(autoincrement())
+  propertyId Int      @unique
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  noi         Int? // Net Operating Income
+  capRate     Float?
+  expenses    Int?
+  taxes       Int?
+  insurance   Int?
+  maintenance Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OwnerEquity {
+  id         Int      @id @default(autoincrement())
+  propertyId Int      @unique
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  equityAmount  Int
+  equityPercent Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MortgageAsset {
+  id      Int  @id @default(autoincrement())
+  ownerId Int
+  owner   User @relation(fields: [ownerId], references: [id])
+
+  borrowerId String?
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  loanAmount     Int
+  interestRate   Float
+  termMonths     Int
+  status         String
+  currentBalance Int
+
+  payments    PaymentHistory[]
+  performance MortgagePerformance?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentHistory {
+  id              Int           @id @default(autoincrement())
+  mortgageAssetId Int
+  mortgageAsset   MortgageAsset @relation(fields: [mortgageAssetId], references: [id])
+
+  amount    Int
+  date      DateTime
+  principal Int?
+  interest  Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MortgagePerformance {
+  id              Int           @id @default(autoincrement())
+  mortgageAssetId Int           @unique
+  mortgageAsset   MortgageAsset @relation(fields: [mortgageAssetId], references: [id])
+
+  dti           Float? // borrower-level DTI
+  ltv           Float?
+  cltv          Float?
+  riskScore     Float?
+  behaviorScore Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model LlpaGrid {
+  id           Int      @id @default(autoincrement())
+  investor     String
+  productType  String   // e.g. "FRM30", "ARM5/1"
+  purpose      String   // "purchase", "refinance", "cashout"
+  occupancy    String   // "owner", "nonowner"
+  ficoMin      Int
+  ficoMax      Int
+  ltvMin       Float
+  ltvMax       Float
+  termMonths   Int
+  llpaBps      Int
+  createdAt    DateTime @default(now())
+}
+model UnderwritingAssetSnapshot {
+  id                  Int      @id @default(autoincrement())
+  ownerId             Int
+  propertyId          Int
+  mortgageAssetId     Int?
+  assetQualityScore   Int
+  cashflowScore       Int
+  riskScore           Int
+  diversificationImpact Int
+  valuationJson       Json
+  createdAt           DateTime @default(now())
+}
+
+
+model RiskSnapshot {
+  id              Int      @id @default(autoincrement())
+  loanId          Int
+  ltv             Float
+  dscr            Float
+  riskScore       Int
+  delinquencyJson Json
+  marketJson      Json
+  createdAt       DateTime @default(now())
 }

@@ -13,7 +13,7 @@ export default function AdminPortalPage() {
       <h1 className="text-4xl font-bold mb-6">Admin Portal</h1>
 
       <p className="text-slate-300 leading-relaxed mb-6">
-        This is the highest level—the “god view” of GenXBaby. It’s priced at $1,000,000,000 for a reason.
+        This is the highest level—the “god view” of GenXBaby. 
       </p>
 
       <h2 className="text-2xl font-semibold mt-10 mb-4">Core Purpose</h2>
