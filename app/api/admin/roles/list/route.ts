@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/authz";
-import { db } from "@/lib/db";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,17 +12,20 @@ export async function GET(request: NextRequest) {
     await requireRole(["admin"]);
 
     // ---------------------------------------------
-    // 2. Fetch admins
+    // 2. Fetch roles + admins
     // ---------------------------------------------
-    const admins = await db.user.findMany({
+    const prisma = await getPrisma();
+
+    const roles = await prisma.role.findMany();
+
+    const admins = await prisma.user.findMany({
       where: { role: "admin" },
     });
 
-    return NextResponse.json({ admins });
+    return NextResponse.json({ roles, admins });
   } catch (err) {
     console.error("ADMIN LIST ERROR:", err);
 
-    // If requireRole threw an auth error, return 401/403
     if (err instanceof Error && err.message.includes("Forbidden")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -30,7 +33,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Generic fallback
     return NextResponse.json(
       { error: "Failed to load admins" },
       { status: 500 }

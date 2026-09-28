@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/lib/authz";
-import { db } from "@/lib/db";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,13 +14,14 @@ export async function GET(request: NextRequest) {
     // ---------------------------------------------
     // 2. Fetch all users
     // ---------------------------------------------
-    const users = await db.user.findMany();
+    const prisma = await getPrisma();
+
+    const users = await prisma.user.findMany();
 
     return NextResponse.json({ users });
   } catch (err: any) {
     console.error("ADMIN USERS ERROR:", err);
 
-    // Auth failures from requireRole
     if (err.message?.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -28,7 +29,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Generic fallback
     return NextResponse.json(
       { error: "Failed to load users" },
       { status: 500 }
