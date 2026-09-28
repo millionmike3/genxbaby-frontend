@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function PricingDashboardPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");

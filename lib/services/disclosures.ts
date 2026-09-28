@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { supabaseServer } from "@/lib/supabase/server";
+import { getSupabaseServer } from "@/lib/supabase/server";
 
 const BUCKET = process.env.SUPABASE_BUCKET!;
 
@@ -28,12 +28,12 @@ export async function generateInitialDisclosures(app: any) {
   drawText(`Email: ${app.email}`, 50, height - 110);
   drawText(`Property: ${app.propertyAddress}`, 50, height - 130);
 
-  // Loan info (placeholder fields)
+  // Loan info
   drawText(`Loan Amount: ${app.loanAmount}`, 50, height - 170);
   drawText(`Product: ${app.productType}`, 50, height - 190);
   drawText(`Rate: ${app.noteRate}%`, 50, height - 210);
 
-  // Basic disclosures (simplified)
+  // Basic disclosures
   drawText("ECOA Notice:", 50, height - 250, 12);
   drawText(
     "We do not discriminate on the basis of race, color, religion, national origin, sex, marital status, age...",
@@ -63,7 +63,10 @@ export async function generateInitialDisclosures(app: any) {
 
   const filePath = `disclosures/${app.id}/initial-${Date.now()}.pdf`;
 
-  const { data, error } = await supabaseServer.storage
+  // ⭐ Lazy-load Supabase (Next.js 16 safe)
+  const supabase = getSupabaseServer();
+
+  const { data, error } = await supabase.storage
     .from(BUCKET)
     .upload(filePath, pdfBytes, {
       contentType: "application/pdf",
@@ -72,7 +75,7 @@ export async function generateInitialDisclosures(app: any) {
 
   if (error) throw new Error(error.message);
 
-  const { data: publicUrl } = supabaseServer.storage
+  const { data: publicUrl } = supabase.storage
     .from(BUCKET)
     .getPublicUrl(filePath);
 

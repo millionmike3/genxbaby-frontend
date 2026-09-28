@@ -11,25 +11,45 @@ function calcAdj(fico, ltv) {
 }
 
 async function main() {
+  // 1. Seed LlpaGrid (your high-level LLPA definition)
+  await prisma.llpaGrid.create({
+    data: {
+      investor: "FNMA",
+      productType: "FRM30",
+      purpose: "purchase",
+      occupancy: "owner",
+      ficoMin: 740,
+      ficoMax: 760,
+      ltvMin: 0.80,
+      ltvMax: 0.95,
+      termMonths: 360,
+      llpaBps: 25,
+    },
+  });
+
+  // 2. Seed LlpaGridRow (your granular LLPA rows)
   const rows = [];
 
   for (const fico of ficoBuckets) {
     for (const ltv of ltvBuckets) {
       rows.push({
-        agency: "FNMA",
-        productType: "FIXED",
-        occupancy: "OWNER",
-        propertyType: "SFR",
-        purpose: "PURCHASE",
-        ficoBucket: fico,
-        ltvBucket: ltv,
-        adjustment: calcAdj(fico, ltv),
+        pricingSheetId: null, // optional
+        creditScore: fico,
+        ltv: ltv / 100, // convert 80 → 0.80
+        llpaFactor: calcAdj(fico, ltv),
+        metadata: {
+          source: "FNMA",
+          productType: "FRM30",
+          purpose: "purchase",
+          occupancy: "owner",
+        },
       });
     }
   }
 
   await prisma.llpaGridRow.createMany({ data: rows });
-  console.log("LLPA grid seeded successfully");
+
+  console.log("LLPA grid + LLPA rows seeded successfully");
 }
 
 main()

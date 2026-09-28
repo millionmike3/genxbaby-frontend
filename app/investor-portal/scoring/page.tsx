@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { requireRole } from "@/lib/authz";
 
 export default async function InvestorScoringPage() {
   await requireRole(["investor"]);
-  const user = await getCurrentUser();
+  const session = await getSession();
+
 
   const investor = await prisma.investor.findFirst({
     where: { userId: user.id },

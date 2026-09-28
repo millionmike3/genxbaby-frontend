@@ -17,7 +17,7 @@ import {
 } from "../_components/PortfolioCharts";
 
 export default async function OwnerPortfolioIntelligencePage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
 

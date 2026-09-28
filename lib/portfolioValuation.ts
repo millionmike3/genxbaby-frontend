@@ -8,7 +8,7 @@ export type AdvancedValuationResult = {
   riskAdjustedValue: number;
 };
 
-export function computeAdvancedPortfolioValuation(
+export function computePortfolioValuation(
   properties: (Property & {
     financials?: { noi: number; expenses: number } | null;
   })[],

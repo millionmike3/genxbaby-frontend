@@ -4,7 +4,7 @@ import { getSession } from "@/lib/session";
 
 export default async function BorrowerDocsPage() {
   // 1. Read JWT from cookie
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
 
   // 2. Validate session

@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import OwnerDashboardWidgets from "./_components/OwnerDashboardWidgets";
-import OwnerCharts from "./_components/OwnerCharts";
+import OwnerCharts from "./_components/charts/OwnerCharts";
 
 export default function OwnerPortalHome() {
   const pathname = headers().get("x-pathname") || "/owner-portal";

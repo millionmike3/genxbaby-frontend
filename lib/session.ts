@@ -1,6 +1,8 @@
 // lib/session.ts
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
 const SESSION_DURATION = 7 * 24 * 60 * 60; // 7 days
@@ -54,4 +56,22 @@ export async function getSession(token: string | undefined): Promise<Session | n
   } catch {
     return null;
   }
+}
+
+// ⭐ NEW — getCurrentUser()
+// Reads cookie → validates JWT → returns full user record
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  if (!token) return null;
+
+  const session = await getSession(token);
+  if (!session) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+  });
+
+  return user;
 }

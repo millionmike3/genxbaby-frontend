@@ -10,29 +10,35 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
  * - Storage uploads
  * - Secure DB operations
  * - Admin-level tasks
+ *
+ * IMPORTANT:
+ * Wrapped in a function so it only runs at runtime,
+ * not during Next.js build-time evaluation.
  */
-export const supabaseServer = createClient(
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-    },
+export function getSupabaseServer() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error("Missing Supabase server environment variables");
   }
-);
+
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false },
+  });
+}
 
 /**
  * Public client (anon key)
  * Used for:
  * - Public reads
  * - Non-sensitive operations
+ *
+ * Also lazy-loaded to avoid build-time crashes.
  */
-export const supabasePublic = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,
-    },
+export function getSupabasePublic() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("Missing Supabase public environment variables");
   }
-);
+
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false },
+  });
+}

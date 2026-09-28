@@ -1,8 +1,9 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateInitialDisclosures } from "@/lib/services/disclosures";
+import { getSupabaseServer } from "@/lib/supabase/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const applicationId = formData.get("applicationId") as string | null;
 
@@ -24,8 +25,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     );
   }
 
+  // Initialize Supabase lazily (Next.js 16 safe)
+  const supabase = getSupabaseServer();
+
   // Generate PDF and upload to Supabase
-  const url = await generateInitialDisclosures(app);
+  const url = await generateInitialDisclosures(app, supabase);
 
   // Save disclosure record
   await prisma.disclosure.create({

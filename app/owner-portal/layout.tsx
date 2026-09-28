@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export default async function OwnerPortalLayout({ children }) {
   // Auth check
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
 

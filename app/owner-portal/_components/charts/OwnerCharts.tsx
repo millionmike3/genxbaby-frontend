@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
-import CashflowTrendChart from "./charts/CashflowTrendChart";
-import EquityGrowthChart from "./charts/EquityGrowthChart";
-import RentRollTrendChart from "./charts/RentRollTrendChart";
-import MortgagePaymentTrendChart from "./charts/MortgagePaymentTrendChart";
+import CashflowTrendChart from "./CashflowTrendChart";
+import EquityGrowthChart from "./EquityGrowthChart";
+import RentRollTrendChart from "./RentRollTrendChart";
+import MortgagePaymentTrendChart from "./MortgagePaymentTrendChart";
+
 
 export default async function OwnerCharts() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
 
