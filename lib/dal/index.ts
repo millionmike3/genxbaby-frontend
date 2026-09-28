@@ -1,7 +1,10 @@
 // lib/dal/index.ts
-import { PrismaClient } from "@prisma/client";
+import { getPrisma } from "@/lib/db/prisma";
 
-const prisma = new PrismaClient();
+export async function getDAL() {
+  const prisma = await getPrisma();
+  return { prisma };
+}
 
 /**
  * ID helpers
