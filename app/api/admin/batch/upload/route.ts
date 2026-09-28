@@ -1,10 +1,6 @@
 "use server";
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { logAudit } from "@/lib/logAudit";
-import runFraudChecks from "@/lib/runFraudChecks";
-import anchorMerkleRoot from "@/lib/anchorMerkleRoot";
 import crypto from "crypto";
 
 function sha256(data: string) {
@@ -13,8 +9,13 @@ function sha256(data: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { rows } = await request.json();
+    // Load server‑only modules at runtime
+    const { prisma } = await import("@/lib/prisma");
+    const { logAudit } = await import("@/lib/logAudit");
+    const runFraudChecks = (await import("@/lib/runFraudChecks")).default;
+    const anchorMerkleRoot = (await import("@/lib/anchorMerkleRoot")).default;
 
+    const { rows } = await request.json();
     let created = 0;
 
     for (const row of rows) {
@@ -68,9 +69,6 @@ export async function POST(request: NextRequest) {
 
     const root = level[0];
 
-    // ---------------------------------------------
-    // ANCHOR MERKLE ROOT
-    // ---------------------------------------------
     await anchorMerkleRoot(root);
 
     return NextResponse.json({ success: true, count: created });
