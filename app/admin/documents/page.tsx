@@ -1,6 +1,10 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 
 async function getDocuments() {
+  const prisma = await getPrisma();
+
   return prisma.document.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -70,7 +74,7 @@ export default async function AdminDocumentsPage() {
                     </button>
                   </form>
 
-                  {/* AUTO UNDERWRITING (document-level trigger) */}
+                  {/* AUTO UNDERWRITING */}
                   {d.applicationId && (
                     <form action="/api/underwriting/run" method="post">
                       <input

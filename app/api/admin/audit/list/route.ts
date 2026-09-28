@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     // ---------------------------------------------
     // 3. Ensure admin role
     // ---------------------------------------------
-    if (!payload?.role || payload.role !== "admin") {
+    if (payload.role !== "admin") {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -58,6 +58,8 @@ export async function GET(request: NextRequest) {
     // ---------------------------------------------
     // 4. Fetch audit logs
     // ---------------------------------------------
+    const prisma = await getPrisma();
+
     const logs = await prisma.audit.findMany({
       orderBy: { createdAt: "desc" },
       include: {

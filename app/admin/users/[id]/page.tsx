@@ -1,5 +1,7 @@
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 import { ScoringDAL } from "@/lib/dal/scoring";
-import { prisma } from "@/lib/prisma";
 import { classify } from "@/lib/scoring";
 
 interface PageProps {
@@ -9,12 +11,12 @@ interface PageProps {
 }
 
 export default async function UserDetailPage({ params }: PageProps) {
+  const prisma = await getPrisma();
   const userId = params.id;
 
   // Fetch user record
   const user = await prisma.user.findUnique({
     where: { id: Number(userId) },
-
   });
 
   if (!user) {
@@ -57,8 +59,7 @@ export default async function UserDetailPage({ params }: PageProps) {
 
             <div>
               <strong>Classification:</strong>{" "}
-              classify(latest.impulsivenessScore, "INVESTOR")
-
+              {classify(latest.impulsivenessScore ?? 0, "INVESTOR")}
             </div>
 
             <div>

@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+const { prisma } = await import("@/lib/prisma");
+
 
 export async function GET(request: NextRequest) {
   try {

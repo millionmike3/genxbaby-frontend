@@ -1,10 +1,13 @@
+﻿import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  const { id } = await params;
 
-
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const { id } = await context.params;
+  const prisma = await getPrisma();
 
   const check = await prisma.check.findUnique({
     where: { id },
@@ -23,13 +26,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
     memo: check.memo,
     status: check.status,
     bank: check.bankProfile
-  ? {
-      name: check.bankProfile.bankName,
-      routing: check.bankProfile.routingNumber,
-      account: check.bankProfile.accountNumber,
-    }
-  : null,
-
-   
+      ? {
+          name: check.bankProfile.bankName,
+          routing: check.bankProfile.routingNumber,
+          account: check.bankProfile.accountNumber,
+        }
+      : null,
   });
 }

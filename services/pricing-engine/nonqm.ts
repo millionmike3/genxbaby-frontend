@@ -1,7 +1,12 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { LoanPricingInput } from "./types";
 
-export async function getNonQmAdjustment(input: LoanPricingInput, notes: string[]) {
+export async function getNonQmAdjustment(
+  input: LoanPricingInput,
+  notes: string[]
+) {
+  const prisma = await getPrisma();
+
   // FIX: match your actual loanType union
   if (input.loanType !== "nonqm") return 0;
 

@@ -1,4 +1,13 @@
-import { prisma } from "@/lib/prisma";
+// lib/dal/underwriting.ts
+export async function getUnderwriting(appId: string) {
+  const { prisma } = await import("@/lib/prisma");
+
+  return prisma.underwriting.findMany({
+    where: { applicationId: appId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 
 export const UnderwritingDAL = {
   async getByApplication(applicationId: string) {

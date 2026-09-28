@@ -1,15 +1,18 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { BehaviorDAL } from "@/lib/dal/behavior";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const body = await request.json();
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
 
-  const event = await BehaviorDAL.collect(body.applicationId, {
-    type: body.type,
-    hesitation: body.hesitation,
-    depth: body.depth,
-    duration: body.duration,
-  });
+    const event = await BehaviorDAL.collectBehavior(body.userId, body);
 
-  return NextResponse.json({ data: event });
+    return NextResponse.json({ success: true, event });
+  } catch (err) {
+    console.error("Behavior Collect Error:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

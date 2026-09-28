@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { classify } from "@/lib/scoring";
 import { ScoringDAL } from "@/lib/dal/scoring";
 
@@ -7,6 +7,8 @@ type UnderwritingInput = {
 };
 
 export async function runUnderwriting({ applicationId }: UnderwritingInput) {
+  const prisma = await getPrisma();
+
   const app = await prisma.application.findUnique({
     where: { id: applicationId },
     include: { borrower: true },
@@ -42,7 +44,6 @@ export async function runUnderwriting({ applicationId }: UnderwritingInput) {
   let decision: "approved" | "declined" | "refer" = "refer";
   let reasons: string[] = [];
 
-  // Basic overlays (you can tune these)
   if (dti > 50) {
     decision = "declined";
     reasons.push(`DTI too high (${dti.toFixed(1)}%)`);

@@ -1,13 +1,15 @@
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
 
 export default async function RiskDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
+
   if (!session) throw new Error("Not authenticated");
 
+  const prisma = await getPrisma();
   const ownerId = Number(session.userId);
 
   const riskSnapshots = await prisma.riskSnapshot.findMany({

@@ -1,4 +1,4 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { EnvironmentDAL } from "@/lib/dal/environment";
 import { normalizeInput } from "@/lib/scoring/normalize";
 import { scoreRisk } from "@/lib/scoring/risk";
@@ -14,7 +14,10 @@ interface EnvironmentInput {
   timestamp?: string | number | Date;
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const body = (await request.json()) as EnvironmentInput;
 
   const { deviceCount, bluetoothDensity, locationId, timestamp } = body;

@@ -1,16 +1,17 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import CheckTable from "../CheckTable";
 
 export default async function CheckLogsPage() {
+  const prisma = await getPrisma();
+
   const checks = await prisma.check.findMany({
-  orderBy: { createdAt: "desc" },
-  include: { bankProfile: true }, // FIXED
-   });
+    orderBy: { createdAt: "desc" },
+    include: { bankProfile: true }, // FIXED
+  });
 
   const banks = await prisma.bankProfile.findMany({
-  orderBy: { createdAt: "desc" },
- });
-
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div className="p-10 space-y-6">

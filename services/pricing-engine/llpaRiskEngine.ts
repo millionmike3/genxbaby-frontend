@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getLlpaRisk(userId: number) {
+  const prisma = await getPrisma();
+
   const quotes = await prisma.behaviorEvent.findMany({
     where: { userId, pillar: "PRICING" },
     orderBy: { timestamp: "desc" },

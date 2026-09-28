@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
 
-import { prisma } from "@/lib/prisma";
-
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const body = await request.formData();
   const caseIdRaw = body.get("caseId");
   const decision = body.get("decision");
@@ -14,7 +16,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     );
   }
 
-  // Convert to number (Prisma requires numeric id)
   const caseId = Number(caseIdRaw);
 
   if (isNaN(caseId)) {
@@ -23,6 +24,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
       { status: 400 }
     );
   }
+
+  const prisma = await getPrisma();
 
   const underwritingCase = await prisma.underwritingCase.update({
     where: { id: caseId },

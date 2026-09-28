@@ -1,10 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const ApplicationDAL = {
-  getById(id: string) {
+  async getById(id: string) {
+    const prisma = await getPrisma();
     return prisma.application.findUnique({ where: { id } });
   },
-  list() {
+
+  async list() {
+    const prisma = await getPrisma();
     return prisma.application.findMany();
   }
 };

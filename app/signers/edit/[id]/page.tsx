@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 interface VerifyCheckPageProps {
   params: {
@@ -8,6 +8,8 @@ interface VerifyCheckPageProps {
 
 export default async function VerifyCheckPage({ params }: VerifyCheckPageProps) {
   const checkNo = params.checkNo; // checkNumber is a STRING in your schema
+
+  const prisma = await getPrisma();
 
   const check = await prisma.check.findUnique({
     where: { checkNumber: checkNo }

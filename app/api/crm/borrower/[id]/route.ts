@@ -1,22 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const { id } = await context.params;
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const { id } = await params;
 
-  const borrower = await prisma.lead.findUnique({
-    where: { id },
-    include: {
-      contactAttempts: true,
-    },
-  });
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
-  if (!borrower) {
+    const borrower = await prisma.lead.findUnique({
+      where: { id },
+      include: {
+        contactAttempts: true,
+      },
+    });
+
+    if (!borrower) {
+      return NextResponse.json(
+        { error: "Borrower not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ borrower });
+  } catch (err) {
+    console.error("Borrower Lookup Error:", err);
     return NextResponse.json(
-      { error: "Borrower not found" },
-      { status: 404 }
+      { error: "Internal Server Error" },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({ borrower });
 }

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const { id } = context.params;
+    const { id } = await params;
+
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
     const doc = await prisma.document.findUnique({
       where: { id },
@@ -50,7 +55,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
     return NextResponse.json({ success: true, data: doc });
   } catch (err) {
     console.error("Document Lookup Error:", err);
-
     return NextResponse.json(
       { success: false, error: "Internal Server Error" },
       { status: 500 }

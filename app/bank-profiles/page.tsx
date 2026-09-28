@@ -1,9 +1,9 @@
-
-import { prisma } from "@/lib/prisma";
-
+import { getPrisma } from "@/lib/db/prisma";
 import Link from "next/link";
 
 export default async function BankProfilesPage() {
+  const prisma = await getPrisma();
+
   const profiles = await prisma.bankProfile.findMany({
     orderBy: { bankName: "asc" }
   });

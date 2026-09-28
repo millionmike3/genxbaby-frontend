@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +15,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // FIX — checkNumber is NOT unique → use findFirst
+    const prisma = await getPrisma();
+
+    // checkNumber is NOT unique → use findFirst
     const check = await prisma.check.findFirst({
       where: { checkNumber: String(checkNumber) },
       include: {
         signer: true,
 
-        // FIX — correct relation names
+        // Correct relation names
         FraudFlag: true,
         SuspiciousActivityReport: true,
       },
@@ -34,9 +36,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // FIX — fetch bank profile manually
+    // Fetch bank profile manually
     const profile = await prisma.bankProfile.findUnique({
-      where: { id: check.bankProfileId }
+      where: { id: check.bankProfileId },
     });
 
     const valid = check.memo !== "VOIDED" && check.memo !== "REISSUED";
@@ -61,7 +63,6 @@ export async function GET(request: NextRequest) {
 
       signer: check.signer ?? null,
 
-      // FIX — correct relation names
       fraudFlags: check.FraudFlag ?? [],
       sar: check.SuspiciousActivityReport ?? [],
 

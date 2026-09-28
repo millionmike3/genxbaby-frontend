@@ -1,10 +1,12 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export class InvestorService {
   // ------------------------------------------------------------
   // GET ONE INVESTOR
   // ------------------------------------------------------------
   static async getById(id: string) {
+    const prisma = await getPrisma();
+
     return prisma.investor.findUnique({
       where: { id },
       include: {
@@ -19,6 +21,8 @@ export class InvestorService {
   // GET ALL INVESTORS
   // ------------------------------------------------------------
   static async getAll(limit = 100) {
+    const prisma = await getPrisma();
+
     return prisma.investor.findMany({
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -38,6 +42,8 @@ export class InvestorService {
     phone?: string;
     metadata?: any;
   }) {
+    const prisma = await getPrisma();
+
     return prisma.investor.create({
       data: {
         ...data,
@@ -50,6 +56,8 @@ export class InvestorService {
   // UPDATE INVESTOR
   // ------------------------------------------------------------
   static async update(id: string, data: any) {
+    const prisma = await getPrisma();
+
     return prisma.investor.update({
       where: { id },
       data,
@@ -60,6 +68,8 @@ export class InvestorService {
   // DELETE INVESTOR
   // ------------------------------------------------------------
   static async delete(id: string) {
+    const prisma = await getPrisma();
+
     return prisma.investor.delete({
       where: { id },
     });
@@ -77,6 +87,8 @@ export class InvestorService {
       metadata?: any;
     }
   ) {
+    const prisma = await getPrisma();
+
     return prisma.document.create({
       data: {
         investorId,
@@ -95,6 +107,8 @@ export class InvestorService {
     investorId: string,
     event: { type: string; metadata?: any }
   ) {
+    const prisma = await getPrisma();
+
     return prisma.behaviorEvent.create({
       data: {
         investorId,
@@ -116,6 +130,8 @@ export class InvestorService {
       metadata?: any;
     }
   ) {
+    const prisma = await getPrisma();
+
     return prisma.scoringResult.create({
       data: {
         investorId,

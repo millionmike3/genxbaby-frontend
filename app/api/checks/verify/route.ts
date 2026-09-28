@@ -1,8 +1,13 @@
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
+
     const body = await request.json();
     const { checkNumber, routingNumber, accountNumber } = body;
 
@@ -25,6 +30,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     return NextResponse.json({ success: true, data: check ?? null });
   } catch (err) {
     console.error("Check Verify Error:", err);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

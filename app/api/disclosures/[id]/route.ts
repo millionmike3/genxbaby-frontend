@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
+
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
     const disclosure = await prisma.disclosure.findUnique({
       where: { id },

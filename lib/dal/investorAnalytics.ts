@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const InvestorAnalyticsDAL = {
   async getPortfolio(investorId: string) {
+    const prisma = await getPrisma();
+
     return prisma.application.findMany({
       where: { investorId },
       include: {

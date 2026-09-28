@@ -1,5 +1,5 @@
 // lib/server/getAuditTimeline.ts
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { publicClient } from "@/lib/viem";
 import { CHECK_REGISTRY_ADDRESS, CHECK_REGISTRY_ABI } from "@/lib/contract";
 import { decodeEventLog } from "viem";
@@ -13,10 +13,12 @@ interface AuditDetails {
   actor?: string;
   address?: string;
   email?: string;
-  [key: string]: any; // prevents TS from collapsing to {}
+  [key: string]: any;
 }
 
 export async function getAuditTimeline() {
+  const prisma = await getPrisma();
+
   // ---------------------------------------------
   // Fetch DB audit logs
   // ---------------------------------------------
@@ -41,7 +43,6 @@ export async function getAuditTimeline() {
       topics: log.topics,
     });
 
-    // Force details into a typed object
     const details = (decoded.args ?? {}) as AuditDetails;
 
     const correlationKey =

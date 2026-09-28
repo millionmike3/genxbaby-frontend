@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
 
-import prisma from "@/lib/prisma";
-
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
     const { searchParams } = new URL(request.url);
 
@@ -16,13 +18,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
       );
     }
 
+    const prisma = await getPrisma();
+
     const check = await prisma.check.findUnique({
       where: { checkNumber: String(checkNumber) },
       include: {
         bankProfile: true,
         signer: true,
         fraudFlags: true,
-        sar: true, // corrected relation name
+        sar: true, // correct relation name
       },
     });
 

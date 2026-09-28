@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const body = await request.formData();
-
   const signerId = body.get("id") as string;
+
+  const prisma = await getPrisma();
 
   const updated = await prisma.signer.update({
     where: { id: signerId },
@@ -13,10 +17,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
       title: body.get("title") as string,
       signatureImage: body.get("signatureImage") as string,
       signatureUrl: body.get("signatureUrl") as string,
-
-      // FIX: convert string → number
-      bankProfileId: Number(body.get("bankProfileId"))
-    }
+      bankProfileId: Number(body.get("bankProfileId")),
+    },
   });
 
   return NextResponse.json(updated);

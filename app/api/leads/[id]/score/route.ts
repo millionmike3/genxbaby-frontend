@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const { id: leadId } = await context.params;
+    const { id: leadId } = await params;
     const body = await request.json();
 
     if (!body || typeof body !== "object") {

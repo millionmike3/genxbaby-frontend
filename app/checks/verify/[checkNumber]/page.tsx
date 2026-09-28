@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 interface VerifyCheckPageProps {
   params: {
@@ -9,6 +9,8 @@ interface VerifyCheckPageProps {
 export default async function VerifyCheckPage({ params }: VerifyCheckPageProps) {
   // Prisma expects checkNumber as STRING
   const checkNumber = params.checkNumber;
+
+  const prisma = await getPrisma();
 
   const check = await prisma.check.findFirst({
     where: { checkNumber: String(checkNumber) },

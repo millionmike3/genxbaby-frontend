@@ -1,12 +1,16 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 
 async function getSubmittedApplications() {
+  const prisma = await getPrisma();
+
   return prisma.application.findMany({
     where: { status: "submitted" },
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      borrower: true, // ⭐ REQUIRED so app.borrower.fullName works
+      borrower: true, // required for borrower.fullName
     },
   });
 }
@@ -36,7 +40,6 @@ export default async function AdminDisclosuresPage() {
             <tr key={app.id} className="border-b border-slate-900">
               <td className="py-2">{app.id}</td>
 
-              {/* FIXED: borrower.fullName */}
               <td className="py-2">{app.borrower.fullName}</td>
 
               <td className="py-2">{app.status}</td>

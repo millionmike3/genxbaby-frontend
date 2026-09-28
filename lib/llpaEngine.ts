@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { LoanPricingInput } from "./types";
 
 export async function computeLlpa(loan: LoanPricingInput) {
+  const prisma = await getPrisma();
+
   const row = await prisma.llpaGrid.findFirst({
     where: {
       investor: loan.investor,

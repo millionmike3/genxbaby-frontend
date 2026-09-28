@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
+
     const body = await request.json();
 
     const log = await prisma.audit.create({

@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PricingDAL } from "@/lib/dal/pricing";
+import { getPricing } from "@/lib/dal/pricing";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
+    const pricing = await getPricing(id);
 
-    const pricing = await PricingDAL.getByApplication(id);
-    const timeline = await PricingDAL.getTimeline(id);
-
-    return NextResponse.json({ data: { pricing, timeline } });
+    return NextResponse.json({ success: true, data: pricing });
   } catch (err) {
-    console.error("Pricing API Error:", err);
-
+    console.error("Application Pricing Error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { success: false, error: "Internal Server Error" },
       { status: 500 }
     );
   }

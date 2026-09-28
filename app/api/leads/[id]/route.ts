@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
+
+    const prisma = await getPrisma();
 
     const lead = await prisma.lead.findUnique({
       where: { id },

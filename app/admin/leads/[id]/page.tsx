@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 import { ScoringDAL } from "@/lib/dal/scoring";
 import { classify } from "@/lib/scoring";
 
@@ -9,6 +11,7 @@ interface PageProps {
 }
 
 export default async function LeadDetailPage({ params }: PageProps) {
+  const prisma = await getPrisma();
   const leadId = params.id;
 
   // Fetch lead record

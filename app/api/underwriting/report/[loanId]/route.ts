@@ -1,24 +1,41 @@
+"use server";
+
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export async function GET(
   _req: Request,
   { params }: { params: { loanId: string } }
 ) {
-  const loanId = Number(params.loanId);
+  try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
-  const decision = await prisma.underwritingDecision.findFirst({
-    where: { loanId },
-  });
+    const loanId = Number(params.loanId);
 
-  const risk = await prisma.riskSnapshot.findFirst({ where: { loanId } });
-  const pricing = await prisma.pricingScenario.findFirst({ where: { loanId } });
+    const decision = await prisma.underwritingDecision.findFirst({
+      where: { loanId },
+    });
 
-  // you can enrich with property/mortgage/owner here
-  return NextResponse.json({
-    loanId,
-    decision,
-    risk,
-    pricing,
-  });
+    const risk = await prisma.riskSnapshot.findFirst({
+      where: { loanId },
+    });
+
+    const pricing = await prisma.pricingScenario.findFirst({
+      where: { loanId },
+    });
+
+    return NextResponse.json({
+      loanId,
+      decision,
+      risk,
+      pricing,
+    });
+  } catch (err) {
+    console.error("UNDERWRITING SNAPSHOT ERROR:", err);
+
+    return NextResponse.json(
+      { error: "Failed to load underwriting snapshot" },
+      { status: 500 }
+    );
+  }
 }

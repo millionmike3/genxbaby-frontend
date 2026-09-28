@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { LoanPricingInput } from "./types";
 
 export async function getGovAdjustment(input: LoanPricingInput, notes: string[]) {
+  const prisma = await getPrisma();
+
   if (!["FHA", "VA"].includes(input.loanType)) return 0;
 
   const overlay = await prisma.productOverlay.findFirst({

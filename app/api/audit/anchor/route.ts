@@ -1,6 +1,4 @@
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
+import { NextRequest, NextResponse } from "next/server";
 import { keccak256, stringToBytes } from "viem";
 import { walletClient, CONTRACT_ADDRESS } from "@/lib/blockchain";
 
@@ -19,7 +17,6 @@ function buildMerkleRoot(leaves: string[]) {
     for (let i = 0; i < level.length; i += 2) {
       const left = level[i];
       const right = level[i + 1] ?? left; // duplicate last if odd count
-
       next.push(keccak256(stringToBytes(left + right)));
     }
 
@@ -29,39 +26,53 @@ function buildMerkleRoot(leaves: string[]) {
   return level[0];
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  // 1. Load audit logs
-  const logs = await prisma.audit.findMany({
-    orderBy: { createdAt: "asc" },
-  });
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
-  // 2. Build Merkle tree
-  const leaves = logs.map((l) => hashLeaf(l));
-  const root = buildMerkleRoot(leaves);
+    // 1. Load audit logs
+    const logs = await prisma.audit.findMany({
+      orderBy: { createdAt: "asc" },
+    });
 
-  // 3. Anchor on-chain
-  const tx = await walletClient.writeContract({
-    address: CONTRACT_ADDRESS as `0x${string}`,
-    abi: [
-      {
-        name: "anchor",
-        type: "function",
-        stateMutability: "nonpayable",
-        inputs: [{ name: "root", type: "bytes32" }],
-        outputs: [],
+    // 2. Build Merkle tree
+    const leaves = logs.map((l) => hashLeaf(l));
+    const root = buildMerkleRoot(leaves);
+
+    // 3. Anchor on-chain
+    const tx = await walletClient.writeContract({
+      address: CONTRACT_ADDRESS as `0x${string}`,
+      abi: [
+        {
+          name: "anchor",
+          type: "function",
+          stateMutability: "nonpayable",
+          inputs: [{ name: "root", type: "bytes32" }],
+          outputs: [],
+        },
+      ],
+      functionName: "anchor",
+      args: [`0x${root}`],
+    });
+
+    // 4. Save anchor record
+    await prisma.anchorRecord.create({
+      data: {
+        merkleRoot: root,
+        txHash: tx,
       },
-    ],
-    functionName: "anchor",
-    args: [`0x${root}`],
-  });
+    });
 
-  // 4. Save anchor record
-  await prisma.anchorRecord.create({
-    data: {
-      merkleRoot: root,
-      txHash: tx, // tx is already a hex string
-    },
-  });
-
-  return NextResponse.json({ root, txHash: tx });
+    return NextResponse.json({ root, txHash: tx });
+  } catch (err) {
+    console.error("Audit Anchor Error:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

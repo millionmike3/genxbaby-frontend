@@ -1,11 +1,13 @@
 // genxbaby-frontend/services/stock-engine/index.ts
 
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 /**
  * STOCK HEATMAP DATA
  */
 export async function getStockHeatmapData() {
+  const prisma = await getPrisma();
+
   const events = await prisma.behaviorEvent.findMany({
     where: { pillar: "STOCK_SANITIZER" },
     orderBy: { timestamp: "desc" },

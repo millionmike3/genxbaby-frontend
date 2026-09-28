@@ -1,6 +1,6 @@
 // genxbaby-frontend/services/behavior-engine/index.ts
 
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 import { scoreStockSanitizer } from "./scoring/stock";
 import { scoreCustomer } from "./scoring/customer";
@@ -67,6 +67,8 @@ export async function processBehaviorEvent(
  * Required by: /admin-dashboard/app/api/bluetooth/cross/route.ts
  */
 export async function getBehaviorHeatmapData() {
+  const prisma = await getPrisma();
+
   const events = await prisma.behaviorEvent.findMany({
     orderBy: { timestamp: "desc" },
   });
@@ -78,7 +80,6 @@ export async function getBehaviorHeatmapData() {
 
   for (const e of events) {
     const key = e.pillar || "Unknown";
-
 
     const existing = map.get(key);
 

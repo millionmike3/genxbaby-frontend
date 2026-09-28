@@ -1,8 +1,9 @@
 // lib/server/getActorTimeline.ts
-import { prisma } from "@/lib/prisma";
-
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getActorTimeline(actorId: string) {
+  const prisma = await getPrisma();
+
   const dbLogs = await prisma.audit.findMany({
     where: {
       OR: [
@@ -13,9 +14,6 @@ export async function getActorTimeline(actorId: string) {
     },
     orderBy: { createdAt: "desc" },
   });
-
-  // You can also filter chain events by actor in getAuditTimeline
-  // and pass them into this function or a separate chain loader.
 
   return dbLogs;
 }

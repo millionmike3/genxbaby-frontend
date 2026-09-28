@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -9,6 +9,8 @@ export default async function InvestorPortalOverviewPage() {
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
   if (session.role !== "investor") throw new Error("Unauthorized");
+
+  const prisma = await getPrisma();
 
   const user = await prisma.user.findUnique({
     where: { id: Number(session.userId) },
@@ -85,7 +87,7 @@ export default async function InvestorPortalOverviewPage() {
         </div>
       </section>
 
-      {/* Performance + diversification */}
+            {/* Performance + diversification */}
       <section className="grid md:grid-cols-2 gap-6 mb-10">
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-6">
           <h2 className="text-2xl font-semibold mb-3">Performance Snapshot</h2>
@@ -119,6 +121,7 @@ export default async function InvestorPortalOverviewPage() {
           <h2 className="text-2xl font-semibold mb-3">
             Diversification & Allocation
           </h2>
+
           {div ? (
             <ul className="space-y-2 text-slate-300">
               <li>
@@ -131,7 +134,7 @@ export default async function InvestorPortalOverviewPage() {
               </li>
             </ul>
           ) : (
-            <p className="text-slate-400">No diversification analytics yet.</p>
+            <p className="text-slate-400">No investor activity yet.</p>
           )}
 
           {alloc && (
@@ -143,35 +146,6 @@ export default async function InvestorPortalOverviewPage() {
             </div>
           )}
         </div>
-      </section>
-
-      {/* Capital flows */}
-      <section className="bg-slate-800/70 border border-slate-700 rounded-xl p-6">
-        <h2 className="text-2xl font-semibold mb-3">Recent Capital Flows</h2>
-        {investor.investorCapitalFlow.length ? (
-          <ul className="space-y-3 text-slate-300 text-sm">
-            {investor.investorCapitalFlow.map((flow) => (
-              <li
-                key={flow.id}
-                className="border border-slate-700 rounded-lg p-3"
-              >
-                <p>
-                  <strong>Type:</strong> {flow.flowType ?? "—"}
-                </p>
-                <p>
-                  <strong>Amount:</strong>{" "}
-                  {flow.flowAmount
-                    ? `$${flow.flowAmount.toLocaleString()}`
-                    : "—"}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-slate-400 text-sm">
-            No capital flow events recorded yet.
-          </p>
-        )}
       </section>
     </main>
   );

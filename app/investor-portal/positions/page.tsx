@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -17,6 +17,8 @@ export default async function InvestorScoringPage() {
   if (session.role !== "investor") {
     throw new Error("Unauthorized: investor role required");
   }
+
+  const prisma = await getPrisma();
 
   // 4. Fetch user from DB
   const user = await prisma.user.findUnique({

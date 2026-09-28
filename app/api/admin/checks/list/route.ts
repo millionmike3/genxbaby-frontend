@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { publicClient } from "@/lib/viem";
-import { prisma } from "@/lib/prisma";
 import { CHECK_REGISTRY_ADDRESS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
-    // ---------------------------------------------
-    // 1. Fetch blockchain CheckCreated logs
-    // ---------------------------------------------
     const logs = await publicClient.getLogs({
       address: CHECK_REGISTRY_ADDRESS,
       event: {
@@ -28,16 +24,12 @@ export async function GET(request: NextRequest) {
       toBlock: "latest"
     });
 
-    // ---------------------------------------------
-    // 2. Fetch DB checks (sorted newest first)
-    // ---------------------------------------------
+    const { prisma } = await import("@/lib/prisma");
+
     const checks = await prisma.check.findMany({
       orderBy: { createdAt: "desc" }
     });
 
-    // ---------------------------------------------
-    // 3. Return combined result
-    // ---------------------------------------------
     return NextResponse.json({
       logs: logs ?? [],
       checks: checks ?? []

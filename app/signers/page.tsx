@@ -1,8 +1,10 @@
-"use server"
-import { prisma } from "@/lib/prisma";
+"use server";
 
+import { getPrisma } from "@/lib/db/prisma";
 
 export default async function CreateSignerPage() {
+  const prisma = await getPrisma();
+
   const bankProfiles = await prisma.bankProfile.findMany();
 
   return (
@@ -44,4 +46,3 @@ export default async function CreateSignerPage() {
     </div>
   );
 }
-

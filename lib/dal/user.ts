@@ -1,16 +1,20 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const UserDAL = {
   // ------------------------------------------------------------
   // BASIC USER FETCH
   // ------------------------------------------------------------
   getUserById: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
     });
   },
 
   getUserWithProfile: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -25,6 +29,8 @@ export const UserDAL = {
   // USER + SCORE RECORDS (GLOBAL SCORING)
   // ------------------------------------------------------------
   getUserWithScores: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -50,6 +56,8 @@ export const UserDAL = {
   },
 
   getLatestScore: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.scoreRecord.findFirst({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -74,6 +82,8 @@ export const UserDAL = {
   // USER + APPLICATIONS
   // ------------------------------------------------------------
   getUserWithApplications: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -117,6 +127,8 @@ export const UserDAL = {
   // USER + FRAUD EVENTS
   // ------------------------------------------------------------
   getUserWithFraudEvents: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -131,6 +143,8 @@ export const UserDAL = {
   // USER + SERVICING SIGNALS
   // ------------------------------------------------------------
   getUserWithServicingSignals: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -144,6 +158,8 @@ export const UserDAL = {
   // USER + UNDERWRITING
   // ------------------------------------------------------------
   getUserWithUnderwriting: async (userId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.user.findUnique({
       where: { id: userId },
       include: {

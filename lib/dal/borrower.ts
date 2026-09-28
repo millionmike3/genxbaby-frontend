@@ -1,7 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const BorrowerDAL = {
-  getById(id: string) {
+  async getById(id: string) {
+    const prisma = await getPrisma();
     return prisma.borrower.findUnique({ where: { id } });
   }
 };

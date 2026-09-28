@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getNextCheckNumber(profileId: number) {
+  const prisma = await getPrisma();
+
   const profile = await prisma.bankProfile.findUnique({
     where: { id: profileId },
   });

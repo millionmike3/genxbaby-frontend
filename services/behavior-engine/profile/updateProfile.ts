@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { classify } from "../classify/classify";
 
 export async function updateBehaviorProfile(
@@ -8,6 +8,8 @@ export async function updateBehaviorProfile(
   pillar: string,
   impulsivenessScore: number
 ) {
+  const prisma = await getPrisma();
+
   const where =
     userId
       ? { userId: Number(userId), pillar: pillar as any }
@@ -23,7 +25,7 @@ export async function updateBehaviorProfile(
         userId: userId ? Number(userId) : undefined,
         leadId: leadId || undefined,
         investorId: investorId || undefined,
-        pillar: pillar as any, // FIXED
+        pillar: pillar as any,
         score: impulsivenessScore,
       },
     });

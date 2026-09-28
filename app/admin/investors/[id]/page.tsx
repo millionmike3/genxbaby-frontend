@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 import { ScoringDAL } from "@/lib/dal/scoring";
 import { classify } from "@/lib/scoring";
 
@@ -9,6 +11,7 @@ interface PageProps {
 }
 
 export default async function InvestorDetailPage({ params }: PageProps) {
+  const prisma = await getPrisma();
   const investorId = params.id;
 
   // Fetch investor record
@@ -65,7 +68,6 @@ export default async function InvestorDetailPage({ params }: PageProps) {
             <div>
               <strong>Classification:</strong>{" "}
               {classify(latest.impulsivenessScore ?? 0, "INVESTOR")}
-
             </div>
 
             <div>

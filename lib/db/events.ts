@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
+"use server";
 
+import { getPrisma } from "@/lib/prisma";
 
 export type LeadEvent = {
   id: string;
@@ -19,6 +20,8 @@ export type LeadEvent = {
  * Stores all behavioral metadata for dashboards, heatmaps, replay, scoring, etc.
  */
 export async function saveLeadEvent(event: LeadEvent) {
+  const prisma = await getPrisma();
+
   return prisma.leadEvent.create({
     data: {
       id: event.id,
@@ -40,6 +43,8 @@ export async function saveLeadEvent(event: LeadEvent) {
  * Sorted newest → oldest
  */
 export async function getLeadEvents(leadId: string) {
+  const prisma = await getPrisma();
+
   return prisma.leadEvent.findMany({
     where: { leadId },
     orderBy: { timestamp: "desc" },

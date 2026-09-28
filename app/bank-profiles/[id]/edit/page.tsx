@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { updateBankProfile, uploadSignature } from "../../actions";
 
 export default async function EditBankProfilePage({
@@ -6,8 +6,10 @@ export default async function EditBankProfilePage({
 }: {
   params: { id: string };
 }) {
-  // FIX: Convert route param (string) → number
+  // Convert route param (string) → number
   const id = Number(params.id);
+
+  const prisma = await getPrisma();
 
   const profile = await prisma.bankProfile.findUnique({
     where: { id },

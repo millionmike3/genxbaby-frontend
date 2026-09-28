@@ -1,10 +1,11 @@
 "use server";
 
-
-import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 export async function getFraudSignals(userId: number) {
+  // Load Prisma at runtime (server-only)
+  const { prisma } = await import("@/lib/prisma");
+
   // Strong typing from Prisma
   type BehaviorEvent = Prisma.BehaviorEventGetPayload<true>;
 

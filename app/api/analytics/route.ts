@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { scoreFraud, scoreRisk, scoreImpulsiveness } from "@/lib/scoring";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const user = await auth();
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
-  if (!user) {
-    return NextResponse.json("Unauthorized", { status: 401 });
+    const scores = await prisma.investorRiskScore.findMany({
+      select: {
+        id: true,
+        investorId: true,
+        score: true,
+        factors: true,
+        metadata: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
+
+    return NextResponse.json({ success: true, data: scores });
+  } catch (err) {
+    console.error("Investor Scoring Analytics Error:", err);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-
-  const body = await request.json();
-
-  const fraudScore = scoreFraud(body);
-  const riskScore = scoreRisk(body);
-  const impulsivenessScore = scoreImpulsiveness(body);
-
-  await prisma.scoringResult.create({
-    data: {
-      userId: parseInt(user.user.id, 10),
-      fraudScore,
-      riskScore,
-      impulsivenessScore,
-      rawData: body,
-    },
-  });
-
-  return NextResponse.json({
-    fraudScore,
-    riskScore,
-    impulsivenessScore,
-  });
 }

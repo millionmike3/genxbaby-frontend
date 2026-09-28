@@ -1,10 +1,14 @@
-// lib/logAudit.ts
-import { prisma } from "@/lib/prisma";
+"use server";
 
-
-
-export async function logAudit(action: string, details: any, adminId?: number) {
+export async function logAudit(
+  action: string,
+  details: any,
+  adminId?: number
+) {
   try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
+
     await prisma.audit.create({
       data: {
         action,

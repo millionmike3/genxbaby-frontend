@@ -1,9 +1,10 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import CheckHistoryClient from "./CheckHistoryClient";
 import { CheckHistoryItem } from "./types";
 
-
 export default async function CheckHistoryPage() {
+  const prisma = await getPrisma();
+
   const checks = await prisma.check.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -13,8 +14,8 @@ export default async function CheckHistoryPage() {
     },
   });
 
-  const typedChecks: CheckHistoryItem[] = checks as unknown as CheckHistoryItem[];
+  const typedChecks: CheckHistoryItem[] =
+    checks as unknown as CheckHistoryItem[];
 
   return <CheckHistoryClient checks={typedChecks} />;
 }
-

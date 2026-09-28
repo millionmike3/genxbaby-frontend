@@ -1,11 +1,15 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
-export default async function VerifyCheckPage(
-  props: { params: { checkNo: string } }
-) {
-  const { params } = props;
+interface VerifyCheckPageProps {
+  params: {
+    checkNo: string;
+  };
+}
 
+export default async function VerifyCheckPage({ params }: VerifyCheckPageProps) {
   const checkNo = params.checkNo; // checkNumber is STRING in your schema
+
+  const prisma = await getPrisma();
 
   const check = await prisma.check.findUnique({
     where: { checkNumber: checkNo }

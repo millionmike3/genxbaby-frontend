@@ -1,7 +1,10 @@
-// app/admin/polygon/page.tsx
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 
 async function getAnchors() {
+  const prisma = await getPrisma();
+
   return prisma.fraudEvent.findMany({
     where: { anchorTxHash: { not: null } },
     orderBy: { createdAt: "desc" },
@@ -30,21 +33,27 @@ export default async function PolygonDashboardPage() {
             <th className="py-2 text-left">Timestamp</th>
           </tr>
         </thead>
+
         <tbody>
           {anchors.map((e) => {
-            const payload = e.payload as any;
-            const scores = payload?.scores || {};
+            const payload = e.payload ?? {};
+            const scores = payload?.scores ?? {};
+
             return (
               <tr key={e.id} className="border-b border-slate-900">
-                <td className="py-2">{e.userId}</td>
-                <td className="py-2">{payload?.eventId}</td>
-                <td className="py-2">{scores.fraud}</td>
-                <td className="py-2">{scores.risk}</td>
+                <td className="py-2">{e.userId ?? "Unknown"}</td>
+                <td className="py-2">{payload?.eventId ?? "N/A"}</td>
+                <td className="py-2">{scores.fraud ?? 0}</td>
+                <td className="py-2">{scores.risk ?? 0}</td>
+
                 <td className="py-2 font-mono text-xs break-all">
-                  {e.anchorTxHash}
+                  {e.anchorTxHash ?? "N/A"}
                 </td>
+
                 <td className="py-2">
-                  {new Date(e.createdAt).toLocaleString()}
+                  {e.createdAt
+                    ? new Date(e.createdAt).toLocaleString()
+                    : "N/A"}
                 </td>
               </tr>
             );

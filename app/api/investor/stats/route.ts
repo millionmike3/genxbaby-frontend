@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  const prisma = await getPrisma();
+
   const totalInvestors = await prisma.investor.count();
 
   const avgPotentialScore = await prisma.investor.aggregate({
@@ -14,7 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
 
   const pipelineDeals = await prisma.pipelineDeal.count();
 
-  return Response.json({
+  return NextResponse.json({
     totalInvestors,
     avgPotentialScore: avgPotentialScore._avg.investorPotentialScore ?? 0,
     highValueInvestors,

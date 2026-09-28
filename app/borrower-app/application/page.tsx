@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
 
 export default async function BorrowerApplicationPage() {
@@ -6,6 +6,8 @@ export default async function BorrowerApplicationPage() {
   if (!session?.user) {
     return <div className="p-6 text-white">Unauthorized</div>;
   }
+
+  const prisma = await getPrisma();
 
   const app = await prisma.application.findFirst({
     where: { borrower: { userId: session.user.id } },

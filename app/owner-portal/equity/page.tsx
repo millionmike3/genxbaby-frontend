@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -9,6 +9,8 @@ export default async function OwnerEquityPage() {
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
   if (session.role !== "owner") throw new Error("Unauthorized");
+
+  const prisma = await getPrisma();
 
   const user = await prisma.user.findUnique({
     where: { id: Number(session.userId) },

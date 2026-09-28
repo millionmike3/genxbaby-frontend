@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+import { getPrisma } from "../db/prisma";
 
 export async function runFraudChecks({
   checkId,
@@ -7,6 +7,8 @@ export async function runFraudChecks({
   checkId?: string;
   batchId?: string;
 }) {
+  const prisma = await getPrisma();
+
   const checks = await prisma.check.findMany({
     where: {
       ...(checkId ? { id: checkId } : {}),

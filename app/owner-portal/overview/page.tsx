@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -17,6 +17,8 @@ export default async function OwnerPortalOverviewPage() {
   if (session.role !== "owner") {
     throw new Error("Unauthorized: owner role required");
   }
+
+  const prisma = await getPrisma();
 
   // 4. Fetch user from DB
   const user = await prisma.user.findUnique({
@@ -114,7 +116,7 @@ export default async function OwnerPortalOverviewPage() {
                           <p>
                             <strong>NOI:</strong>{" "}
                             {prop.financials.noi
-                              ? `$${prop.financials.noi.toLocaleString()}`
+                              ? `$${prop.financials.noi.toLocaleString()}`  
                               : "—"}
                           </p>
                           <p>
@@ -166,9 +168,7 @@ export default async function OwnerPortalOverviewPage() {
                                 </p>
                                 <p className="text-xs text-slate-500">
                                   Lease:{" "}
-                                  {unit.leaseStart?.toLocaleDateString() ??
-                                    "—"}{" "}
-                                  →{" "}
+                                  {unit.leaseStart?.toLocaleDateString() ?? "—"} →{" "}
                                   {unit.leaseEnd?.toLocaleDateString() ?? "—"}
                                 </p>
                               </li>

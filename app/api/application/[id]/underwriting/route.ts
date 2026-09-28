@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { UnderwritingDAL } from "@/lib/dal/underwriting";
+import { getUnderwriting } from "@/lib/dal/underwriting";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
+    const data = await getUnderwriting(id);
 
-    const data = await UnderwritingDAL.getByApplication(id);
-    const timeline = await UnderwritingDAL.getTimeline(id);
-
-    return NextResponse.json({ data: { underwriting: data, timeline } });
+    return NextResponse.json({ success: true, data });
   } catch (err) {
-    console.error("Underwriting API Error:", err);
-
+    console.error("Underwriting Error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { success: false, error: "Internal Server Error" },
       { status: 500 }
     );
   }

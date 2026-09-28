@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const LeadDAL = {
   getLeadById: async (leadId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.lead.findUnique({
       where: { id: leadId },
       include: { user: true },
@@ -9,6 +11,8 @@ export const LeadDAL = {
   },
 
   getLeadWithScores: async (leadId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.lead.findUnique({
       where: { id: leadId },
       include: {
@@ -38,6 +42,8 @@ export const LeadDAL = {
   },
 
   listLeads: async () => {
+    const prisma = await getPrisma();
+
     return prisma.lead.findMany({
       orderBy: { createdAt: "desc" },
       include: { user: true },

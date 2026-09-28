@@ -1,13 +1,17 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export const InvestorDAL = {
   getInvestor: async (investorId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.investor.findUnique({
       where: { id: investorId },
     });
   },
 
   getInvestorWithScores: async (investorId: string) => {
+    const prisma = await getPrisma();
+
     return prisma.investor.findUnique({
       where: { id: investorId },
       include: {
@@ -44,6 +48,8 @@ export const InvestorDAL = {
     impulsivenessScore: number,
     rawData: any
   ) => {
+    const prisma = await getPrisma();
+
     return prisma.investorScoringResult.create({
       data: {
         investorId,

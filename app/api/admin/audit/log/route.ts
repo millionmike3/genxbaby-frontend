@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
     // ---------------------------------------------
     // 5. Write audit log entry
     // ---------------------------------------------
+    const prisma = await getPrisma();
+
     await prisma.audit.create({
       data: {
         adminId: payload.adminId ? Number(payload.adminId) : null,

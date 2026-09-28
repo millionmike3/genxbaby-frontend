@@ -1,8 +1,10 @@
 // genxbaby-backend/services/bluetooth-engine/correlation.ts
 
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getBluetoothBehaviorCorrelation() {
+  const prisma = await getPrisma();
+
   // BehaviorEvent is the actual "session" model in your schema
   const sessions = await prisma.behaviorEvent.findMany({
     include: {

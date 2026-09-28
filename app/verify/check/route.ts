@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function GET(req: Request) {
   try {
+    const prisma = await getPrisma();
     const { searchParams } = new URL(req.url);
 
     // checkNumber is STRING in your Prisma model
@@ -15,16 +16,13 @@ export async function GET(req: Request) {
       );
     }
 
-    // Correct relations based on your schema:
-    // - sarReports ❌ (does not exist)
-    // - sar ✔ (correct)
     const check = await prisma.check.findUnique({
       where: { checkNumber },
       include: {
         bankProfile: true,
         signer: true,
         fraudFlags: true,
-        sar: true,
+        sar: true, // correct relation
       },
     });
 
@@ -38,9 +36,7 @@ export async function GET(req: Request) {
     // Check validity
     const valid = check.memo !== "VOIDED" && check.memo !== "REISSUED";
 
-    // Correct model name:
-    // - auditAnchor ❌ (does not exist)
-    // - anchorRecord ✔ (your schema)
+    // Correct model name: anchorRecord ✔
     const anchor = await prisma.anchorRecord.findFirst({
       orderBy: { createdAt: "desc" },
     });
@@ -49,10 +45,8 @@ export async function GET(req: Request) {
       valid,
       reason: valid ? "Check is valid" : "Check is voided or reissued",
 
-      // Raw check object
       check,
 
-      // Bank profile (safe)
       bank: check.bankProfile
         ? {
             name: check.bankProfile.bankName,
@@ -65,9 +59,6 @@ export async function GET(req: Request) {
       fraudFlags: check.fraudFlags ?? [],
       sar: check.sar ?? [],
 
-      // Correct anchor fields:
-      // - root ❌
-      // - merkleRoot ✔
       root: anchor?.merkleRoot || null,
       anchored: !!anchor,
     });

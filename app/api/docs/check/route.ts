@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { generateCertifiedCheckPdf } from "@/lib/pdf/check";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const { profileId, payee, amount, memo } = await request.json();
 
+  const prisma = await getPrisma();
+
+  // 1. Atomically increment nextCheckNumber
   const updatedProfile = await prisma.bankProfile.update({
     where: { id: profileId },
     data: { nextCheckNumber: { increment: 1 } },
@@ -12,6 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
 
   const checkNumber = updatedProfile.nextCheckNumber - 1;
 
+  // 2. Generate PDF
   const pdf = await generateCertifiedCheckPdf({
     profile: { ...updatedProfile, nextCheckNumber: checkNumber },
     payee,
@@ -19,6 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     memo,
   });
 
+  // 3. Log check in DB
   await prisma.check.create({
     data: {
       checkNumber: checkNumber.toString(),

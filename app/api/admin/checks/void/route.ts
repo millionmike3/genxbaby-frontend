@@ -1,8 +1,12 @@
+"use server";
+
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
+
     const { id, reason } = await request.json();
 
     if (!id || !reason) {

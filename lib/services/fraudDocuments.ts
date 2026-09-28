@@ -1,7 +1,9 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import * as pdfParse from "pdf-parse";
 
 export async function analyzeDocumentFraud(documentId: string) {
+  const prisma = await getPrisma();
+
   const doc = await prisma.document.findUnique({
     where: { id: documentId },
   });

@@ -1,12 +1,14 @@
 // genxbaby-frontend/services/bluetooth-engine/correlation.ts
 
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 /**
  * Computes correlation between Bluetooth device behaviors.
  * Replace this logic with your real analytics later.
  */
 export async function getBluetoothBehaviorCorrelation() {
+  const prisma = await getPrisma();
+
   // Fetch events
   const events = await prisma.bluetoothEvent.findMany({
     orderBy: { timestamp: "desc" },

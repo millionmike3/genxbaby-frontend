@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function applyInvestorPricing(applicationId: string) {
+  const prisma = await getPrisma();
+
   const app = await prisma.application.findUnique({
     where: { id: applicationId },
     include: { underwritingCase: true },
@@ -43,7 +45,9 @@ export async function applyInvestorPricing(applicationId: string) {
 
   if (overlay.minReserves && uw.reservesMonths < overlay.minReserves) {
     decision = decision === "declined" ? "declined" : "refer";
-    reasons.push(`Reserves below investor minimum (${uw.reservesMonths.toFixed(1)} months)`);
+    reasons.push(
+      `Reserves below investor minimum (${uw.reservesMonths.toFixed(1)} months)`
+    );
   }
 
   if (overlay.minRiskScore && uw.riskScore < overlay.minRiskScore) {

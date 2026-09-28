@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getBehaviorVolatility(userId: number) {
+  const prisma = await getPrisma();
+
   const events = await prisma.behaviorEvent.findMany({
     where: { userId },
     orderBy: { timestamp: "asc" },

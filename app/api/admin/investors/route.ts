@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
+
     const { searchParams } = new URL(request.url);
     const limit = Number(searchParams.get("limit") ?? 50);
 
@@ -23,6 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, data: investors });
   } catch (err) {
     console.error("Admin Investors Error:", err);
+
     return NextResponse.json(
       { success: false, error: "Internal Server Error" },
       { status: 500 }

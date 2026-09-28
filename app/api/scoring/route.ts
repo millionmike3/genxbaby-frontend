@@ -1,31 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { scoreFraud, scoreRisk, scoreImpulsiveness } from "@/lib/scoring";
-import type { NextRequest } from "next/server";
 
 // Define the shape of the scoring input
-// Adjust fields based on your actual scoring logic
 interface ScoringInput {
   age: number;
   incomeVolatility: number;
   deviceCount: number;
   bluetoothDensity: number;
   ipReputation: string;
-  [key: string]: unknown; // allow extra fields
+  [key: string]: unknown;
 }
 
 // Define the shape of your auth session
 interface AuthSession {
-  id: string; // required because you use user.id
+  id: string;
   email?: string | null;
   role?: string | null;
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const user = (await auth(request)) as AuthSession | null;
 
   if (!user) {
-    return new Response("Unauthorized", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = (await request.json()) as ScoringInput;
@@ -33,6 +35,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
   const fraudScore = scoreFraud(body);
   const riskScore = scoreRisk(body);
   const impulsivenessScore = scoreImpulsiveness(body);
+
+  const prisma = await getPrisma();
 
   await prisma.scoringResult.create({
     data: {
@@ -44,5 +48,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     },
   });
 
-  return NextResponse.json({ fraudScore, riskScore, impulsivenessScore });
+  return NextResponse.json({
+    fraudScore,
+    riskScore,
+    impulsivenessScore,
+  });
 }

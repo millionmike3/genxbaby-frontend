@@ -1,6 +1,6 @@
-import { prisma } from "../prisma";
+import { getPrisma } from "../db/prisma";
 
-export const db = prisma;
+export const db = await getPrisma();
 
 export * from "./leads";
 export * from "./events";

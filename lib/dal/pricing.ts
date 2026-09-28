@@ -1,4 +1,13 @@
-import { prisma } from "@/lib/prisma";
+// lib/dal/pricing.ts
+export async function getPricing(appId: string) {
+  const { prisma } = await import("@/lib/prisma");
+
+  return prisma.pricing.findMany({
+    where: { applicationId: appId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 
 export const PricingDAL = {
   async getByApplication(applicationId: string) {

@@ -1,5 +1,5 @@
 import { HealthDAL } from "@/lib/dal/health";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function computeSystemHealth() {
   const apiLatency = await computeApiLatency();
@@ -29,7 +29,10 @@ async function computeApiLatency() {
 }
 
 async function computeDatabaseHealth() {
+  const prisma = await getPrisma();
+
   const connections = await prisma.$queryRaw`SELECT count(*) FROM pg_stat_activity`;
+
   return {
     connections: Number(connections[0].count),
     status: Number(connections[0].count) < 50 ? "healthy" : "stressed",

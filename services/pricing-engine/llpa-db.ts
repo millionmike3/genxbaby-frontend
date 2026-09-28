@@ -1,22 +1,26 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { LoanPricingInput } from "./types";
 
-export async function getLlpaAdjustmentDb(input: LoanPricingInput, notes: string[]) {
+export async function getLlpaAdjustmentDb(
+  input: LoanPricingInput,
+  notes: string[]
+) {
+  const prisma = await getPrisma();
+
   const ficoBucket = bucketFico(input.fico);
   const ltvBucket = bucketLtv(input.ltv);
 
-const row = await prisma.llpaGridRow.findFirst({
-  where: {
-    agency: "FNMA",        // default
-    productType: "FIXED",  // default
-    occupancy: input.occupancy,
-    propertyType: input.propertyType,
-    purpose: input.purpose,
-    ficoBucket,
-    ltvBucket,
-  },
-});
-
+  const row = await prisma.llpaGridRow.findFirst({
+    where: {
+      agency: "FNMA",        // default
+      productType: "FIXED",  // default
+      occupancy: input.occupancy,
+      propertyType: input.propertyType,
+      purpose: input.purpose,
+      ficoBucket,
+      ltvBucket,
+    },
+  });
 
   if (!row) {
     notes.push(`LLPA: no match for ${ficoBucket}/${ltvBucket}`);

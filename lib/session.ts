@@ -2,7 +2,7 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
 const SESSION_DURATION = 7 * 24 * 60 * 60; // 7 days
@@ -25,9 +25,7 @@ export async function createSession(userId: string, role: Role) {
     .sign(secret);
 }
 
-// IMPORTANT:
-// getSession now expects the token to be passed in.
-// No cookies(), no headers(), no broken APIs.
+// getSession(token) — correct pattern
 export async function getSession(token: string | undefined): Promise<Session | null> {
   if (!token) return null;
 
@@ -58,8 +56,7 @@ export async function getSession(token: string | undefined): Promise<Session | n
   }
 }
 
-// ⭐ NEW — getCurrentUser()
-// Reads cookie → validates JWT → returns full user record
+// ⭐ Corrected getCurrentUser()
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
@@ -69,8 +66,10 @@ export async function getCurrentUser() {
   const session = await getSession(token);
   if (!session) return null;
 
+  const prisma = await getPrisma();
+
   const user = await prisma.user.findUnique({
-    where: { id: session.userId },
+    where: { id: Number(session.userId) },
   });
 
   return user;

@@ -1,4 +1,13 @@
-import { prisma } from "@/lib/prisma";
+
+export async function getPipelineStats() {
+  const { prisma } = await import("@/lib/prisma");
+
+  return prisma.pipelineStat.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+}
+
 
 export const PipelineDAL = {
   async getEvents(applicationId: string) {

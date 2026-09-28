@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { LoanPricingInput } from "./types";
 
 export async function getInvestorTierAdjustment(
@@ -6,6 +6,8 @@ export async function getInvestorTierAdjustment(
   llpaAdj: number,
   notes: string[]
 ) {
+  const prisma = await getPrisma();
+
   if (!input.investorId) return 0;
 
   const sheet = await prisma.investorPricingSheet.findFirst({

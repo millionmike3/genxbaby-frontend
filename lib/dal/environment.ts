@@ -1,7 +1,5 @@
-import { prisma } from "@/lib/prisma";
-
 export const EnvironmentDAL = {
-  saveReading: async (
+  async saveReading(
     locationId: string,
     metrics: {
       deviceCount: number;
@@ -9,7 +7,9 @@ export const EnvironmentDAL = {
       timestamp: Date;
       riskScore?: number;
     }
-  ) => {
+  ) {
+    const { prisma } = await import("@/lib/prisma");
+
     return prisma.environmentReading.create({
       data: {
         locationId,
@@ -21,7 +21,9 @@ export const EnvironmentDAL = {
     });
   },
 
-  getHeatmap: async (locationId?: string) => {
+  async getHeatmap(locationId?: string) {
+    const { prisma } = await import("@/lib/prisma");
+
     return prisma.environmentReading.findMany({
       where: locationId ? { locationId } : {},
       orderBy: { timestamp: "desc" },

@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { Metrics } from "../types/Metrics";
 
 export async function createBehaviorSession(
@@ -12,6 +12,8 @@ export async function createBehaviorSession(
   metrics: Metrics,
   impulsivenessScore: number
 ) {
+  const prisma = await getPrisma();
+
   return prisma.behaviorEvent.create({
     data: {
       userId: userId ? Number(userId) : undefined,

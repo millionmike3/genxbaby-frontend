@@ -1,8 +1,16 @@
-import { prisma } from "@/lib/prisma";
+"use server";
 
-export default async function UnderwritingCaseDetailPage({ params }: { params: Promise<{ caseId: string }> }) {
+import { getPrisma } from "@/lib/prisma";
+
+export default async function UnderwritingCaseDetailPage({
+  params,
+}: {
+  params: Promise<{ caseId: string }>;
+}) {
   // Next.js 16: params is a Promise
   const { caseId } = await params;
+
+  const prisma = await getPrisma();
 
   const c = await prisma.underwritingCase.findUnique({
     where: { id: caseId },
@@ -26,16 +34,19 @@ export default async function UnderwritingCaseDetailPage({ params }: { params: P
   return (
     <main className="min-h-screen bg-slate-950 text-white p-6">
       <h1 className="text-2xl font-bold mb-4">Underwriting Case {c.id}</h1>
+
       <p className="text-sm text-slate-400 mb-4">
         Application: {c.applicationId} · Status: {c.status} · Risk: {c.riskScore}
       </p>
 
       <h2 className="text-sm font-semibold mb-2">Application Timeline</h2>
+
       <div className="space-y-2 text-xs">
         {c.application.timelineEvents
           .sort(
             (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              new Date(a.createdAt).getTime() -
+              new Date(b.createdAt).getTime()
           )
           .map((e) => (
             <div key={e.id} className="border border-slate-800 rounded p-2">

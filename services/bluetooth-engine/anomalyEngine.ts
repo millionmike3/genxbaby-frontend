@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function getBluetoothAnomalies(userId: number) {
+  const prisma = await getPrisma();
+
   const events = await prisma.bluetoothEvent.findMany({
     where: { userId },
     orderBy: { timestamp: "desc" },
@@ -12,8 +14,7 @@ export async function getBluetoothAnomalies(userId: number) {
   }
 
   const weakSignals = events.filter((e) => (e.signalStrength ?? 0) < 30).length;
-  const strongSignals = events.filter((e) => (e.signalStrength ?? 0) > 80)
-    .length;
+  const strongSignals = events.filter((e) => (e.signalStrength ?? 0) > 80).length;
 
   const anomalyScore = Math.min(
     100,

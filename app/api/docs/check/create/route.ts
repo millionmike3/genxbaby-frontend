@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { generateCertifiedCheckPdf } from "@/lib/pdf/check";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const { profileId, payee, amount, memo } = await request.json();
+
+  const prisma = await getPrisma();
 
   // 1. Atomically increment nextCheckNumber
   const updatedProfile = await prisma.bankProfile.update({

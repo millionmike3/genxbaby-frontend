@@ -1,18 +1,29 @@
-"use server";
-
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const { id } = await context.params;
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const { id } = await params;
 
-  const log = await prisma.auditLog.findUnique({
-    where: { id },
-  });
+    // Load Prisma at runtime (server-only)
+    const { prisma } = await import("@/lib/prisma");
 
-  if (!log) {
-    return NextResponse.json({ error: "Log not found" }, { status: 404 });
+    const log = await prisma.auditLog.findUnique({
+      where: { id },
+    });
+
+    if (!log) {
+      return NextResponse.json({ error: "Log not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(log);
+  } catch (err) {
+    console.error("Audit Log Fetch Error:", err);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(log);
 }

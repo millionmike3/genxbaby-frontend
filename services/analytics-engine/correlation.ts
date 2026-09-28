@@ -1,7 +1,11 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
 import type { Prisma } from "@prisma/client";
 
 export async function correlatePricingBehavior(userId: number) {
+  // Load Prisma at runtime (server-only)
+  const { prisma } = await import("@/lib/prisma");
+
   // Strongly typed payloads from Prisma
   type BehaviorEvent = Prisma.BehaviorEventGetPayload<true>;
   type BluetoothEvent = Prisma.BluetoothEventGetPayload<true>;

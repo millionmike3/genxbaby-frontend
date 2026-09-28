@@ -1,5 +1,5 @@
+import { getPrisma } from "@/lib/db/prisma";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export default async function BorrowerDisclosuresPage() {
   const session = await auth();
@@ -10,6 +10,8 @@ export default async function BorrowerDisclosuresPage() {
       </main>
     );
   }
+
+  const prisma = await getPrisma();
 
   const app = await prisma.application.findFirst({
     where: { borrower: { userId: session.user.id } },

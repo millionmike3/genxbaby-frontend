@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ScoringDAL } from "@/lib/dal/scoring";
+import { getScoring } from "@/lib/dal/scoring";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
+    const { id } = await params;
+    const results = await getScoring(id);
 
-    const scoring = await ScoringDAL.getLatest(id);
-    const timeline = await ScoringDAL.getTimeline(id);
-
-    return NextResponse.json({ data: { scoring, timeline } });
+    return NextResponse.json({ success: true, data: results });
   } catch (err) {
-    console.error("Scoring API Error:", err);
-
+    console.error("Application Scoring Error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { success: false, error: "Internal Server Error" },
       { status: 500 }
     );
   }

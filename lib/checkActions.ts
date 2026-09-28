@@ -1,6 +1,6 @@
 // lib/checkActions.ts
 
-import { prisma } from "./db/prisma";
+import { getPrisma } from "./db/prisma";
 
 interface CreateCheckInput {
   profileId?: string;   // maps to bankProfileId (Int?)
@@ -18,6 +18,8 @@ export async function createCheck({
   memo,
 }: CreateCheckInput) {
   try {
+    const prisma = await getPrisma();
+
     const check = await prisma.check.create({
       data: {
         checkNumber: crypto.randomUUID(),        // REQUIRED + UNIQUE

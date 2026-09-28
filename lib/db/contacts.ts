@@ -1,6 +1,6 @@
 // lib/db/contacts.ts
 
-import { prisma } from "./prisma";
+import { getPrisma } from "./prisma";
 
 interface LogContactAttemptInput {
   leadId: string;
@@ -8,6 +8,8 @@ interface LogContactAttemptInput {
 }
 
 export async function logContactAttempt({ leadId, notes }: LogContactAttemptInput) {
+  const prisma = await getPrisma();
+
   return prisma.contactAttempt.create({
     data: {
       leadId,

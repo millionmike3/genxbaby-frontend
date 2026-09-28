@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -17,6 +17,8 @@ export default async function BorrowerDocsPage() {
   if (session.role !== "borrower") {
     throw new Error("Unauthorized: borrower role required");
   }
+
+  const prisma = await getPrisma();
 
   // 4. Fetch user from DB
   const user = await prisma.user.findUnique({

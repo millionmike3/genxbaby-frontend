@@ -1,15 +1,16 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerDashboardWidgets() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
 
   if (!session) throw new Error("Not authenticated");
   if (session.role !== "owner") throw new Error("Unauthorized");
 
+  const prisma = await getPrisma();
   const ownerId = Number(session.userId);
 
   // Fetch properties
@@ -100,12 +101,11 @@ export default async function OwnerDashboardWidgets() {
 }
 
 function WidgetCard({ title, value, color }) {
-  return (
-    <div
-      className={`p-6 rounded-xl text-white shadow-lg border border-slate-700 ${color}`}
-    >
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-3xl font-bold">{value}</p>
-    </div>
-  );
-}
+ return (
+  <div
+    className={`p-6 rounded-xl text-white shadow-lg border border-slate-700 ${color}`}
+  >
+    {children}
+  </div>
+)
+};

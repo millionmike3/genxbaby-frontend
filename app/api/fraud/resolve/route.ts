@@ -1,11 +1,11 @@
-"use server";
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
+import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { logAudit } from "@/lib/logAudit";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie
@@ -47,7 +47,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     }
 
     // ---------------------------------------------
-    // 4. Mark fraud flag as resolved
+    // 4. Load Prisma at runtime (server-only)
+    // ---------------------------------------------
+    const { prisma } = await import("@/lib/prisma");
+
+    // ---------------------------------------------
+    // 5. Mark fraud flag as resolved
     // ---------------------------------------------
     const updated = await prisma.fraudFlag.update({
       where: { id },
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
     });
 
     // ---------------------------------------------
-    // 5. Audit log
+    // 6. Audit log
     // ---------------------------------------------
     await logAudit("RESOLVE_FRAUD_FLAG", { flagId: id });
 

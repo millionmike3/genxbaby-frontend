@@ -1,13 +1,14 @@
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest) {
   try {
-    const signals = await prisma.fraudSignal.findMany({
+    const { prisma } = await import("@/lib/prisma");
+
+    const signals = await prisma.fraudEvent.findMany({
       select: {
         id: true,
-        signalType: true,
-        strength: true,
+        eventType: true,
+        signal: true,
         metadata: true,
         createdAt: true,
       },
@@ -17,7 +18,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
 
     return NextResponse.json({ success: true, data: signals });
   } catch (err) {
-    console.error("Fraud Signals Analytics Error:", err);
-    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+    console.error("Fraud Signals Error:", err);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

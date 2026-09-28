@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -6,7 +6,6 @@ import CashflowTrendChart from "./CashflowTrendChart";
 import EquityGrowthChart from "./EquityGrowthChart";
 import RentRollTrendChart from "./RentRollTrendChart";
 import MortgagePaymentTrendChart from "./MortgagePaymentTrendChart";
-
 
 export default async function OwnerCharts() {
   const cookieStore = await cookies();
@@ -16,6 +15,7 @@ export default async function OwnerCharts() {
   if (!session) throw new Error("Not authenticated");
   if (session.role !== "owner") throw new Error("Unauthorized");
 
+  const prisma = await getPrisma();
   const ownerId = Number(session.userId);
 
   const properties = await prisma.property.findMany({
@@ -34,7 +34,7 @@ export default async function OwnerCharts() {
   // Build chart data
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
-  const cashflowData = months.map((m, i) => ({
+  const cashflowData = months.map((m) => ({
     month: m,
     cashflow:
       properties.reduce(

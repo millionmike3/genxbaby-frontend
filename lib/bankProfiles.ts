@@ -1,12 +1,14 @@
 // lib/bankProfiles.ts
 
-import { prisma } from "./db/prisma";
+import { getPrisma } from "./db/prisma";
 
 /**
  * Fetch ALL bank profiles.
  */
 export async function getBankProfiles() {
   try {
+    const prisma = await getPrisma();
+
     const profiles = await prisma.bankProfile.findMany({
       orderBy: { id: "asc" },
     });
@@ -23,8 +25,10 @@ export async function getBankProfiles() {
  */
 export async function getBankProfile(id: string | number) {
   try {
+    const prisma = await getPrisma();
+
     const profile = await prisma.bankProfile.findUnique({
-      where: { id: Number(id) }, // FIXED
+      where: { id: Number(id) },
     });
 
     return profile;
@@ -40,8 +44,10 @@ export async function getBankProfile(id: string | number) {
  */
 export async function getBankProfileById(id: string) {
   try {
+    const prisma = await getPrisma();
+
     const profile = await prisma.bankProfile.findUnique({
-      where: { id: Number(id) }, // FIXED
+      where: { id: Number(id) },
     });
 
     return profile;

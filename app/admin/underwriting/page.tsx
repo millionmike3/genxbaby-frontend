@@ -1,24 +1,36 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import { getPrisma } from "@/lib/prisma";
 
 async function getUnderwritingCases() {
+  const prisma = await getPrisma();
+
   return prisma.underwritingCase.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
-    include: { application: true },
+    include: {
+      application: {
+        include: {
+          borrower: true,
+        },
+      },
+    },
   });
 }
 
 export default async function AdminUnderwritingQueuePage() {
- const cases = await prisma.underwritingCase.findMany({
-  include: {
-    application: {
-      include: {
-        borrower: true,
+  const prisma = await getPrisma();
+
+  const cases = await prisma.underwritingCase.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      application: {
+        include: {
+          borrower: true,
+        },
       },
     },
-  },
-});
-
+  });
 
   return (
     <main className="min-h-screen bg-slate-950 text-white p-6">
@@ -88,11 +100,7 @@ export default async function AdminUnderwritingQueuePage() {
                     method="post"
                     className="flex gap-2"
                   >
-                    <input
-                      type="hidden"
-                      name="caseId"
-                      value={c.id}
-                    />
+                    <input type="hidden" name="caseId" value={c.id} />
 
                     <button
                       name="decision"

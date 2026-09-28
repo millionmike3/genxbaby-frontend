@@ -1,11 +1,13 @@
 "use server";
 
-import prisma from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 // ---------------------------------------------------------
 // CREATE BANK PROFILE
 // ---------------------------------------------------------
 export async function createBankProfile(formData: FormData): Promise<void> {
+  const prisma = await getPrisma();
+
   await prisma.bankProfile.create({
     data: {
       bankName: formData.get("bankName") as string,
@@ -20,6 +22,8 @@ export async function createBankProfile(formData: FormData): Promise<void> {
 // UPDATE BANK PROFILE
 // ---------------------------------------------------------
 export async function updateBankProfile(formData: FormData): Promise<void> {
+  const prisma = await getPrisma();
+
   const id = Number(formData.get("id")); // Prisma requires number
 
   await prisma.bankProfile.update({

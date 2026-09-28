@@ -1,6 +1,8 @@
-import { prisma } from "@/lib/db/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function convertLeadToInvestor(leadId: string) {
+  const prisma = await getPrisma();
+
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
   });

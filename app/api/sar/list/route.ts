@@ -1,15 +1,16 @@
-"use server";
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
+import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
 import { jwtVerify } from "jose";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = (request as any).cookies.get("admin_session")?.value;
+    const cookie = request.cookies.get("admin_session")?.value;
 
     if (!cookie) {
       return NextResponse.json(
@@ -21,10 +22,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
     // ---------------------------------------------
     // 2. Verify JWT using JOSE (ESM SAFE)
     // ---------------------------------------------
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      console.error("JWT_SECRET missing");
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
 
     try {
-      await jwtVerify(cookie, secret);
+      await jwtVerify(cookie, new TextEncoder().encode(secret));
     } catch (err) {
       console.error("JWT VERIFY ERROR:", err);
       return NextResponse.json(
@@ -36,6 +44,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
     // ---------------------------------------------
     // 3. Fetch SAR records with related flag + check
     // ---------------------------------------------
+    const prisma = await getPrisma();
+
     const sar = await prisma.suspiciousActivityReport.findMany({
       orderBy: { createdAt: "desc" },
       include: {

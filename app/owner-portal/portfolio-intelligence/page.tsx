@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
@@ -24,6 +24,7 @@ export default async function OwnerPortfolioIntelligencePage() {
   if (!session) throw new Error("Not authenticated");
   if (session.role !== "owner") throw new Error("Unauthorized");
 
+  const prisma = await getPrisma();
   const ownerId = Number(session.userId);
 
   const properties = await prisma.property.findMany({
@@ -58,7 +59,6 @@ export default async function OwnerPortfolioIntelligencePage() {
 
   const riskMatrixData = riskChartData;
 
-  // Diversification maps
   const byCityMap = new Map<string, number>();
   const byTypeMap = new Map<string, number>();
 
@@ -77,7 +77,6 @@ export default async function OwnerPortfolioIntelligencePage() {
     count,
   }));
 
-  // Diversification scores
   const cityScore = Math.min(100, byCityMap.size * 20);
   const typeScore = Math.min(100, byTypeMap.size * 20);
 
@@ -85,7 +84,6 @@ export default async function OwnerPortfolioIntelligencePage() {
     <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
       <h1 className="text-4xl font-bold mb-6">Portfolio Intelligence</h1>
 
-      {/* Top Scores */}
       <section className="grid md:grid-cols-4 gap-6 mb-10">
         <Kpi label="Overall Score" value={score.overallScore} />
         <Kpi label="Equity Score" value={score.equityScore} />
@@ -106,18 +104,15 @@ export default async function OwnerPortfolioIntelligencePage() {
         />
       </section>
 
-      {/* Charts */}
       <section className="grid md:grid-cols-2 gap-8 mb-12">
         <PortfolioEquityChart data={equityChartData} />
         <PortfolioRiskChart data={riskChartData} />
       </section>
 
-      {/* Risk Matrix */}
       <section className="mb-12">
         <PortfolioRiskMatrix data={riskMatrixData} />
       </section>
 
-      {/* Diversification */}
       <section className="mb-12">
         <DiversificationSummary cityScore={cityScore} typeScore={typeScore} />
         <PortfolioDiversification byCity={byCity} byType={byType} />

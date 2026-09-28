@@ -1,10 +1,12 @@
+"use server";
 
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
+import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie
@@ -34,7 +36,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
     }
 
     // ---------------------------------------------
-    // 3. Fetch fraud flags with related check data
+    // 3. Load Prisma at runtime (server-only)
+    // ---------------------------------------------
+    const { prisma } = await import("@/lib/prisma");
+
+    // ---------------------------------------------
+    // 4. Fetch fraud flags with related check data
     // ---------------------------------------------
     const flags = await prisma.fraudFlag.findMany({
       orderBy: { createdAt: "desc" },

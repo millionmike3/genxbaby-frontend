@@ -1,10 +1,15 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { priceLoan } from "@/services/pricing-engine";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { ScoringDAL } from "@/lib/dal/scoring";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   const body = await request.json();
+
+  const prisma = await getPrisma();
 
   // Run pricing engine
   const quote = await priceLoan(body);

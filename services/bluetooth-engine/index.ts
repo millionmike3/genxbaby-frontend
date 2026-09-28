@@ -1,11 +1,13 @@
 // genxbaby-frontend/services/bluetooth-engine/index.ts
 
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/db/prisma";
 
 // -------------------------------------------------------------
 // HEATMAP DATA
 // -------------------------------------------------------------
 export async function getBluetoothHeatmapData() {
+  const prisma = await getPrisma();
+
   const events = await prisma.bluetoothEvent.findMany({
     orderBy: { timestamp: "desc" },
   });
@@ -40,6 +42,8 @@ export async function getBluetoothHeatmapData() {
 // ALERTS DATA  (REQUIRED BY alerts/route.ts)
 // -------------------------------------------------------------
 export async function getBluetoothAlerts() {
+  const prisma = await getPrisma();
+
   const alerts = await prisma.bluetoothAlert.findMany({
     orderBy: { timestamp: "desc" },
     take: 100,
@@ -66,6 +70,8 @@ export async function getAdminBluetoothSummary({
   type?: string;
   signal?: string;
 }) {
+  const prisma = await getPrisma();
+
   let eventWhere: any = {};
   let alertWhere: any = {};
 

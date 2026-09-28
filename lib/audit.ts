@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/prisma";
-
+import { getPrisma } from "@/lib/db/prisma";
 
 export async function logAudit({
   actor,
@@ -13,6 +12,8 @@ export async function logAudit({
   metadata?: any;
 }) {
   try {
+    const prisma = await getPrisma();
+
     const entry = await prisma.auditLog.create({
       data: {
         actor,

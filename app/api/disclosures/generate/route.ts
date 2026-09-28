@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 import { generateInitialDisclosures } from "@/lib/services/disclosures";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  const prisma = await getPrisma();
 
   const app = await prisma.application.findUnique({
     where: { id: applicationId },

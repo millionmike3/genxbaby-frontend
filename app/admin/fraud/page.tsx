@@ -1,8 +1,11 @@
-// app/admin/fraud/page.tsx
+"use server";
+
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 async function getFraudEvents() {
+  const prisma = await getPrisma();
+
   return prisma.fraudEvent.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -22,8 +25,9 @@ export default async function AdminFraudPage() {
       <Suspense fallback={<div>Loading...</div>}>
         <div className="space-y-4">
           {events.map((e) => {
-            const payload = e.payload as any;
-            const scores = payload?.scores || {};
+            const payload = e.payload ?? {};
+            const scores = payload?.scores ?? {};
+
             return (
               <div
                 key={e.id}
@@ -32,16 +36,18 @@ export default async function AdminFraudPage() {
                 <div className="flex justify-between mb-2">
                   <div>
                     <div className="font-semibold">
-                      User: {e.userId} · Event: {payload?.eventId}
+                      User: {e.userId ?? "Unknown"} · Event:{" "}
+                      {payload?.eventId ?? "N/A"}
                     </div>
                     <div className="text-slate-400">
                       {new Date(e.createdAt).toLocaleString()}
                     </div>
                   </div>
+
                   <div className="text-right">
-                    <div>Fraud: {scores.fraud}</div>
-                    <div>Risk: {scores.risk}</div>
-                    <div>Impulsiveness: {scores.impulsiveness}</div>
+                    <div>Fraud: {scores.fraud ?? 0}</div>
+                    <div>Risk: {scores.risk ?? 0}</div>
+                    <div>Impulsiveness: {scores.impulsiveness ?? 0}</div>
                   </div>
                 </div>
 

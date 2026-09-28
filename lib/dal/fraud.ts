@@ -1,4 +1,13 @@
-import { prisma } from "@/lib/prisma";
+
+// lib/dal/fraud.ts
+export async function getFraudForApplication(appId: string) {
+  const { prisma } = await import("@/lib/prisma");
+
+  return prisma.fraudEvent.findMany({
+    where: { applicationId: appId },
+    orderBy: { createdAt: "desc" },
+  });
+}
 
 export const FraudDAL = {
   async getByApplication(applicationId: string) {

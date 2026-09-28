@@ -1,21 +1,21 @@
-import { NextRequest,  NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const body = await request.json();
-  const { applicationId, type, url } = body;
+export async function GET(request: NextRequest) {
+  try {
+    const { prisma } = await import("@/lib/prisma");
 
-  const doc = await prisma.document.create({
-    data: { applicationId, type, url },
-  });
+    const docs = await prisma.document.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 200,
+    });
 
-  await prisma.timelineEvent.create({
-    data: {
-      applicationId,
-      type: "DOC_UPLOADED",
-      metadata: { type, url },
-    },
-  });
-
-  return NextResponse.json({ ok: true, document: doc });
+    return NextResponse.json({ success: true, data: docs });
+  } catch (err) {
+    console.error("Application Document Error:", err);
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
+

@@ -1,5 +1,3 @@
-import { prisma } from "@/lib/prisma";
-
 export const DocumentDAL = {
   async create(data: {
     applicationId?: string;
@@ -10,14 +8,17 @@ export const DocumentDAL = {
     url: string;
     metadata?: any;
   }) {
+    const { prisma } = await import("@/lib/prisma");
     return prisma.document.create({ data });
   },
 
   async getById(id: string) {
+    const { prisma } = await import("@/lib/prisma");
     return prisma.document.findUnique({ where: { id } });
   },
 
   async getByApplication(applicationId: string) {
+    const { prisma } = await import("@/lib/prisma");
     return prisma.document.findMany({
       where: { applicationId },
       orderBy: { uploadedAt: "desc" },
@@ -25,6 +26,7 @@ export const DocumentDAL = {
   },
 
   async delete(id: string) {
+    const { prisma } = await import("@/lib/prisma");
     return prisma.document.delete({ where: { id } });
   },
 };
