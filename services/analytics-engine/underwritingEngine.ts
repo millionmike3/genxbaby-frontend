@@ -1,3 +1,6 @@
+"use server";
+
+
 import { correlatePricingBehavior } from "./correlation";
 import type { CorrelationResult } from "./correlation";
 

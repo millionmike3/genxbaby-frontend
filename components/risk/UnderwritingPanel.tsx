@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import SignalCard from "@/components/SignalCard";
-import { getUnderwritingProfile } from "@/services/analytics-engine/underwritingEngine";
 
 export default function UnderwritingPanel({ userId }: { userId: number }) {
   const [score, setScore] = useState<number | null>(null);
@@ -12,7 +11,9 @@ export default function UnderwritingPanel({ userId }: { userId: number }) {
   useEffect(() => {
     async function load() {
       try {
-        const p = await getUnderwritingProfile(userId);
+        const res = await fetch(`/api/underwriting/profile?userId=${userId}`);
+        const p = await res.json();
+
         setScore(p.underwritingScore);
         setProfile(p);
       } catch (err) {
