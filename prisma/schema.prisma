@@ -106,6 +106,7 @@ model Borrower {
   BorrowerFinancialDrift      BorrowerFinancialDrift[]
   BorrowerMacroRiskExposure   BorrowerMacroRiskExposure[]
   MortgageAsset               MortgageAsset[]
+  borrowerProfiles            BorrowerProfile[]
 }
 
 // ------------------------------------------------------------
@@ -371,6 +372,7 @@ model Application {
   AnchorRecord        AnchorRecord?
   pipelineDeals       PipelineDeal[]
   scoreRecords        ScoreRecord[]
+  borrowerProfiles    BorrowerProfile[]
 }
 
 // ------------------------------------------------------------
@@ -2967,4 +2969,33 @@ model RiskSnapshot {
   delinquencyJson Json
   marketJson      Json
   createdAt       DateTime @default(now())
+}
+
+model BorrowerProfile {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  firstName     String
+  middleInitial String?
+  lastName      String
+  suffix        String?
+
+  dob DateTime
+  ssn String // encrypted at the application layer
+
+  phone String?
+  email String?
+
+  address        String
+  city           String
+  state          String
+  zip            String
+  yearsAtAddress Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
 }
