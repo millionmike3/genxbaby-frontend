@@ -13,15 +13,20 @@ export default function PersonalPage() {
   async function onSubmit(formData: FormData) {
     startTransition(async () => {
       await savePersonalInfo(applicationId, formData);
-      router.push(`/borrower-app/application/${applicationId}/employment`);
+      router.push(
+        `/borrower-app/application/${applicationId}/employment`
+      );
     });
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-semibold text-slate-100 mb-4">
+      <h1 className="text-xl font-semibold text-slate-100 mb-2">
         Borrower Information (1003)
       </h1>
+      <p className="text-sm text-slate-400 mb-6">
+        Please complete your personal information as it appears on your legal documents.
+      </p>
 
       <form action={onSubmit} className="space-y-6">
         {/* Name */}

@@ -107,6 +107,13 @@ model Borrower {
   BorrowerMacroRiskExposure   BorrowerMacroRiskExposure[]
   MortgageAsset               MortgageAsset[]
   borrowerProfiles            BorrowerProfile[]
+  borrowerEmployment          BorrowerEmployment[]
+  borrowerIncome              BorrowerIncome[]
+  borrowerAssets              BorrowerAssets[]
+  borrowerLiabilities         BorrowerLiabilities[]
+  borrowerProperty            BorrowerProperty[]
+  borrowerDeclarations        BorrowerDeclarations[]
+  borrowerDemographics        BorrowerDemographics[]
 }
 
 // ------------------------------------------------------------
@@ -366,13 +373,20 @@ model Application {
   StressTestScenario   StressTestScenario?
   StressTestResult     StressTestResult?
 
-  ServicingEventScore ServicingEventScore?
-  ServicingRiskSignal ServicingRiskSignal?
-  ScoringResult       ScoringResult?
-  AnchorRecord        AnchorRecord?
-  pipelineDeals       PipelineDeal[]
-  scoreRecords        ScoreRecord[]
-  borrowerProfiles    BorrowerProfile[]
+  ServicingEventScore  ServicingEventScore?
+  ServicingRiskSignal  ServicingRiskSignal?
+  ScoringResult        ScoringResult?
+  AnchorRecord         AnchorRecord?
+  pipelineDeals        PipelineDeal[]
+  scoreRecords         ScoreRecord[]
+  borrowerProfiles     BorrowerProfile[]
+  borrowerEmployment   BorrowerEmployment[]
+  borrowerIncome       BorrowerIncome[]
+  borrowerAssets       BorrowerAssets[]
+  borrowerLiabilities  BorrowerLiabilities[]
+  borrowerProperty     BorrowerProperty[]
+  borrowerDeclarations BorrowerDeclarations[]
+  borrowerDemographics BorrowerDemographics[]
 }
 
 // ------------------------------------------------------------
@@ -2992,6 +3006,160 @@ model BorrowerProfile {
   state          String
   zip            String
   yearsAtAddress Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerEmployment {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  employerName      String
+  jobTitle          String?
+  employmentType    String? // W2, 1099, Self-Employed, Retired, etc.
+  startDate         DateTime?
+  yearsInProfession Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerIncome {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  w2IncomeAnnual  Int?
+  w2IncomeMonthly Int?
+
+  contractorIncomeAnnual  Int?
+  contractorIncomeMonthly Int?
+
+  selfEmploymentIncomeAnnual  Int?
+  selfEmploymentIncomeMonthly Int?
+
+  otherIncomeAnnual  Int?
+  otherIncomeMonthly Int?
+
+  totalIncomeMonthly Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerAssets {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  checkingBalance   Int?
+  savingsBalance    Int?
+  cashOnHand        Int?
+  retirementBalance Int?
+  investmentBalance Int?
+  otherAssets       Int?
+
+  totalAssets Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerLiabilities {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  creditCardPayments   Int?
+  autoLoanPayments     Int?
+  studentLoanPayments  Int?
+  personalLoanPayments Int?
+  collectionsPayments  Int?
+  otherDebtPayments    Int?
+
+  totalMonthlyDebt Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerProperty {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  propertyAddress String
+  propertyCity    String
+  propertyState   String
+  propertyZip     String
+
+  occupancyType String? // Primary, Secondary, Investment
+  propertyType  String? // Single Family, Condo, Multi-Family, etc.
+
+  purchasePrice     Int?
+  estimatedValue    Int?
+  loanAmount        Int?
+  downPayment       Int?
+  downPaymentSource String? // Savings, Gift, Sale of Home, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerDeclarations {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  // Standard 1003 declaration questions
+  bankruptcy            Boolean?
+  foreclosure           Boolean?
+  judgments             Boolean?
+  delinquentFederalDebt Boolean?
+  alimonyChildSupport   Boolean?
+  coMakerEndorser       Boolean?
+  ownershipInterest     Boolean?
+  outstandingLiens      Boolean?
+  citizenshipStatus     String? // US Citizen, Permanent Resident, Non‑Resident
+  militaryService       Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model BorrowerDemographics {
+  id            String @id @default(cuid())
+  borrowerId    String
+  applicationId String
+
+  ethnicity String? // Hispanic/Latino, Not Hispanic/Latino, Decline
+  race      String? // White, Black, Asian, Native American, Pacific Islander, Decline
+  sex       String? // Male, Female, Decline
+
+  collectionMethod String? // Visual Observation, Self-Reported
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
