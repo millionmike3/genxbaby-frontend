@@ -22,60 +22,60 @@ export default function Navbar() {
           href="/"
           className="
             flex items-center gap-2 
-            min-h-[48px] min-w-[48px] 
-            bg-slate-900/90 
-            px-2 py-1 
+            px-1 py-1 
             rounded-md
           "
         >
-          <GenXBabyLogoMobile className="min-w-[40px] min-h-[40px] shrink-0" />
+          <GenXBabyLogoMobile 
+            className="
+              w-10 h-auto 
+              sm:w-12 
+              md:w-14 
+              shrink-0
+            " 
+          />
         </Link>
 
         {/* Navigation Links */}
-        <div className="flex items-center gap-6 text-sm text-slate-300">
-
-          {/* Owner Login */}
-          <Link
-            href="/login/owner"
-            className="hover:text-[#3CF46B] transition"
-          >
+        <div
+          className="
+            flex items-center 
+            gap-3 
+            sm:gap-4 
+            md:gap-6 
+            text-xs 
+            sm:text-sm 
+            text-slate-300
+          "
+        >
+          <Link href="/login/owner" className="hover:text-[#3CF46B] transition">
             Owner
           </Link>
 
-          {/* Investor Login */}
-          <Link
-            href="/login/investor"
-            className="hover:text-[#3CF46B] transition"
-          >
+          <Link href="/login/investor" className="hover:text-[#3CF46B] transition">
             Investor
           </Link>
 
-          {/* Admin Login */}
-          <Link
-            href="/login/admin"
-            className="hover:text-[#3CF46B] transition"
-          >
+          <Link href="/login/admin" className="hover:text-[#3CF46B] transition">
             Admin
           </Link>
 
-          {/* Apply for Mortgage */}
           <Link
             href="/borrower-app/application/start"
             className="
-            bg-[#4EE38A] 
-            text-black 
-            font-semibold 
-           px-4 py-2 
-           rounded-md 
-           hover:bg-[#3bc978] 
-           transition
-           "
->
-  Apply
-</Link>
-
-
-           
+              bg-[#4EE38A] 
+              text-black 
+              font-semibold 
+              px-3 py-1.5 
+              sm:px-4 sm:py-2 
+              rounded-md 
+              hover:bg-[#3bc978] 
+              transition
+              text-xs sm:text-sm
+            "
+          >
+            Apply
+          </Link>
         </div>
 
       </div>
