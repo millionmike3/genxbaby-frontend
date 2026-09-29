@@ -849,7 +849,6 @@ model UnderwritingDecision {
   decision String?
   reason   String?
   metadata Json?
-  
 }
 
 // ------------------------------------------------------------
@@ -2930,33 +2929,34 @@ model MortgagePerformance {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 model LlpaGrid {
-  id           Int      @id @default(autoincrement())
-  investor     String
-  productType  String   // e.g. "FRM30", "ARM5/1"
-  purpose      String   // "purchase", "refinance", "cashout"
-  occupancy    String   // "owner", "nonowner"
-  ficoMin      Int
-  ficoMax      Int
-  ltvMin       Float
-  ltvMax       Float
-  termMonths   Int
-  llpaBps      Int
-  createdAt    DateTime @default(now())
-}
-model UnderwritingAssetSnapshot {
-  id                  Int      @id @default(autoincrement())
-  ownerId             Int
-  propertyId          Int
-  mortgageAssetId     Int?
-  assetQualityScore   Int
-  cashflowScore       Int
-  riskScore           Int
-  diversificationImpact Int
-  valuationJson       Json
-  createdAt           DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  investor    String
+  productType String // e.g. "FRM30", "ARM5/1"
+  purpose     String // "purchase", "refinance", "cashout"
+  occupancy   String // "owner", "nonowner"
+  ficoMin     Int
+  ficoMax     Int
+  ltvMin      Float
+  ltvMax      Float
+  termMonths  Int
+  llpaBps     Int
+  createdAt   DateTime @default(now())
 }
 
+model UnderwritingAssetSnapshot {
+  id                    Int      @id @default(autoincrement())
+  ownerId               Int
+  propertyId            Int
+  mortgageAssetId       Int?
+  assetQualityScore     Int
+  cashflowScore         Int
+  riskScore             Int
+  diversificationImpact Int
+  valuationJson         Json
+  createdAt             DateTime @default(now())
+}
 
 model RiskSnapshot {
   id              Int      @id @default(autoincrement())
@@ -2967,15 +2967,4 @@ model RiskSnapshot {
   delinquencyJson Json
   marketJson      Json
   createdAt       DateTime @default(now())
-}
-model EnvironmentReading {
-  id          Int       @id @default(autoincrement())
-  locationId  Int?
-  value       Float?
-  category    String?   // e.g., "heatmap", "signal", "metric"
-  timestamp   DateTime  @default(now())
-
-  // Optional: link to an Owner or Location model if you have one
-  // owner      Owner?    @relation(fields: [ownerId], references: [id])
-  // ownerId    Int?
 }
