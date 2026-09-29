@@ -154,13 +154,18 @@ export default function BorrowPage() {
       </div>
 
       {/* APPLY BUTTON */}
+       
       <div className="mt-12">
-        <Link
-          href="/application"
-          className="px-8 py-4 bg-[#3CF46B] text-black font-bold rounded-full text-lg"
-        >
-          Apply Now
-        </Link>
+        
+
+<Link
+      
+  href="/borrower-app/application/start"
+  className="bg-[#4EE38A] text-black font-semibold px-6 py-3 rounded-md hover:bg-[#3bc978] transition"
+>
+  Start Application
+</Link>
+
       </div>
     </section>
   );
