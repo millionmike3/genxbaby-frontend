@@ -387,6 +387,7 @@ model Application {
   borrowerProperty     BorrowerProperty[]
   borrowerDeclarations BorrowerDeclarations[]
   borrowerDemographics BorrowerDemographics[]
+  underwriterDecisions UnderwriterDecision[]
 }
 
 // ------------------------------------------------------------
@@ -3165,5 +3166,17 @@ model BorrowerDemographics {
   updatedAt DateTime @updatedAt
 
   borrower    Borrower    @relation(fields: [borrowerId], references: [id])
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model UnderwriterDecision {
+  id             String   @id @default(cuid())
+  underwriterId  String
+  applicationId  String
+  decision       String // approved, denied, returned, conditions
+  decisionTimeMs Int
+  finalOutcome   String? // if later overridden
+  createdAt      DateTime @default(now())
+
   application Application @relation(fields: [applicationId], references: [id])
 }

@@ -17,6 +17,9 @@ import FraudClusterMap from "./components/FraudClusterMap";
 import BehavioralTrajectoryMap from "./components/BehavioralTrajectoryMap";
 import PortfolioBehavioralMap from "./components/PortfolioBehavioralMap";
 import BehavioralVolatilityGauge from "./components/BehavioralVolatilityGauge";
+import { computeBehavioralVolatilityIndex } from "./utils/bvi";
+import { computeUPIMetrics } from "./utils/upi"
+import UnderwriterPerformanceDashboard from "./components/UnderwriterPerformanceDashboard";
 
 
 export default async function UnderwritingDashboard() {
@@ -30,6 +33,17 @@ export default async function UnderwritingDashboard() {
       scoring: true,
     },
   });
+  // Underwriter Performance Intelligence (UPI) Stats
+const underwriterStats = await prisma.underwriterDecision.groupBy({
+  by: ["underwriterId"],
+  _avg: {
+    decisionTimeMs: true,
+  },
+  _count: {
+    decision: true,
+  },
+});
+
 
   const total = applications.length;
 
@@ -37,6 +51,7 @@ export default async function UnderwritingDashboard() {
   const denied = applications.filter((a) => a.status === "denied").length;
   const returned = applications.filter((a) => a.status === "returned").length;
   const submitted = applications.filter((a) => a.status === "submitted").length;
+  const upiMetrics = computeUPIMetrics(underwriterStats);
 
   // Fraud Trend Data (7-day rolling)
   const fraudTrend = applications
@@ -141,8 +156,6 @@ const portfolioBehaviorData = applications.map((a) => ({
   impulsiveness: a.scoring?.impulsivenessScore ?? 0,
 }));
 
-
-
 const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
 
 
@@ -197,7 +210,7 @@ const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
         {/* RISK HISTOGRAM */}
         <RiskHistogram scores={riskScores} />
         <RiskPersonaClusters data={personaData} assignments={assignments} />
-
+        <UnderwriterPerformanceDashboard data={upiMetrics} />
 
         {/* IMPULSIVENESS SCATTER */}
         <ImpScatter data={scatterData} />
