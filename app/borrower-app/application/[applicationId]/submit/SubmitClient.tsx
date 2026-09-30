@@ -30,20 +30,11 @@ export default function SubmitClient({
         </h1>
         <p className="text-slate-300 mb-8">
           Thank you. Your application has been successfully submitted.
-          Our team will review your information and contact you shortly.
         </p>
 
         <button
           onClick={() => router.push("/borrower-app")}
-          className="
-            bg-[#4EE38A]
-            text-black
-            font-semibold
-            px-8 py-3
-            rounded-md
-            hover:bg-[#3bc978]
-            transition
-          "
+          className="bg-[#4EE38A] text-black font-semibold px-8 py-3 rounded-md hover:bg-[#3bc978] transition"
         >
           Return to Dashboard
         </button>
@@ -67,26 +58,10 @@ export default function SubmitClient({
         </p>
       )}
 
-      <div className="border border-slate-700 bg-slate-800 rounded-lg p-6 mb-8">
-        <p className="text-slate-300 text-sm">
-          By clicking “{status === "returned" ? "Resubmit Application" : "Submit Application"}”, 
-          I certify that the information provided is true and correct.
-        </p>
-      </div>
-
       <button
         onClick={onSubmit}
         disabled={isPending}
-        className="
-          bg-[#4EE38A]
-          text-black
-          font-semibold
-          px-8 py-3
-          rounded-md
-          hover:bg-[#3bc978]
-          transition
-          disabled:opacity-60 disabled:cursor-not-allowed
-        "
+        className="bg-[#4EE38A] text-black font-semibold px-8 py-3 rounded-md hover:bg-[#3bc978] transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {status === "returned" ? "Resubmit Application" : "Submit Application"}
       </button>
