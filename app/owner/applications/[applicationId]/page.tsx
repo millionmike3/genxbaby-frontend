@@ -1,13 +1,15 @@
 import { getPrisma } from "@/lib/prisma";
-import OwnerActions from "./OwnerActions";
-import Link from "next/link";
+import UnderwritingActions from "./UnderwritingActions";
 
-
-export default async function OwnerApplicationReview({ params }: { params: { applicationId: string } }) {
+export default async function OwnerApplicationReview({
+  params,
+}: {
+  params: { applicationId: string };
+}) {
   const prisma = getPrisma();
   const applicationId = params.applicationId;
 
-  const application = await prisma.application.findUnique({
+  const app = await prisma.application.findUnique({
     where: { id: applicationId },
     include: {
       borrower: true,
@@ -25,11 +27,15 @@ export default async function OwnerApplicationReview({ params }: { params: { app
       underwriting: true,
       fraudEvents: true,
       scoringPipelines: true,
+      scoring: true, // enhanced scoring block
+      declarations: true,
+      liabilities: true,
+      property: true,
     },
   });
 
-  if (!application) {
-    return <div className="text-red-400">Application not found.</div>;
+  if (!app) {
+    return <div className="text-red-400 p-6">Application not found.</div>;
   }
 
   const section = (title: string, content: JSX.Element) => (
@@ -40,14 +46,16 @@ export default async function OwnerApplicationReview({ params }: { params: { app
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-10">
       <h1 className="text-2xl font-bold text-slate-100 mb-6">
-        Loan File Review — {application.borrower?.fullName}
+        Underwriting Review — {app.borrower?.fullName ?? "Borrower"}
       </h1>
 
-      {section("Borrower Profile", (
+      {/* Borrower Profile */}
+      {section(
+        "Borrower Profile",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerProfiles?.map((p) => (
+          {app.borrowerProfiles?.map((p) => (
             <div key={p.id}>
               <p>{p.firstName} {p.lastName}</p>
               <p>DOB: {p.dob?.toLocaleDateString()}</p>
@@ -57,11 +65,13 @@ export default async function OwnerApplicationReview({ params }: { params: { app
             </div>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Employment", (
+      {/* Employment */}
+      {section(
+        "Employment",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerEmployment?.map((e) => (
+          {app.borrowerEmployment?.map((e) => (
             <div key={e.id}>
               <p>Employer: {e.employerName}</p>
               <p>Job Title: {e.jobTitle}</p>
@@ -70,35 +80,43 @@ export default async function OwnerApplicationReview({ params }: { params: { app
             </div>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Income", (
+      {/* Income */}
+      {section(
+        "Income",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerIncome?.map((i) => (
+          {app.borrowerIncome?.map((i) => (
             <p key={i.id}>Total Monthly Income: ${i.totalIncomeMonthly}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Assets", (
+      {/* Assets */}
+      {section(
+        "Assets",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerAssets?.map((a) => (
+          {app.borrowerAssets?.map((a) => (
             <p key={a.id}>Total Assets: ${a.totalAssets}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Liabilities", (
+      {/* Liabilities */}
+      {section(
+        "Liabilities",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerLiabilities?.map((l) => (
+          {app.borrowerLiabilities?.map((l) => (
             <p key={l.id}>Total Monthly Debt: ${l.totalMonthlyDebt}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Property", (
+      {/* Property */}
+      {section(
+        "Subject Property",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerProperty?.map((p) => (
+          {app.borrowerProperty?.map((p) => (
             <div key={p.id}>
               <p>{p.propertyAddress}, {p.propertyCity}, {p.propertyState} {p.propertyZip}</p>
               <p>Purchase Price: ${p.purchasePrice}</p>
@@ -106,11 +124,26 @@ export default async function OwnerApplicationReview({ params }: { params: { app
             </div>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Declarations", (
+      {/* Loan Details (Enhanced) */}
+      {app.property &&
+        section(
+          "Loan Details",
+          <div className="text-slate-300 space-y-1">
+            <p>Purchase Price: ${app.property.purchasePrice}</p>
+            <p>Estimated Value: ${app.property.estimatedValue}</p>
+            <p>Loan Amount: ${app.property.loanAmount}</p>
+            <p>Down Payment: ${app.property.downPayment}</p>
+            <p>Source: {app.property.downPaymentSource}</p>
+          </div>
+        )}
+
+      {/* Declarations */}
+      {section(
+        "Declarations",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerDeclarations?.map((d) => (
+          {app.borrowerDeclarations?.map((d) => (
             <div key={d.id}>
               <p>Bankruptcy: {String(d.bankruptcy)}</p>
               <p>Foreclosure: {String(d.foreclosure)}</p>
@@ -118,11 +151,13 @@ export default async function OwnerApplicationReview({ params }: { params: { app
             </div>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Demographics (HMDA)", (
+      {/* Demographics */}
+      {section(
+        "Demographics (HMDA)",
         <div className="text-slate-300 space-y-1">
-          {application.borrowerDemographics?.map((dm) => (
+          {app.borrowerDemographics?.map((dm) => (
             <div key={dm.id}>
               <p>Ethnicity: {dm.ethnicity}</p>
               <p>Race: {dm.race}</p>
@@ -130,60 +165,84 @@ export default async function OwnerApplicationReview({ params }: { params: { app
             </div>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Timeline", (
+      {/* Timeline */}
+      {section(
+        "Timeline",
         <div className="text-slate-300 space-y-1">
-          {application.timelineEvents?.map((t) => (
+          {app.timelineEvents?.map((t) => (
             <p key={t.id}>{t.eventType} — {t.createdAt.toLocaleString()}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Documents", (
+      {/* Documents */}
+      {section(
+        "Documents",
         <div className="text-slate-300 space-y-1">
-          {application.documents?.map((d) => (
+          {app.documents?.map((d) => (
             <p key={d.id}>{d.name} — {d.status}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Disclosures", (
+      {/* Disclosures */}
+      {section(
+        "Disclosures",
         <div className="text-slate-300 space-y-1">
-          {application.disclosures?.map((ds) => (
+          {app.disclosures?.map((ds) => (
             <p key={ds.id}>{ds.type} — {ds.status}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("Underwriting", (
+      {/* Underwriting Status */}
+      {section(
+        "Underwriting",
         <div className="text-slate-300 space-y-1">
-          {application.underwriting ? (
-            <p>Underwriting Status: {application.underwriting.status}</p>
-          ) : <p>No underwriting started.</p>}
+          {app.underwriting ? (
+            <p>Underwriting Status: {app.underwriting.status}</p>
+          ) : (
+            <p>No underwriting started.</p>
+          )}
         </div>
-      ))}
+      )}
 
-      {section("Fraud Signals", (
+      {/* Fraud Signals */}
+      {section(
+        "Fraud Signals",
         <div className="text-slate-300 space-y-1">
-          {application.fraudEvents?.map((f) => (
+          {app.fraudEvents?.map((f) => (
             <p key={f.id}>{f.eventType} — {f.score}</p>
           ))}
         </div>
-      ))}
+      )}
 
-      {section("AI Scoring Pipelines", (
+      {/* AI Scoring Pipelines */}
+      {section(
+        "AI Scoring Pipelines",
         <div className="text-slate-300 space-y-1">
-          {application.scoringPipelines?.map((s) => (
+          {app.scoringPipelines?.map((s) => (
             <p key={s.id}>{s.pipelineName} — {s.score}</p>
           ))}
         </div>
-      ))}
+      )}
 
+      {/* Enhanced Scoring */}
+      {section(
+        "Scoring",
+        <div className="grid grid-cols-3 gap-4 text-slate-300">
+          <div>Fraud Score: {app.scoring?.fraudScore ?? "—"}</div>
+          <div>Risk Score: {app.scoring?.riskScore ?? "—"}</div>
+          <div>Impulsiveness: {app.scoring?.impulsivenessScore ?? "—"}</div>
+        </div>
+      )}
+
+      {/* Underwriting Actions */}
       <div className="flex justify-end mt-10">
-  <OwnerActions applicationId={applicationId} />
-</div>
-
+        <UnderwritingActions applicationId={applicationId} />
+      </div>
     </div>
   );
 }
