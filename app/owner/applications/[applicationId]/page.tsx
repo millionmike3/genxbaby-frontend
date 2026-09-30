@@ -1,5 +1,7 @@
 import { getPrisma } from "@/lib/prisma";
+import OwnerActions from "./OwnerActions";
 import Link from "next/link";
+
 
 export default async function OwnerApplicationReview({ params }: { params: { applicationId: string } }) {
   const prisma = getPrisma();
@@ -179,10 +181,9 @@ export default async function OwnerApplicationReview({ params }: { params: { app
       ))}
 
       <div className="flex justify-end mt-10">
-        <button className="bg-[#4EE38A] text-black font-semibold px-8 py-3 rounded-md hover:bg-[#3bc978] transition">
-          Approve Application
-        </button>
-      </div>
+  <OwnerActions applicationId={applicationId} />
+</div>
+
     </div>
   );
 }

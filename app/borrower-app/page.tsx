@@ -21,6 +21,13 @@ export default async function BorrowerPortal() {
         <h2 className="text-xl font-medium text-slate-200">Documents</h2>
         <p className="mt-2 text-slate-400">Uploaded borrower documents will appear here.</p>
       </section>
+      {application.status === "returned" && (
+  <div className="bg-yellow-400 text-black px-4 py-3 rounded-md mb-6">
+    <p className="font-semibold">Your application requires updates.</p>
+    <p className="text-sm">Please review the requested changes and resubmit.</p>
+  </div>
+)}
+
     </div>
   );
 }

@@ -44,19 +44,41 @@ export default async function ReviewPage({ params }: { params: { applicationId: 
     <div className="border border-slate-700 rounded-lg p-6 bg-slate-800 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
-        <Link
-          href={href}
-          className="text-[#4EE38A] hover:text-[#3bc978] text-sm font-medium"
-        >
-          Edit
-        </Link>
+
+        {application.status === "returned" ? (
+          <Link
+            href={href}
+            className="text-yellow-400 hover:text-yellow-300 text-sm font-medium"
+          >
+            Fix Section
+          </Link>
+        ) : (
+          <Link
+            href={href}
+            className="text-[#4EE38A] hover:text-[#3bc978] text-sm font-medium"
+          >
+            Edit
+          </Link>
+        )}
       </div>
+
       {content}
     </div>
   );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
+
+      {/* Returned Banner */}
+      {application.status === "returned" && (
+        <div className="bg-yellow-400 text-black px-4 py-3 rounded-md mb-6">
+          <p className="font-semibold">Updates Required</p>
+          <p className="text-sm">
+            Your lender has requested changes. Please review your information and make corrections.
+          </p>
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold text-slate-100 mb-6">
         Review Your Application
       </h1>
@@ -184,6 +206,27 @@ export default async function ReviewPage({ params }: { params: { applicationId: 
           Continue to Submit
         </Link>
       </div>
+
+      {/* Resubmit Button */}
+      {application.status === "returned" && (
+        <div className="flex justify-end mt-10">
+          <Link
+            href={`/borrower-app/application/${applicationId}/submit`}
+            className="
+              bg-yellow-400
+              text-black
+              font-semibold
+              px-8 py-3
+              rounded-md
+              hover:bg-yellow-500
+              transition
+            "
+          >
+            Resubmit Application
+          </Link>
+        </div>
+      )}
+
     </div>
   );
 }
