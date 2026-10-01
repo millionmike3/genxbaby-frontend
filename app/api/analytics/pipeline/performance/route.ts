@@ -1,7 +1,7 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { computePipelinePerformance } from "@/lib/engines/pipeline";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const data = await computePipelinePerformance();
-  return NextResponse.json({ data });
+export async function GET() {
+  const perf = await computePipelinePerformance();
+  return NextResponse.json({ score: perf.avgScore });
 }

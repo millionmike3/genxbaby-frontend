@@ -17,7 +17,11 @@ if (!rawKey) {
 // Normalize private key
 const normalizedKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
 
-// Explicitly cast to Hex so TypeScript is satisfied
+// Validate length (must be 66 chars including 0x)
+if (normalizedKey.length !== 66) {
+  throw new Error("DEPLOYER_PRIVATE_KEY must be a 32-byte hex string (66 chars including 0x)");
+}
+
 const adminPrivateKey = normalizedKey as Hex;
 
 // Admin signer
