@@ -5,7 +5,7 @@ import { Group } from "@visx/group";
 import { Bar, LinePath } from "@visx/shape";
 import { scaleLinear, scaleBand } from "@visx/scale";
 import { AxisLeft, AxisBottom } from "@visx/axis";
-import { curveMonotoneX } from "@visx/curve";
+import { curveMonotoneX } from "d3-shape";      // ✅ RIGHT
 
 export default function UnderwriterProductivityChart({
   data,

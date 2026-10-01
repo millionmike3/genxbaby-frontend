@@ -7,8 +7,14 @@ export const InvestorAnalyticsDAL = {
     return prisma.application.findMany({
       where: { investorId },
       include: {
-        scoring: { orderBy: { createdAt: "desc" }, take: 1 },
-        fraud: { orderBy: { createdAt: "desc" }, take: 1 },
+        aiScoring: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+        fraudEvents: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
         pricing: true,
         underwriting: true,
         servicing: true,

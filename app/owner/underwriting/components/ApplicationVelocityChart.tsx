@@ -1,10 +1,14 @@
 "use client";
 
 import { genxTheme } from "../visxTheme";
-import { AreaClosed, LinePath, curveMonotoneX } from "@visx/shape";
-import { scaleLinear, scaleTime } from "@visx/scale";
+import { AreaClosed, LinePath } from "@visx/shape";
+import { curveMonotoneX } from "d3-shape";
+
 import { Group } from "@visx/group";
 import { AxisLeft, AxisBottom } from "@visx/axis";
+
+// ⭐ THIS WAS MISSING — this is why your build crashed
+import { scaleTime, scaleLinear } from "@visx/scale";
 
 export default function ApplicationVelocityChart({
   data,

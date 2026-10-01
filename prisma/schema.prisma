@@ -2522,6 +2522,9 @@ model ApplicationAiScoring {
   score         Float?
   factors       Json?
   metadata      Json?
+  fico          Int?
+  income        Int?
+  propertyType  String?
 }
 
 model ApplicationRiskLadder {

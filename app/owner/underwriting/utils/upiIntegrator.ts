@@ -28,22 +28,23 @@ export async function integrateUPI(prisma: any) {
 
   // 3. Bias
   const biasRecords = await prisma.underwriterDecision.findMany({
-    select: {
-      underwriterId: true,
-      decision: true,
-      application: {
-        select: {
-          scoring: {
-            select: {
-              fico: true,
-              income: true,
-              propertyType: true,
-            },
+  select: {
+    underwriterId: true,
+    decision: true,
+    application: {
+      select: {
+        aiScoring: {
+          select: {
+            score: true,
+            factors: true,
+            metadata: true,
           },
         },
       },
     },
-  });
+  },
+});
+
 
   const biasMetrics = computeUPIBias(
     biasRecords.map((r) => ({
@@ -57,16 +58,22 @@ export async function integrateUPI(prisma: any) {
 
   // 4. Risk alignment
   const riskRecords = await prisma.underwriterDecision.findMany({
-    select: {
-      underwriterId: true,
-      decision: true,
-      application: {
-        select: {
-          scoring: { select: { riskScore: true } },
+  select: {
+    underwriterId: true,
+    decision: true,
+    application: {
+      select: {
+        aiScoring: {
+          select: {
+            score: true,
+            factors: true,
+            metadata: true,
+          },
         },
       },
     },
-  });
+  },
+});
 
   const riskMetrics = computeUPIRiskAlignment(
     riskRecords.map((r) => ({
@@ -78,16 +85,23 @@ export async function integrateUPI(prisma: any) {
 
   // 5. Fraud alignment
   const fraudRecords = await prisma.underwriterDecision.findMany({
-    select: {
-      underwriterId: true,
-      decision: true,
-      application: {
-        select: {
-          scoring: { select: { fraudScore: true } },
+  select: {
+    underwriterId: true,
+    decision: true,
+    application: {
+      select: {
+        aiScoring: {
+          select: {
+            score: true,
+            factors: true,
+            metadata: true,
+          },
         },
       },
     },
-  });
+  },
+});
+
 
   const fraudMetrics = computeUPIFraudAlignment(
     fraudRecords.map((r) => ({

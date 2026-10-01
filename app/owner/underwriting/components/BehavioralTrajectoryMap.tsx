@@ -4,7 +4,9 @@ import { genxTheme } from "../visxTheme";
 import { Group } from "@visx/group";
 import { LinePath, Circle } from "@visx/shape";
 import { scaleLinear } from "@visx/scale";
-import { curveMonotoneX } from "@visx/curve";
+
+// ⭐ FIX: correct import
+import { curveMonotoneX } from "d3-shape";
 
 export default function BehavioralTrajectoryMap({
   data,
@@ -19,7 +21,6 @@ export default function BehavioralTrajectoryMap({
   const width = 600;
   const height = 300;
 
-  // Normalize timeline
   const sorted = [...data].sort(
     (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
   );
@@ -40,10 +41,10 @@ export default function BehavioralTrajectoryMap({
   });
 
   const severityColor = (value: number) => {
-    if (value < 30) return genxTheme.neon; // stable
-    if (value < 60) return "#FACC15"; // yellow
-    if (value < 80) return "#FB923C"; // orange
-    return "#EF4444"; // red
+    if (value < 30) return genxTheme.neon;
+    if (value < 60) return "#FACC15";
+    if (value < 80) return "#FB923C";
+    return "#EF4444";
   };
 
   return (
@@ -54,7 +55,6 @@ export default function BehavioralTrajectoryMap({
 
       <svg width={width} height={height}>
         <Group>
-          {/* FRAUD PATH */}
           <LinePath
             data={sorted}
             x={(_, i) => xScale(i)}
@@ -65,7 +65,6 @@ export default function BehavioralTrajectoryMap({
             opacity={0.8}
           />
 
-          {/* RISK PATH */}
           <LinePath
             data={sorted}
             x={(_, i) => xScale(i)}
@@ -76,7 +75,6 @@ export default function BehavioralTrajectoryMap({
             opacity={0.8}
           />
 
-          {/* IMPULSIVENESS PATH */}
           <LinePath
             data={sorted}
             x={(_, i) => xScale(i)}
@@ -87,7 +85,6 @@ export default function BehavioralTrajectoryMap({
             opacity={0.8}
           />
 
-          {/* Points */}
           {sorted.map((d, i) => (
             <Circle
               key={i}

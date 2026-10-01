@@ -1,7 +1,9 @@
 "use client";
 
 import { genxTheme } from "../visxTheme";
-import { LinePath, curveMonotoneX } from "@visx/shape";
+import { AreaClosed, LinePath } from "@visx/shape";
+import { curveMonotoneX } from "d3-shape";
+
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { Group } from "@visx/group";
 import { AxisLeft, AxisBottom } from "@visx/axis";

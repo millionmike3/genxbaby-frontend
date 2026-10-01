@@ -28,9 +28,15 @@ export default async function UnderwritingDashboard() {
   const applications = await prisma.application.findMany({
     orderBy: { updatedAt: "desc" },
     include: {
-      borrower: true,
-      property: true,
-      scoring: true,
+  borrower: true,
+  timelineEvents: true,
+  timeline: true,
+  documents: true,
+  disclosures: true,
+  underwriting: true,
+  fraudEvents: true,
+  milestones: true,
+  aiScoring: true, 
     },
   });
   // Underwriter Performance Intelligence (UPI) Stats
@@ -55,12 +61,13 @@ const underwriterStats = await prisma.underwriterDecision.groupBy({
 
   // Fraud Trend Data (7-day rolling)
   const fraudTrend = applications
-    .map((a) => ({
-      date: a.updatedAt,
-      score: a.scoring?.fraudScore ?? 0,
-    }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
-    // Application Velocity (daily count)
+  .map((a) => ({
+    date: a.updatedAt,
+    score: a.aiScoring?.score ?? 0,
+
+  }))
+  .sort((a, b) => a.date.getTime() - b.date.getTime());
+// Application Velocity (daily count)
 const velocityData = applications
   .map((a) => ({
     date: new Date(a.updatedAt.toDateString()), // normalize to day
@@ -74,32 +81,27 @@ const velocityData = applications
   }, [] as { date: Date; count: number }[])
   .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  // Risk Histogram Data
-  const riskScores = applications.map((a) => a.scoring?.riskScore ?? 0);
+const riskScores = applications.map((a) => a.aiScoring?.score ?? 0);
 
-  // Impulsiveness Scatter Data
-  const scatterData = applications.map((a) => ({
-    risk: a.scoring?.riskScore ?? 0,
-    impulsiveness: a.scoring?.impulsivenessScore ?? 0,
-  }));
-
-  // Fraud/Risk Heatmap Data (last 10 days)
-const heatmapData = applications.slice(0, 10).map((a) => ({
-  day: a.updatedAt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }),
-  fraud: a.scoring?.fraudScore ?? 0,
-  risk: a.scoring?.riskScore ?? 0,
+const scatterData = applications.map((a) => ({
+  risk: a.aiScoring?.score ?? 0,
+  impulsiveness: a.aiScoring?.score ?? 0,
 }));
 
-// Persona clustering data
+const heatmapData = applications.slice(0, 10).map((a) => ({
+  day: a.updatedAt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }),
+  fraud: a.aiScoring?.score ?? 0,
+  risk: a.aiScoring?.score ?? 0,
+}));
+
 const personaData = applications.map((a) => ({
-  fraud: a.scoring?.fraudScore ?? 0,
-  risk: a.scoring?.riskScore ?? 0,
-  impulsiveness: a.scoring?.impulsivenessScore ?? 0,
+  fraud: a.aiScoring?.score ?? 0,
+  risk: a.aiScoring?.score ?? 0,
+  impulsiveness: a.aiScoring?.score ?? 0,
 }));
 
 const { assignments } = kmeans(personaData, 3);
 
-// Underwriter Productivity Metrics
 const productivityData = applications
   .map((a) => ({
     day: a.updatedAt.toLocaleDateString("en-US", {
@@ -107,7 +109,7 @@ const productivityData = applications
       day: "numeric",
     }),
     decisions: a.status === "approved" || a.status === "denied" ? 1 : 0,
-    avgDecisionTime: a.scoring?.decisionTime ?? 0,
+    avgDecisionTime: 0, // ⭐ correct for now
   }))
   .reduce((acc, curr) => {
     const existing = acc.find((d) => d.day === curr.day);
@@ -119,10 +121,9 @@ const productivityData = applications
       acc.push(curr);
     }
     return acc;
-  }, [] as { day: string; decisions: number; avgDecisionTime: number }[])
+  }, [])
   .sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime());
-
-// Pipeline Funnel Data
+  // Pipeline Funnel Data
 const funnelData = {
   submitted,
   inReview: applications.filter((a) => a.status === "in_review").length,
@@ -131,30 +132,30 @@ const funnelData = {
   denied,
 };
 
-// Fraud Cluster AI Data
+
 const fraudClusterData = applications.map((a) => ({
-  fraud: a.scoring?.fraudScore ?? 0,
-  risk: a.scoring?.riskScore ?? 0,
-  impulsiveness: a.scoring?.impulsivenessScore ?? 0,
+  fraud: a.aiScoring?.score ?? 0,
+  risk: a.aiScoring?.score ?? 0,
+  impulsiveness: a.aiScoring?.score ?? 0,
 }));
 
 const { assignments: fraudAssignments } = fraudClusterEngine(fraudClusterData, 4);
 
-// Behavioral Trajectory Data
 const trajectoryData = applications.map((a) => ({
   timestamp: a.updatedAt,
-  fraud: a.scoring?.fraudScore ?? 0,
-  risk: a.scoring?.riskScore ?? 0,
-  impulsiveness: a.scoring?.impulsivenessScore ?? 0,
+  fraud: a.aiScoring?.score ?? 0,
+  risk: a.aiScoring?.score ?? 0,
+  impulsiveness: a.aiScoring?.score ?? 0,
 }));
 
 const portfolioBehaviorData = applications.map((a) => ({
   borrowerId: a.borrowerId,
   timestamp: a.updatedAt,
-  fraud: a.scoring?.fraudScore ?? 0,
-  risk: a.scoring?.riskScore ?? 0,
-  impulsiveness: a.scoring?.impulsivenessScore ?? 0,
+  fraud: a.aiScoring?.score ?? 0,
+  risk: a.aiScoring?.score ?? 0,
+  impulsiveness: a.aiScoring?.score ?? 0,
 }));
+
 
 const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
 
@@ -242,8 +243,9 @@ const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
                 </td>
 
                 <td className="py-3 px-2">
-                  {app.property?.propertyAddress ?? "—"}
-                </td>
+                 {app.propertyAddress ?? "—"}
+                 </td>
+
 
                 <td className="py-3 px-2">
                   <span

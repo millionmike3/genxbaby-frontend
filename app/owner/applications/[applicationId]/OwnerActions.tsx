@@ -1,4 +1,5 @@
 "use client";
+import { submitApplication } from "./actions";
 
 import { approveApplication, denyApplication, returnForEdits } from "./actions";
 import { useTransition } from "react";

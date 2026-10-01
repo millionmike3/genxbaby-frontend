@@ -1,3 +1,4 @@
+
 import { Suspense } from "react";
 
 async function fetchJSON(url: string) {
