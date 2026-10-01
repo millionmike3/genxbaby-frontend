@@ -7,8 +7,14 @@ import type { Hex } from "viem";
 
 export const CONTRACT_ADDRESS = process.env.CHECKREGISTRY_CONTRACT!;
 
+// Load private key safely
+const rawKey = process.env.DEPLOYER_PRIVATE_KEY;
+
+if (!rawKey) {
+  throw new Error("DEPLOYER_PRIVATE_KEY is missing from environment variables");
+}
+
 // Normalize private key
-const rawKey = process.env.DEPLOYER_PRIVATE_KEY!;
 const normalizedKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
 
 // Explicitly cast to Hex so TypeScript is satisfied

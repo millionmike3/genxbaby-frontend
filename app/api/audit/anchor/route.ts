@@ -25,6 +25,7 @@ function buildMerkleRoot(leaves: string[]) {
 
   return level[0];
 }
+export const dynamic = "force-dynamic";
 
 export async function POST(
   request: NextRequest,
