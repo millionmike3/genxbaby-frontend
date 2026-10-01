@@ -8,10 +8,13 @@ export default function BehavioralVolatilityGauge({ score }: { score: number }) 
   const height = 160;
   const radius = 70;
 
-  const angle = (score / 100) * Math.PI; // 0–180 degrees
+   // 0–180 degrees
 
   const color =
     score > 75 ? "#4EE38A" : score > 50 ? "#FACC15" : score > 30 ? "#FB923C" : "#EF4444";
+  const safeScore = Number(score);
+  const clamped = Math.max(0, Math.min(100, safeScore));
+  const angle = (clamped / 100) * Math.PI;
 
   return (
     <div className="border border-slate-800 bg-slate-900 rounded-lg p-6">

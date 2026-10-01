@@ -30,7 +30,7 @@ export default async function UnderwriterProfilePage({ params }: { params: { id:
           id: true,
           scoring: true,
           borrower: true,
-          property: true,
+          
         },
       },
     },

@@ -30,7 +30,7 @@ export default async function OwnerApplicationReview({
       scoring: true, // enhanced scoring block
       declarations: true,
       liabilities: true,
-      property: true,
+      
     },
   });
 
@@ -127,18 +127,18 @@ export default async function OwnerApplicationReview({
       )}
 
       {/* Loan Details (Enhanced) */}
-      {app.property &&
-        section(
-          "Loan Details",
-          <div className="text-slate-300 space-y-1">
-            <p>Purchase Price: ${app.property.purchasePrice}</p>
-            <p>Estimated Value: ${app.property.estimatedValue}</p>
-            <p>Loan Amount: ${app.property.loanAmount}</p>
-            <p>Down Payment: ${app.property.downPayment}</p>
-            <p>Source: {app.property.downPaymentSource}</p>
-          </div>
-        )}
-
+   {app.borrowerProperty?.length > 0 &&
+  section(
+    "Loan Details",
+    <div className="text-slate-300 space-y-1">
+      <p>Purchase Price: ${app.borrowerProperty[0].purchasePrice}</p>
+      <p>Estimated Value: ${app.borrowerProperty[0].estimatedValue}</p>
+      <p>Loan Amount: ${app.borrowerProperty[0].loanAmount}</p>
+      <p>Down Payment: ${app.borrowerProperty[0].downPayment}</p>
+      <p>Source: {app.borrowerProperty[0].downPaymentSource}</p>
+    </div>
+  )
+}
       {/* Declarations */}
       {section(
         "Declarations",
