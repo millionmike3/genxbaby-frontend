@@ -19,6 +19,8 @@ export default async function UnderwriterProfilePage({ params }: { params: { id:
   const bias = upi.biasMetrics.find((u) => u.underwriterId === underwriterId);
   const risk = upi.riskMetrics.find((u) => u.underwriterId === underwriterId);
   const fraud = upi.fraudMetrics.find((u) => u.underwriterId === underwriterId);
+  const drift = upi.driftMetrics.find(u => u.underwriterId === underwriterId);
+  const replay = upi.replayMetrics.filter(u => u.underwriterId === underwriterId);
 
   // Decision history
   const decisions = await prisma.underwriterDecision.findMany({
@@ -30,7 +32,8 @@ export default async function UnderwriterProfilePage({ params }: { params: { id:
           id: true,
           scoring: true,
           borrower: true,
-          
+          borrowerProperty: true
+
         },
       },
     },
@@ -53,6 +56,8 @@ export default async function UnderwriterProfilePage({ params }: { params: { id:
 
       {/* Fraud Alignment */}
       <UnderwriterFraudAlignmentChart data={[fraud!]} />
+     <UnderwriterDriftChart data={[drift!]} />
+     <UnderwriterReplayTimeline data={replay} />
 
       {/* Accuracy */}
       <div className="border border-slate-800 bg-slate-900 rounded-lg p-6">
@@ -107,7 +112,11 @@ export default async function UnderwriterProfilePage({ params }: { params: { id:
                 <td className="py-2">
                   {d.application?.borrower?.firstName} {d.application?.borrower?.lastName}
                 </td>
-                <td className="py-2">{d.application?.property?.propertyAddress}</td>
+                <td className="py-2">
+                 {d.application?.borrowerProperty?.[0]?.propertyAddress ?? "—"}
+                 </td>
+
+
                 <td className="py-2">{new Date(d.createdAt).toLocaleString()}</td>
               </tr>
             ))}

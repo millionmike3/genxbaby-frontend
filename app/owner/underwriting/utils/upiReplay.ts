@@ -25,7 +25,7 @@ export type ReplayTimeline = {
   frames: ReplayFrame[];
 };
 
-export function computeBehavioralReplay(records: ReplayRecord[]): ReplayTimeline[] {
+export function computeUPIReplay(records: ReplayRecord[]): ReplayTimeline[] {
   const grouped: Record<string, ReplayRecord[]> = {};
 
   // Group by underwriter

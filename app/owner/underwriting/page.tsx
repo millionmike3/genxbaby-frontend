@@ -20,6 +20,12 @@ import BehavioralVolatilityGauge from "./components/BehavioralVolatilityGauge";
 import { computeBehavioralVolatilityIndex } from "./utils/bvi";
 import { computeUPIMetrics } from "./utils/upi"
 import UnderwriterPerformanceDashboard from "./components/UnderwriterPerformanceDashboard";
+import { computeUPIDrift } from "./utils/upiDrift";
+import { computeUPIReplay } from "./utils/upiReplay";
+import UnderwriterDriftChart from "./components/UnderwriterDriftChart";
+import UnderwriterReplayTimeline from "./components/UnderwriterReplayTimeline";
+
+
 
 
 export default async function UnderwritingDashboard() {
@@ -57,7 +63,11 @@ const underwriterStats = await prisma.underwriterDecision.groupBy({
   const denied = applications.filter((a) => a.status === "denied").length;
   const returned = applications.filter((a) => a.status === "returned").length;
   const submitted = applications.filter((a) => a.status === "submitted").length;
+  
+
   const upiMetrics = computeUPIMetrics(underwriterStats);
+  const upiDrift = computeUPIDrift(underwriterStats);
+  const upiReplay = computeUPIReplay(applications);
 
   // Fraud Trend Data (7-day rolling)
   const fraudTrend = applications
@@ -159,7 +169,7 @@ const portfolioBehaviorData = applications.map((a) => ({
 
 const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
 
-
+console.log("Gauge Score Value:", BVI, typeof BVI);
 
   return (
     <div className="p-8 space-y-10">
@@ -218,6 +228,9 @@ const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
         <FraudRiskHeatmap data={heatmapData} />
         <BehavioralTrajectoryMap data={trajectoryData} />
         <PortfolioBehavioralMap data={portfolioBehaviorData} />
+        <UnderwriterDriftChart data={upiDrift} />
+        <UnderwriterReplayTimeline data={{ frames: upiReplay }} />
+
 
 
       </div>
