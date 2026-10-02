@@ -18,15 +18,12 @@ import BehavioralTrajectoryMap from "./components/BehavioralTrajectoryMap";
 import PortfolioBehavioralMap from "./components/PortfolioBehavioralMap";
 import BehavioralVolatilityGauge from "./components/BehavioralVolatilityGauge";
 import { computeBehavioralVolatilityIndex } from "./utils/bvi";
-import { computeUPIMetrics } from "./utils/upi"
+import { computeUPIMetrics } from "./utils/upi";
 import UnderwriterPerformanceDashboard from "./components/UnderwriterPerformanceDashboard";
 import { computeUPIDrift } from "./utils/upiDrift";
 import { computeUPIReplay } from "./utils/upiReplay";
 import UnderwriterDriftChart from "./components/UnderwriterDriftChart";
 import UnderwriterReplayTimeline from "./components/UnderwriterReplayTimeline";
-
-
-
 
 export default async function UnderwritingDashboard() {
   const prisma = getPrisma();
@@ -34,142 +31,125 @@ export default async function UnderwritingDashboard() {
   const applications = await prisma.application.findMany({
     orderBy: { updatedAt: "desc" },
     include: {
-  borrower: true,
-  timelineEvents: true,
-  timeline: true,
-  documents: true,
-  disclosures: true,
-  underwriting: true,
-  fraudEvents: true,
-  milestones: true,
-  aiScoring: true, 
+      borrower: true,
+      timelineEvents: true,
+      timeline: true,
+      documents: true,
+      disclosures: true,
+      underwriting: true,
+      fraudEvents: true,
+      milestones: true,
+      aiScoring: true,
     },
   });
-  // Underwriter Performance Intelligence (UPI) Stats
-const underwriterStats = await prisma.underwriterDecision.groupBy({
-  by: ["underwriterId"],
-  _avg: {
-    decisionTimeMs: true,
-  },
-  _count: {
-    decision: true,
-  },
-});
 
+  const underwriterStats = await prisma.underwriterDecision.groupBy({
+    by: ["underwriterId"],
+    _avg: { decisionTimeMs: true },
+    _count: { decision: true },
+  });
 
   const total = applications.length;
-
   const approved = applications.filter((a) => a.status === "approved").length;
   const denied = applications.filter((a) => a.status === "denied").length;
   const returned = applications.filter((a) => a.status === "returned").length;
   const submitted = applications.filter((a) => a.status === "submitted").length;
-  
 
   const upiMetrics = computeUPIMetrics(underwriterStats);
   const upiDrift = computeUPIDrift(underwriterStats);
   const upiReplay = computeUPIReplay(applications);
 
-  // Fraud Trend Data (7-day rolling)
   const fraudTrend = applications
-  .map((a) => ({
-    date: a.updatedAt,
-    score: a.aiScoring?.score ?? 0,
+    .map((a) => ({
+      date: a.updatedAt,
+      score: a.aiScoring?.score ?? 0,
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  }))
-  .sort((a, b) => a.date.getTime() - b.date.getTime());
-// Application Velocity (daily count)
-const velocityData = applications
-  .map((a) => ({
-    date: new Date(a.updatedAt.toDateString()), // normalize to day
-    count: 1,
-  }))
-  .reduce((acc, curr) => {
-    const existing = acc.find((d) => d.date.getTime() === curr.date.getTime());
-    if (existing) existing.count += 1;
-    else acc.push(curr);
-    return acc;
-  }, [] as { date: Date; count: number }[])
-  .sort((a, b) => a.date.getTime() - b.date.getTime());
+  const velocityData = applications
+    .map((a) => ({
+      date: new Date(a.updatedAt.toDateString()),
+      count: 1,
+    }))
+    .reduce((acc, curr) => {
+      const existing = acc.find((d) => d.date.getTime() === curr.date.getTime());
+      if (existing) existing.count += 1;
+      else acc.push(curr);
+      return acc;
+    }, [] as { date: Date; count: number }[])
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-const riskScores = applications.map((a) => a.aiScoring?.score ?? 0);
+  const riskScores = applications.map((a) => a.aiScoring?.score ?? 0);
 
-const scatterData = applications.map((a) => ({
-  risk: a.aiScoring?.score ?? 0,
-  impulsiveness: a.aiScoring?.score ?? 0,
-}));
+  const scatterData = applications.map((a) => ({
+    risk: a.aiScoring?.score ?? 0,
+    impulsiveness: a.aiScoring?.score ?? 0,
+  }));
 
-const heatmapData = applications.slice(0, 10).map((a) => ({
-  day: a.updatedAt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }),
-  fraud: a.aiScoring?.score ?? 0,
-  risk: a.aiScoring?.score ?? 0,
-}));
+  const heatmapData = applications.slice(0, 10).map((a) => ({
+    day: a.updatedAt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }),
+    fraud: a.aiScoring?.score ?? 0,
+    risk: a.aiScoring?.score ?? 0,
+  }));
 
-const personaData = applications.map((a) => ({
-  fraud: a.aiScoring?.score ?? 0,
-  risk: a.aiScoring?.score ?? 0,
-  impulsiveness: a.aiScoring?.score ?? 0,
-}));
+  const personaData = applications.map((a) => ({
+    fraud: a.aiScoring?.score ?? 0,
+    risk: a.aiScoring?.score ?? 0,
+    impulsiveness: a.aiScoring?.score ?? 0,
+  }));
 
-const { assignments } = kmeans(personaData, 3);
+  const { assignments } = kmeans(personaData, 3);
 
-const productivityData = applications
-  .map((a) => ({
-    day: a.updatedAt.toLocaleDateString("en-US", {
-      month: "numeric",
-      day: "numeric",
-    }),
-    decisions: a.status === "approved" || a.status === "denied" ? 1 : 0,
-    avgDecisionTime: 0, // ⭐ correct for now
-  }))
-  .reduce((acc, curr) => {
-    const existing = acc.find((d) => d.day === curr.day);
-    if (existing) {
-      existing.decisions += curr.decisions;
-      existing.avgDecisionTime =
-        (existing.avgDecisionTime + curr.avgDecisionTime) / 2;
-    } else {
-      acc.push(curr);
-    }
-    return acc;
-  }, [])
-  .sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime());
-  // Pipeline Funnel Data
-const funnelData = {
-  submitted,
-  inReview: applications.filter((a) => a.status === "in_review").length,
-  returned,
-  approved,
-  denied,
-};
+  const productivityData = applications
+    .map((a) => ({
+      day: a.updatedAt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" }),
+      decisions: a.status === "approved" || a.status === "denied" ? 1 : 0,
+      avgDecisionTime: 0,
+    }))
+    .reduce((acc, curr) => {
+      const existing = acc.find((d) => d.day === curr.day);
+      if (existing) {
+        existing.decisions += curr.decisions;
+        existing.avgDecisionTime = (existing.avgDecisionTime + curr.avgDecisionTime) / 2;
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, [])
+    .sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime());
 
+  const funnelData = {
+    submitted,
+    inReview: applications.filter((a) => a.status === "in_review").length,
+    returned,
+    approved,
+    denied,
+  };
 
-const fraudClusterData = applications.map((a) => ({
-  fraud: a.aiScoring?.score ?? 0,
-  risk: a.aiScoring?.score ?? 0,
-  impulsiveness: a.aiScoring?.score ?? 0,
-}));
+  const fraudClusterData = applications.map((a) => ({
+    fraud: a.aiScoring?.score ?? 0,
+    risk: a.aiScoring?.score ?? 0,
+    impulsiveness: a.aiScoring?.score ?? 0,
+  }));
 
-const { assignments: fraudAssignments } = fraudClusterEngine(fraudClusterData, 4);
+  const { assignments: fraudAssignments } = fraudClusterEngine(fraudClusterData, 4);
 
-const trajectoryData = applications.map((a) => ({
-  timestamp: a.updatedAt,
-  fraud: a.aiScoring?.score ?? 0,
-  risk: a.aiScoring?.score ?? 0,
-  impulsiveness: a.aiScoring?.score ?? 0,
-}));
+  const trajectoryData = applications.map((a) => ({
+    timestamp: a.updatedAt,
+    fraud: a.aiScoring?.score ?? 0,
+    risk: a.aiScoring?.score ?? 0,
+    impulsiveness: a.aiScoring?.score ?? 0,
+  }));
 
-const portfolioBehaviorData = applications.map((a) => ({
-  borrowerId: a.borrowerId,
-  timestamp: a.updatedAt,
-  fraud: a.aiScoring?.score ?? 0,
-  risk: a.aiScoring?.score ?? 0,
-  impulsiveness: a.aiScoring?.score ?? 0,
-}));
+  const portfolioBehaviorData = applications.map((a) => ({
+    borrowerId: a.borrowerId,
+    timestamp: a.updatedAt,
+    fraud: a.aiScoring?.score ?? 0,
+    risk: a.aiScoring?.score ?? 0,
+    impulsiveness: a.aiScoring?.score ?? 0,
+  }));
 
-
-const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
-
-console.log("Gauge Score Value:", BVI, typeof BVI);
+  const BVI = computeBehavioralVolatilityIndex(portfolioBehaviorData);
 
   return (
     <div className="p-8 space-y-10">
@@ -177,7 +157,6 @@ console.log("Gauge Score Value:", BVI, typeof BVI);
         Underwriting Intelligence Dashboard
       </h1>
 
-      {/* FULL-WIDTH ANALYTICS SECTION */}
       <div className="space-y-10 border border-slate-800 bg-slate-900 rounded-lg p-8">
 
         {/* KPI CARDS */}
@@ -211,27 +190,37 @@ console.log("Gauge Score Value:", BVI, typeof BVI);
         <ApplicationVelocityChart data={velocityData} />
         <UnderwriterProductivityChart data={productivityData} />
         <PipelineFunnelChart data={funnelData} />
+
         <FraudClusterMap
-        data={fraudClusterData.map((d) => ({ fraud: d.fraud, risk: d.risk }))}
-         assignments={fraudAssignments}
+          data={fraudClusterData.map((d) => ({ fraud: d.fraud, risk: d.risk }))}
+          assignments={fraudAssignments}
         />
-         
-        <BehavioralVolatilityGauge score={BVI} />
+
+        {/* BVI GAUGE */}
+        <div className="border border-slate-800 bg-slate-900 rounded-lg p-6 flex flex-col items-start justify-center h-[240px]">
+          <h2 className="text-lg font-semibold text-[#4EE38A] mb-2">
+            Behavioral Volatility Index (Portfolio Stability)
+          </h2>
+
+          <BehavioralVolatilityGauge score={BVI} />
+
+          <div className="text-slate-300 text-sm mt-2">
+            Stability Score (0–100)
+          </div>
+        </div>
 
         {/* RISK HISTOGRAM */}
         <RiskHistogram scores={riskScores} />
         <RiskPersonaClusters data={personaData} assignments={assignments} />
         <UnderwriterPerformanceDashboard data={upiMetrics} />
 
-        {/* IMPULSIVENESS SCATTER */}
         <ImpScatter data={scatterData} />
         <FraudRiskHeatmap data={heatmapData} />
         <BehavioralTrajectoryMap data={trajectoryData} />
         <PortfolioBehavioralMap data={portfolioBehaviorData} />
+
         <UnderwriterDriftChart data={upiDrift} />
         <UnderwriterReplayTimeline data={{ frames: upiReplay }} />
-
-
 
       </div>
 
@@ -256,9 +245,8 @@ console.log("Gauge Score Value:", BVI, typeof BVI);
                 </td>
 
                 <td className="py-3 px-2">
-                 {app.propertyAddress ?? "—"}
-                 </td>
-
+                  {app.propertyAddress ?? "—"}
+                </td>
 
                 <td className="py-3 px-2">
                   <span

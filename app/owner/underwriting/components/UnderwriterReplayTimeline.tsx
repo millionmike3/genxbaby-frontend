@@ -13,7 +13,7 @@ type Props = {
   };
 };
 
-export default function UnderwriterReplayTimeline({ data }: Props) {
+export default function UnderwriterReplayTimeline({ data }: { data: { frames: any[] } }) {
   return (
     <div className="border border-slate-800 bg-slate-900 rounded-lg p-6 space-y-4">
       <h2 className="text-xl font-bold text-[#4EE38A]">
@@ -33,7 +33,7 @@ export default function UnderwriterReplayTimeline({ data }: Props) {
           </tr>
         </thead>
         <tbody>
-          {data.frames.map((f) => (
+          {data.frames?.map((f) => (
             <tr key={f.t} className="border-b border-slate-800">
               <td className="py-2">{f.t}</td>
               <td className="py-2">{f.decision}</td>
