@@ -154,6 +154,10 @@ model Investor {
   InvestorDiversificationAnalytics InvestorDiversificationAnalytics[]
   pipelineDeals                    PipelineDeal[]
   fundingRequests                  FundingRequest[]
+  documentApprovals                DocumentApproval[]
+  onboarding                       InvestorOnboarding[]
+  fraudReviews                     FraudReview[]
+  portfolioAdjustments             PortfolioAdjustment[]
 }
 
 model InvestorBehavior {
@@ -466,6 +470,7 @@ model Document {
   embeddings     DocumentEmbedding[]
   semanticScores DocumentSemanticScore[]
   riskSignals    DocumentRiskSignal[]
+  approvals      DocumentApproval[]
 }
 
 // ------------------------------------------------------------
@@ -816,6 +821,7 @@ model UnderwritingCase {
   pipelineOutputs UnderwritingPipelineOutput[]
   riskFactors     UnderwritingRiskFactors[]
   decisionOutputs UnderwritingDecisionOutput[]
+  fraudReviews    FraudReview[]
 }
 
 // ------------------------------------------------------------
@@ -3196,4 +3202,64 @@ model FundingRequest {
   investor Investor @relation(fields: [investorId], references: [id])
 
   @@index([investorId])
+}
+
+model AdminMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model DocumentApproval {
+  id         String   @id @default(uuid())
+  investorId String
+  documentId String
+  status     String   @default("PENDING") // APPROVED | REJECTED
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+  document Document @relation(fields: [documentId], references: [id])
+}
+
+model InvestorOnboarding {
+  id         String   @id @default(uuid())
+  investorId String
+  status     String   @default("PENDING") // APPROVED | REJECTED
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+}
+
+model AdminNotification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model FraudReview {
+  id         String   @id @default(uuid())
+  investorId String
+  caseId     String
+  riskScore  Float
+  status     String   @default("OPEN") // OPEN | REVIEWED | ESCALATED
+  createdAt  DateTime @default(now())
+
+  investor Investor         @relation(fields: [investorId], references: [id])
+  case     UnderwritingCase @relation(fields: [caseId], references: [id])
+}
+
+model PortfolioAdjustment {
+  id         String   @id @default(uuid())
+  investorId String
+  assetClass String
+  oldValue   Float
+  newValue   Float
+  createdAt  DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
 }
