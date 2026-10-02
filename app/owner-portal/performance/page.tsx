@@ -1,104 +1,44 @@
-import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
-
-export default async function OwnerPerformancePage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "owner") throw new Error("Unauthorized");
-
-  const prisma = await getPrisma();
-
-  const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
-  });
-
-  const properties = await prisma.property.findMany({
-    where: { ownershipEntity: { ownerId: user.id } },
-    include: {
-      financials: true,
-      ownerEquity: true,
-    },
-  });
-
-  const mortgages = await prisma.mortgageAsset.findMany({
-    where: { ownerId: user.id },
-    include: { performance: true },
-  });
-
-  const totalEquity =
-    properties.reduce(
-      (sum, p) => sum + (p.ownerEquity?.equityAmount ?? 0),
-      0
-    ) +
-    mortgages.reduce(
-      (sum, m) => sum + (m.performance?.riskScore ?? 0) * 1000,
-      0
-    );
+export default function OwnerPortalPerformancePage() {
+  const metrics = [
+    { label: "NOI", value: "$145,000", note: "Trailing 12 months" },
+    { label: "Cap Rate", value: "6.2%", note: "Portfolio blended" },
+    { label: "Cash-on-Cash", value: "9.8%", note: "Current year" },
+    { label: "DSCR", value: "1.45x", note: "Debt service coverage" },
+  ];
 
   return (
-    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
-      <h1 className="text-4xl font-bold mb-6">Performance</h1>
-
-      <section className="bg-slate-800/60 p-6 rounded-xl border border-slate-700 mb-10">
-        <h2 className="text-2xl font-semibold mb-2">Total Equity</h2>
-        <p className="text-3xl font-bold">
-          {`$${totalEquity.toLocaleString()}`}
+    <div className="space-y-10">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-4">Performance</h1>
+        <p className="text-slate-300 text-lg">
+          Review key performance indicators for your portfolio, including NOI,
+          cap rate, cash-on-cash returns, and debt service coverage.
         </p>
-      </section>
+      </div>
 
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4">Property Performance</h2>
-        {properties.map((p) => (
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {metrics.map((m) => (
           <div
-            key={p.id}
-            className="bg-slate-900/40 p-4 rounded-lg border border-slate-700 mb-4"
+            key={m.label}
+            className="bg-slate-800/60 rounded-xl p-6 border border-slate-700"
           >
-            <h3 className="text-xl font-semibold mb-2">
-              {p.address}, {p.city}
-            </h3>
-            <p>
-              <strong>NOI:</strong>{" "}
-              {p.financials?.noi
-                ? `$${p.financials.noi.toLocaleString()}`
-                : "—"}
-            </p>
-            <p>
-              <strong>Cap Rate:</strong>{" "}
-              {p.financials?.capRate
-                ? `${p.financials.capRate.toFixed(2)}%`
-                : "—"}
-            </p>
+            <h3 className="text-sm text-slate-300">{m.label}</h3>
+            <p className="text-3xl font-semibold mt-2">{m.value}</p>
+            <p className="text-xs text-slate-400 mt-1">{m.note}</p>
           </div>
         ))}
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Mortgage Performance</h2>
-        {mortgages.map((m) => (
-          <div
-            key={m.id}
-            className="bg-slate-900/40 p-4 rounded-lg border border-slate-700 mb-4"
-          >
-            <h3 className="text-xl font-semibold mb-2">
-              Loan #{m.id} — {m.status}
-            </h3>
-            <p>
-              <strong>Risk Score:</strong>{" "}
-              {m.performance?.riskScore?.toFixed(2) ?? "—"}
-            </p>
-            <p>
-              <strong>LTV:</strong>{" "}
-              {m.performance?.ltv
-                ? `${(m.performance.ltv * 100).toFixed(1)}%`
-                : "—"}
-            </p>
-          </div>
-        ))}
-      </section>
-    </main>
+      {/* Future Enhancements Placeholder */}
+      <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700">
+        <h3 className="text-lg font-semibold mb-2">Performance Insights</h3>
+        <p className="text-slate-300">
+          Advanced analytics such as trend charts, year-over-year comparisons,
+          and AI-driven performance scoring will appear here.
+        </p>
+      </div>
+    </div>
   );
 }

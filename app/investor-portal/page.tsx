@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function InvestorPortalOverviewPage() {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const token = cookieStore.get("session")?.value;
 
   const session = await getSession(token);
@@ -44,10 +44,10 @@ export default async function InvestorPortalOverviewPage() {
 
   if (!investor) {
     return (
-      <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
+      <div className="space-y-10 text-white">
         <h1 className="text-4xl font-bold mb-4">Investor Portal</h1>
         <p className="text-slate-300">No investor record found.</p>
-      </main>
+      </div>
     );
   }
 
@@ -56,15 +56,18 @@ export default async function InvestorPortalOverviewPage() {
   const alloc = investor.investorAllocationDynamics[0] ?? null;
 
   return (
-    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
-      <h1 className="text-4xl font-bold mb-2">Investor Portal</h1>
-      <p className="text-slate-300 mb-8">
-        Welcome, {investor.name}. This view is powered by your live positions,
-        scoring, liquidity, and performance data.
-      </p>
+    <div className="space-y-10 text-white">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-2">Investor Portal</h1>
+        <p className="text-slate-300 mb-8">
+          Welcome, {investor.name}. This view is powered by your live positions,
+          scoring, liquidity, and performance data.
+        </p>
+      </div>
 
       {/* Top scoring cards */}
-      <section className="grid md:grid-cols-3 gap-6 mb-10">
+      <section className="grid md:grid-cols-3 gap-6">
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-2">Risk Score</h2>
           <p className="text-3xl font-bold">
@@ -87,8 +90,8 @@ export default async function InvestorPortalOverviewPage() {
         </div>
       </section>
 
-            {/* Performance + diversification */}
-      <section className="grid md:grid-cols-2 gap-6 mb-10">
+      {/* Performance + diversification */}
+      <section className="grid md:grid-cols-2 gap-6">
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-6">
           <h2 className="text-2xl font-semibold mb-3">Performance Snapshot</h2>
           {perf ? (
@@ -147,6 +150,6 @@ export default async function InvestorPortalOverviewPage() {
           )}
         </div>
       </section>
-    </main>
+    </div>
   );
 }

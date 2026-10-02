@@ -6,9 +6,8 @@ import { computePortfolioScore } from "@/lib/portfolioScoring";
 import { computePortfolioValuation } from "@/lib/portfolioValuation";
 
 import PortfolioRiskMatrix from "../_components/PortfolioRiskMatrix";
-
 import PortfolioDiversification, {
-  DiversificationSummary
+  DiversificationSummary,
 } from "../_components/PortfolioDiversification";
 
 import {
@@ -16,17 +15,16 @@ import {
   PortfolioRiskChart,
 } from "../_components/PortfolioCharts";
 
-export default async function OwnerPortfolioIntelligencePage() {
-  const cookieStore = await cookies();
+export default async function OwnerPortalPortfolioIntelligencePage() {
+  // Session validated in OwnerPortalLayout, but we still need userId
+  const cookieStore = cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
-
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "owner") throw new Error("Unauthorized");
 
   const prisma = await getPrisma();
   const ownerId = Number(session.userId);
 
+  // Load properties + mortgages
   const properties = await prisma.property.findMany({
     where: { ownershipEntity: { ownerId } },
     include: {
@@ -42,9 +40,11 @@ export default async function OwnerPortfolioIntelligencePage() {
     },
   });
 
+  // Compute intelligence
   const score = computePortfolioScore(properties, mortgages);
   const valuation = computePortfolioValuation(properties);
 
+  // Chart data
   const equityChartData = properties.map((p) => ({
     label: `${p.address}, ${p.city}`,
     equity: p.ownerEquity?.equityAmount ?? 0,
@@ -59,6 +59,7 @@ export default async function OwnerPortfolioIntelligencePage() {
 
   const riskMatrixData = riskChartData;
 
+  // Diversification
   const byCityMap = new Map<string, number>();
   const byTypeMap = new Map<string, number>();
 
@@ -81,10 +82,18 @@ export default async function OwnerPortfolioIntelligencePage() {
   const typeScore = Math.min(100, byTypeMap.size * 20);
 
   return (
-    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
-      <h1 className="text-4xl font-bold mb-6">Portfolio Intelligence</h1>
+    <div className="space-y-12">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-4">Portfolio Intelligence</h1>
+        <p className="text-slate-300 text-lg">
+          Advanced analytics powered by your property and mortgage performance.
+          Review risk, equity, diversification, and valuation insights.
+        </p>
+      </div>
 
-      <section className="grid md:grid-cols-4 gap-6 mb-10">
+      {/* KPI Grid */}
+      <section className="grid md:grid-cols-4 gap-6">
         <Kpi label="Overall Score" value={score.overallScore} />
         <Kpi label="Equity Score" value={score.equityScore} />
         <Kpi label="Cashflow Score" value={score.cashflowScore} />
@@ -104,20 +113,23 @@ export default async function OwnerPortfolioIntelligencePage() {
         />
       </section>
 
-      <section className="grid md:grid-cols-2 gap-8 mb-12">
+      {/* Charts */}
+      <section className="grid md:grid-cols-2 gap-8">
         <PortfolioEquityChart data={equityChartData} />
         <PortfolioRiskChart data={riskChartData} />
       </section>
 
-      <section className="mb-12">
+      {/* Risk Matrix */}
+      <section>
         <PortfolioRiskMatrix data={riskMatrixData} />
       </section>
 
-      <section className="mb-12">
+      {/* Diversification */}
+      <section className="space-y-6">
         <DiversificationSummary cityScore={cityScore} typeScore={typeScore} />
         <PortfolioDiversification byCity={byCity} byType={byType} />
       </section>
-    </main>
+    </div>
   );
 }
 

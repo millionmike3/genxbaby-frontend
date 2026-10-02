@@ -153,6 +153,7 @@ model Investor {
   InvestorAllocationDynamics       InvestorAllocationDynamics[]
   InvestorDiversificationAnalytics InvestorDiversificationAnalytics[]
   pipelineDeals                    PipelineDeal[]
+  fundingRequests                  FundingRequest[]
 }
 
 model InvestorBehavior {
@@ -3182,4 +3183,17 @@ model UnderwriterDecision {
   createdAt      DateTime @default(now())
 
   application Application @relation(fields: [applicationId], references: [id])
+}
+
+model FundingRequest {
+  id         String   @id @default(uuid())
+  investorId String
+  amount     Float
+  type       String // "CONTRIBUTION" or "WITHDRAWAL"
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+
+  @@index([investorId])
 }

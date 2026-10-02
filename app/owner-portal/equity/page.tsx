@@ -1,66 +1,42 @@
-import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
-
-export default async function OwnerEquityPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "owner") throw new Error("Unauthorized");
-
-  const prisma = await getPrisma();
-
-  const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
-  });
-
-  const properties = await prisma.property.findMany({
-    where: { ownershipEntity: { ownerId: user.id } },
-    include: { ownerEquity: true },
-  });
-
-  const totalEquity = properties.reduce(
-    (sum, p) => sum + (p.ownerEquity?.equityAmount ?? 0),
-    0
-  );
+export default function OwnerPortalEquityPage() {
+  const equityData = [
+    { label: "Total Equity", value: "$980,000" },
+    { label: "Loan Paydown (YTD)", value: "$42,500" },
+    { label: "Appreciation (YTD)", value: "$68,000" },
+  ];
 
   return (
-    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
-      <h1 className="text-4xl font-bold mb-6">Equity</h1>
-
-      <section className="bg-slate-800/60 p-6 rounded-xl border border-slate-700 mb-10">
-        <h2 className="text-2xl font-semibold mb-2">Total Equity</h2>
-        <p className="text-3xl font-bold">
-          {`$${totalEquity.toLocaleString()}`}
+    <div className="space-y-10">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-4">Equity</h1>
+        <p className="text-slate-300 text-lg">
+          Track your equity growth across your portfolio, including loan
+          paydown, appreciation, and total owner equity.
         </p>
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Property Equity</h2>
-
-        {properties.map((p) => (
+      {/* Equity Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {equityData.map((e) => (
           <div
-            key={p.id}
-            className="bg-slate-900/40 p-4 rounded-lg border border-slate-700 mb-4"
+            key={e.label}
+            className="bg-slate-800/60 rounded-xl p-6 border border-slate-700"
           >
-            <h3 className="text-xl font-semibold mb-2">
-              {p.address}, {p.city}
-            </h3>
-            <p>
-              <strong>Equity:</strong>{" "}
-              {p.ownerEquity
-                ? `$${p.ownerEquity.equityAmount.toLocaleString()}`
-                : "—"}
-            </p>
-            <p>
-              <strong>Equity %:</strong>{" "}
-              {p.ownerEquity?.equityPercent ?? "—"}%
-            </p>
+            <h3 className="text-sm text-slate-300">{e.label}</h3>
+            <p className="text-3xl font-semibold mt-2">{e.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* Future Enhancements */}
+      <section className="bg-slate-800/40 p-6 rounded-xl border border-slate-700">
+        <h3 className="text-lg font-semibold mb-2">Equity Insights</h3>
+        <p className="text-slate-300">
+          Detailed equity charts, appreciation trends, and loan amortization
+          breakdowns will appear here as your portfolio intelligence expands.
+        </p>
       </section>
-    </main>
+    </div>
   );
 }

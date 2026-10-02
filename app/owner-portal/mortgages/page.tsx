@@ -2,13 +2,11 @@ import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
-export default async function OwnerMortgagesPage() {
-  const cookieStore = await cookies();
+export default async function OwnerPortalMortgagesPage() {
+  // Session is validated in OwnerPortalLayout, but we still need userId
+  const cookieStore = cookies();
   const token = cookieStore.get("session")?.value;
-
   const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "owner") throw new Error("Unauthorized");
 
   const prisma = await getPrisma();
 
@@ -29,9 +27,17 @@ export default async function OwnerMortgagesPage() {
   });
 
   return (
-    <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
-      <h1 className="text-4xl font-bold mb-6">Mortgage Assets</h1>
+    <div className="space-y-10">
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold mb-4">Mortgage Assets</h1>
+        <p className="text-slate-300 text-lg">
+          Review your mortgage-backed assets, including loan details, borrower
+          information, performance metrics, and recent payment activity.
+        </p>
+      </div>
 
+      {/* Mortgage Cards */}
       {assets.length === 0 ? (
         <p className="text-slate-400">No mortgage assets found.</p>
       ) : (
@@ -39,30 +45,36 @@ export default async function OwnerMortgagesPage() {
           {assets.map((asset) => (
             <div
               key={asset.id}
-              className="bg-slate-800/60 border border-slate-700 p-6 rounded-xl"
+              className="bg-slate-800/60 border border-slate-700 p-6 rounded-xl space-y-4"
             >
-              <h2 className="text-xl font-semibold mb-2">
-                Loan #{asset.id} — {asset.status}
-              </h2>
+              {/* Loan Header */}
+              <div>
+                <h2 className="text-xl font-semibold">
+                  Loan #{asset.id} — {asset.status}
+                </h2>
+                <p className="text-slate-400 text-sm">
+                  Borrower: {asset.borrower?.fullName ?? "—"}
+                </p>
+              </div>
 
-              <p>
-                <strong>Borrower:</strong>{" "}
-                {asset.borrower?.fullName ?? "—"}
-              </p>
-              <p>
-                <strong>Loan Amount:</strong>{" "}
-                {`$${asset.loanAmount.toLocaleString()}`}
-              </p>
-              <p>
-                <strong>Rate:</strong> {asset.interestRate.toFixed(3)}%
-              </p>
-              <p>
-                <strong>Balance:</strong>{" "}
-                {`$${asset.currentBalance.toLocaleString()}`}
-              </p>
+              {/* Loan Details */}
+              <div className="space-y-1">
+                <p>
+                  <strong>Loan Amount:</strong>{" "}
+                  {`$${asset.loanAmount.toLocaleString()}`}
+                </p>
+                <p>
+                  <strong>Rate:</strong> {asset.interestRate.toFixed(3)}%
+                </p>
+                <p>
+                  <strong>Balance:</strong>{" "}
+                  {`$${asset.currentBalance.toLocaleString()}`}
+                </p>
+              </div>
 
+              {/* Performance Metrics */}
               {asset.performance && (
-                <div className="mt-3 text-sm text-slate-400">
+                <div className="mt-3 text-sm text-slate-400 space-y-1">
                   <p>
                     <strong>DTI:</strong>{" "}
                     {asset.performance.dti
@@ -82,9 +94,10 @@ export default async function OwnerMortgagesPage() {
                 </div>
               )}
 
+              {/* Recent Payments */}
               {asset.payments.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="font-semibold mb-2">Recent Payments</h3>
+                <div className="mt-4 space-y-2">
+                  <h3 className="font-semibold">Recent Payments</h3>
                   <ul className="space-y-2 text-sm text-slate-300">
                     {asset.payments.map((p) => (
                       <li
@@ -107,6 +120,6 @@ export default async function OwnerMortgagesPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 }
