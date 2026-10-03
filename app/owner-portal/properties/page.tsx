@@ -1,3 +1,5 @@
+"use server";
+
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
@@ -5,16 +7,22 @@ import { getSession } from "@/lib/session";
 export default async function OwnerPortalPropertiesPage() {
   // Session is already validated in OwnerPortalLayout,
   // but we still need the userId for data loading.
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
   const token = cookieStore.get("session")?.value;
+
   const session = await getSession(token);
+  if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
+  // Fetch user
   const user = await prisma.user.findUnique({
     where: { id: Number(session.userId) },
   });
 
+  if (!user) throw new Error("User not found");
+
+  // Fetch ownership entities + properties
   const entities = await prisma.ownershipEntity.findMany({
     where: { ownerId: user.id },
     include: {
@@ -29,7 +37,7 @@ export default async function OwnerPortalPropertiesPage() {
   });
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-white">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Properties</h1>

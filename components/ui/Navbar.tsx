@@ -48,18 +48,22 @@ export default function Navbar() {
             text-slate-300
           "
         >
+          {/* Owner Login */}
           <Link href="/login/owner" className="hover:text-[#3CF46B] transition">
             Owner
           </Link>
 
+          {/* Investor Login */}
           <Link href="/login/investor" className="hover:text-[#3CF46B] transition">
             Investor
           </Link>
 
+          {/* Admin Login */}
           <Link href="/login/admin" className="hover:text-[#3CF46B] transition">
             Admin
           </Link>
 
+          {/* Apply Button */}
           <Link
             href="/borrower-app/application/start"
             className="
@@ -75,6 +79,24 @@ export default function Navbar() {
             "
           >
             Apply
+          </Link>
+
+          {/* Borrower Login Button */}
+          <Link
+            href="/borrower/login"
+            className="
+              px-3 py-1.5
+              sm:px-4 sm:py-2
+              rounded-lg
+              bg-[#3CF46B]
+              text-black
+              font-bold
+              hover:bg-[#32d05f]
+              transition
+              text-xs sm:text-sm
+            "
+          >
+            Borrower Login
           </Link>
         </div>
 

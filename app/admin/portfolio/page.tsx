@@ -1,40 +1,54 @@
 "use server";
 
-import { getPrisma } from "@/lib/db/prisma";
+import { getPrisma } from "@/lib/prisma";
 
-export default async function AdminPortfolioPage() {
+async function getAdjustments() {
   const prisma = await getPrisma();
 
-  const adjustments = await prisma.portfolioAdjustment.findMany({
+  return prisma.portfolioAdjustment.findMany({
     orderBy: { createdAt: "desc" },
-    include: { investor: true },
+    include: {
+      investor: true,
+    },
     take: 200,
   });
+}
+
+export default async function AdminPortfolioPage() {
+  const adjustments = await getAdjustments();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 space-y-10">
-      <h1 className="text-4xl font-bold">Portfolio Adjustments</h1>
+    <main className="min-h-screen bg-slate-950 text-white p-6">
+      <h1 className="text-2xl font-bold mb-4">Portfolio Adjustments</h1>
+      <p className="text-sm text-slate-400 mb-6">
+        Track and manage investor allocation changes across asset classes.
+      </p>
 
-      {adjustments.map((adj) => (
-        <div
-          key={adj.id}
-          className="bg-slate-800/60 p-6 rounded-xl border border-slate-700"
-        >
-          <h2 className="text-xl font-semibold">
-            {adj.investor?.name ?? "Unknown Investor"}
-          </h2>
+      <table className="w-full text-sm text-slate-300">
+        <thead>
+          <tr className="border-b border-slate-800">
+            <th className="py-2 text-left">Investor</th>
+            <th className="py-2 text-left">Asset Class</th>
+            <th className="py-2 text-left">Old Value</th>
+            <th className="py-2 text-left">New Value</th>
+            <th className="py-2 text-left">Adjusted</th>
+          </tr>
+        </thead>
 
-          <p className="text-slate-300 mt-2">{adj.assetClass}</p>
-
-          <p className="text-slate-400 text-sm mt-1">
-            {adj.oldValue} → {adj.newValue}
-          </p>
-
-          <p className="text-slate-500 text-xs mt-4">
-            {new Date(adj.createdAt).toDateString()}
-          </p>
-        </div>
-      ))}
-    </div>
+        <tbody>
+          {adjustments.map((adj) => (
+            <tr key={adj.id} className="border-b border-slate-900">
+              <td className="py-2">{adj.investor?.name ?? "Unknown"}</td>
+              <td className="py-2">{adj.assetClass}</td>
+              <td className="py-2">{adj.oldValue}</td>
+              <td className="py-2">{adj.newValue}</td>
+              <td className="py-2">
+                {new Date(adj.createdAt).toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </main>
   );
 }

@@ -7,6 +7,7 @@ export default function LoginPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Redirect target after successful login
   const redirectTo = searchParams.get("redirect") || "/admin/audit";
 
   const [email, setEmail] = useState("");
@@ -46,9 +47,10 @@ export default function LoginPageClient() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center 
-      bg-gradient-to-br from-purple-700 via-purple-500 to-blue-500 p-6">
-
+    <div
+      className="min-h-screen flex items-center justify-center 
+      bg-gradient-to-br from-purple-700 via-purple-500 to-blue-500 p-6"
+    >
       <div className="absolute w-96 h-96 bg-purple-400/40 blur-3xl rounded-full -z-10" />
 
       <form

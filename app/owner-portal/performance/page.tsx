@@ -1,13 +1,90 @@
-export default function OwnerPortalPerformancePage() {
-  const metrics = [
-    { label: "NOI", value: "$145,000", note: "Trailing 12 months" },
-    { label: "Cap Rate", value: "6.2%", note: "Portfolio blended" },
-    { label: "Cash-on-Cash", value: "9.8%", note: "Current year" },
-    { label: "DSCR", value: "1.45x", note: "Debt service coverage" },
-  ];
+"use server";
+
+import { getPrisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
+
+export default async function OwnerPortalPerformancePage() {
+  // Session validated in layout, but we still need userId
+  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
+  const token = cookieStore.get("session")?.value;
+
+  const session = await getSession(token);
+  if (!session) throw new Error("Not authenticated");
+
+  const prisma = await getPrisma();
+
+  // Fetch user
+  const user = await prisma.user.findUnique({
+    where: { id: Number(session.userId) },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // Fetch owner + properties + financials
+  const owner = await prisma.owner.findFirst({
+    where: { userId: user.id },
+    include: {
+      properties: {
+        include: {
+          financials: true,
+        },
+      },
+    },
+  });
+
+  // Aggregate metrics
+  const metrics = (() => {
+    if (!owner || owner.properties.length === 0) {
+      return [
+        { label: "NOI", value: "—", note: "No properties found" },
+        { label: "Cap Rate", value: "—", note: "No properties found" },
+        { label: "Cash-on-Cash", value: "—", note: "No properties found" },
+        { label: "DSCR", value: "—", note: "No properties found" },
+      ];
+    }
+
+    const financials = owner.properties
+      .map((p) => p.financials)
+      .filter(Boolean);
+
+    const totalNOI = financials.reduce(
+      (sum, f) => sum + (f?.noi ?? 0),
+      0
+    );
+
+    const avgCapRate =
+      financials.length > 0
+        ? financials.reduce((sum, f) => sum + (f?.capRate ?? 0), 0) /
+          financials.length
+        : 0;
+
+    return [
+      {
+        label: "NOI",
+        value: `$${totalNOI.toLocaleString()}`,
+        note: "Portfolio total NOI",
+      },
+      {
+        label: "Cap Rate",
+        value: `${avgCapRate.toFixed(2)}%`,
+        note: "Portfolio blended",
+      },
+      {
+        label: "Cash-on-Cash",
+        value: "9.8%",
+        note: "Current year (placeholder)",
+      },
+      {
+        label: "DSCR",
+        value: "1.45x",
+        note: "Debt service coverage (placeholder)",
+      },
+    ];
+  })();
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-white">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Performance</h1>

@@ -1,12 +1,63 @@
-export default function OwnerPortalEquityPage() {
+"use server";
+
+import { getPrisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
+
+export default async function OwnerPortalEquityPage() {
+  // Session validated in OwnerPortalLayout, but we still need userId
+  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
+  const token = cookieStore.get("session")?.value;
+
+  const session = await getSession(token);
+  if (!session) throw new Error("Not authenticated");
+
+  const prisma = await getPrisma();
+
+  // Fetch user
+  const user = await prisma.user.findUnique({
+    where: { id: Number(session.userId) },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // Fetch owner + properties + equity + financials
+  const owner = await prisma.owner.findFirst({
+    where: { userId: user.id },
+    include: {
+      properties: {
+        include: {
+          ownerEquity: true,
+          financials: true,
+        },
+      },
+    },
+  });
+
+  // Compute equity metrics
+  const totalEquity = owner?.properties.reduce(
+    (sum, p) => sum + (p.ownerEquity?.equityAmount ?? 0),
+    0
+  ) ?? 0;
+
+  const loanPaydownYTD = owner?.properties.reduce(
+    (sum, p) => sum + (p.financials?.loanPaydownYTD ?? 0),
+    0
+  ) ?? 0;
+
+  const appreciationYTD = owner?.properties.reduce(
+    (sum, p) => sum + (p.financials?.appreciationYTD ?? 0),
+    0
+  ) ?? 0;
+
   const equityData = [
-    { label: "Total Equity", value: "$980,000" },
-    { label: "Loan Paydown (YTD)", value: "$42,500" },
-    { label: "Appreciation (YTD)", value: "$68,000" },
+    { label: "Total Equity", value: `$${totalEquity.toLocaleString()}` },
+    { label: "Loan Paydown (YTD)", value: `$${loanPaydownYTD.toLocaleString()}` },
+    { label: "Appreciation (YTD)", value: `$${appreciationYTD.toLocaleString()}` },
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-white">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Equity</h1>

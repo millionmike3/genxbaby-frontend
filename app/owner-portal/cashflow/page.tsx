@@ -1,48 +1,61 @@
+"use server";
+
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerPortalCashflowPage() {
   // Session validated in OwnerPortalLayout, but we still need userId
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
   const token = cookieStore.get("session")?.value;
+
   const session = await getSession(token);
+  if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
+  // Fetch user
   const user = await prisma.user.findUnique({
     where: { id: Number(session.userId) },
   });
 
+  if (!user) throw new Error("User not found");
+
+  // Fetch properties
   const properties = await prisma.property.findMany({
     where: { ownershipEntity: { ownerId: user.id } },
     include: { rentRoll: true, financials: true },
   });
 
+  // Fetch mortgage assets
   const mortgages = await prisma.mortgageAsset.findMany({
     where: { ownerId: user.id },
     include: { payments: true },
   });
 
+  // Calculate rent income
   const rentIncome = properties.reduce(
     (sum, p) => sum + p.rentRoll.reduce((s, r) => s + r.rent, 0),
     0
   );
 
+  // Calculate mortgage payment income
   const mortgageIncome = mortgages.reduce(
     (sum, m) => sum + m.payments.reduce((s, p) => s + p.amount, 0),
     0
   );
 
+  // Calculate expenses
   const expenses = properties.reduce(
     (sum, p) => sum + (p.financials?.expenses ?? 0),
     0
   );
 
+  // Net cashflow
   const netCashflow = rentIncome + mortgageIncome - expenses;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-white">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Cashflow</h1>

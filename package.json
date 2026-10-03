@@ -2,17 +2,22 @@
   "name": "genxbaby-frontend",
   "version": "0.1.0",
   "private": true,
+
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "seed:owner": "node prisma/seed-owner.js"
+    "seed:owner": "node prisma/seed-owner.js",
+
+    "generate:favicons": "node scripts/generate-favicons.js"
   },
+
   "prisma": {
     "seed": "node prisma/seed-llpa.js"
   },
+
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.116.0",
@@ -53,6 +58,7 @@
     "viem": "^1.21.4",
     "wagmi": "^1.4.13"
   },
+
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/node": "^20",
@@ -62,6 +68,7 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "favicons": "^7.3.1",
     "pnpm": "^12.6.0",
     "postcss": "^8.5.25",
     "prisma": "^5.22.0",
@@ -69,5 +76,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5"
   },
+
   "packageManager": "pnpm@12.5.1+sha512.e3f305bc784a2bc89f5ad3b6138889470fae8d2af5f36b61216ec91c2c3d64089775f9de38aac331044ea40f245cb0d5666392dfdf65824e1907ef6a2c62de5f"
 }

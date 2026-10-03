@@ -1,22 +1,31 @@
-import { headers } from "next/headers";
-import { cookies } from "next/headers";
+"use server";
+
+import { headers, cookies } from "next/headers";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { getSession } from "@/lib/session";
+import { requireRole } from "@/lib/auth";
+
+function Unauthorized() {
+  return (
+    <section className="bg-slate-950 text-white p-6 min-h-screen flex items-center justify-center">
+      <div className="text-xl font-semibold">Unauthorized: Owner access required</div>
+    </section>
+  );
+}
 
 export default async function OwnerPortalLayout({ children }) {
-  // Auth check
-  const cookieStore = cookies();
+  // Enforce owner role
+  try {
+    await requireRole(["owner"]);
+  } catch {
+    return <Unauthorized />;
+  }
+
+  // Read cookies (must be awaited in Next.js 16)
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
   const session = await getSession(token);
-
-  if (!session || session.role !== "owner") {
-    return (
-      <section className="bg-slate-950 text-white p-6 min-h-screen">
-        <div className="text-xl font-semibold">Unauthorized</div>
-      </section>
-    );
-  }
 
   // Server-side active route detection
   const hdrs = headers();

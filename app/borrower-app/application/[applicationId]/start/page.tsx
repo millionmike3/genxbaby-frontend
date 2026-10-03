@@ -35,6 +35,12 @@ export default function StartMortgageApplication() {
         >
           Begin Application
         </button>
+           <a
+           href="/login?role=borrower"
+            className="px-6 py-3 bg-slate-800 text-white rounded-lg font-semibold hover:bg-slate-700"
+          >
+         Borrower Login
+          </a>
 
       </div>
     </main>

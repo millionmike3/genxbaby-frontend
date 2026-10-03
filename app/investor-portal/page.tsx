@@ -1,21 +1,32 @@
+"use server";
+
+import { requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function InvestorPortalOverviewPage() {
-  const cookieStore = cookies();
+  // Enforce investor role
+  await requireRole(["investor"]);
+
+  // Read JWT from cookie (must await cookies() in Next.js 16)
+  const cookieStore = await cookies();
   const token = cookieStore.get("session")?.value;
 
+  // Validate session
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
-  if (session.role !== "investor") throw new Error("Unauthorized");
 
   const prisma = await getPrisma();
 
+  // Fetch user
   const user = await prisma.user.findUnique({
     where: { id: Number(session.userId) },
   });
 
+  if (!user) throw new Error("User not found");
+
+  // Fetch investor + intelligence
   const investor = await prisma.investor.findFirst({
     where: { userId: user.id },
     include: {
@@ -44,7 +55,7 @@ export default async function InvestorPortalOverviewPage() {
 
   if (!investor) {
     return (
-      <div className="space-y-10 text-white">
+      <div className="space-y-10 text-white px-6 md:px-12 lg:px-20 py-16 bg-slate-900">
         <h1 className="text-4xl font-bold mb-4">Investor Portal</h1>
         <p className="text-slate-300">No investor record found.</p>
       </div>
@@ -56,7 +67,7 @@ export default async function InvestorPortalOverviewPage() {
   const alloc = investor.investorAllocationDynamics[0] ?? null;
 
   return (
-    <div className="space-y-10 text-white">
+    <div className="space-y-10 text-white px-6 md:px-12 lg:px-20 py-16 bg-slate-900">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-2">Investor Portal</h1>
@@ -68,6 +79,7 @@ export default async function InvestorPortalOverviewPage() {
 
       {/* Top scoring cards */}
       <section className="grid md:grid-cols-3 gap-6">
+        {/* Risk Score */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-2">Risk Score</h2>
           <p className="text-3xl font-bold">
@@ -75,6 +87,7 @@ export default async function InvestorPortalOverviewPage() {
           </p>
         </div>
 
+        {/* Behavior Score */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-2">Behavior Score</h2>
           <p className="text-3xl font-bold">
@@ -82,6 +95,7 @@ export default async function InvestorPortalOverviewPage() {
           </p>
         </div>
 
+        {/* Liquidity Score */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-5">
           <h2 className="text-lg font-semibold mb-2">Liquidity Score</h2>
           <p className="text-3xl font-bold">
@@ -92,6 +106,7 @@ export default async function InvestorPortalOverviewPage() {
 
       {/* Performance + diversification */}
       <section className="grid md:grid-cols-2 gap-6">
+        {/* Performance Snapshot */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-6">
           <h2 className="text-2xl font-semibold mb-3">Performance Snapshot</h2>
           {perf ? (
@@ -120,6 +135,7 @@ export default async function InvestorPortalOverviewPage() {
           )}
         </div>
 
+        {/* Diversification & Allocation */}
         <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-6">
           <h2 className="text-2xl font-semibold mb-3">
             Diversification & Allocation

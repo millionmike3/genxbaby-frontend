@@ -158,6 +158,8 @@ model Investor {
   onboarding                       InvestorOnboarding[]
   fraudReviews                     FraudReview[]
   portfolioAdjustments             PortfolioAdjustment[]
+  investments                      Investment[]
+  commitments                      Commitment[]
 }
 
 model InvestorBehavior {
@@ -3262,4 +3264,32 @@ model PortfolioAdjustment {
   createdAt  DateTime @default(now())
 
   investor Investor @relation(fields: [investorId], references: [id])
+}
+model Deal {
+  id        Int      @id @default(autoincrement())
+  name      String
+  summary   String?
+  createdAt DateTime @default(now())
+
+  investments Investment[]
+}
+model Investment {
+  id          String   @id @default(uuid())
+  investorId  String
+  dealId      Int
+  amount      Float
+  status      String
+  createdAt   DateTime @default(now())
+
+  investor    Investor @relation(fields: [investorId], references: [id])
+  deal        Deal     @relation(fields: [dealId], references: [id])
+}
+model Commitment {
+  id          Int      @id @default(autoincrement())
+  investorId  String
+  amount      Float
+  status      String
+  createdAt   DateTime @default(now())
+
+  investor    Investor @relation(fields: [investorId], references: [id])
 }

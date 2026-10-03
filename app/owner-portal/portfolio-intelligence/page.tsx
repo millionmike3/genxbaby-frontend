@@ -1,3 +1,5 @@
+"use server";
+
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
@@ -17,9 +19,11 @@ import {
 
 export default async function OwnerPortalPortfolioIntelligencePage() {
   // Session validated in OwnerPortalLayout, but we still need userId
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
   const token = cookieStore.get("session")?.value;
+
   const session = await getSession(token);
+  if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
   const ownerId = Number(session.userId);
@@ -82,7 +86,7 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
   const typeScore = Math.min(100, byTypeMap.size * 20);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 text-white">
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Portfolio Intelligence</h1>
