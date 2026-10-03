@@ -114,6 +114,7 @@ model Borrower {
   borrowerProperty            BorrowerProperty[]
   borrowerDeclarations        BorrowerDeclarations[]
   borrowerDemographics        BorrowerDemographics[]
+  borrowerDocuments           BorrowerDocument[]
 }
 
 // ------------------------------------------------------------
@@ -395,6 +396,7 @@ model Application {
   borrowerDeclarations BorrowerDeclarations[]
   borrowerDemographics BorrowerDemographics[]
   underwriterDecisions UnderwriterDecision[]
+  BorrowerDocument     BorrowerDocument[]
 }
 
 // ------------------------------------------------------------
@@ -3265,6 +3267,7 @@ model PortfolioAdjustment {
 
   investor Investor @relation(fields: [investorId], references: [id])
 }
+
 model Deal {
   id        Int      @id @default(autoincrement())
   name      String
@@ -3273,23 +3276,38 @@ model Deal {
 
   investments Investment[]
 }
+
 model Investment {
-  id          String   @id @default(uuid())
-  investorId  String
-  dealId      Int
-  amount      Float
-  status      String
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  investorId String
+  dealId     Int
+  amount     Float
+  status     String
+  createdAt  DateTime @default(now())
 
-  investor    Investor @relation(fields: [investorId], references: [id])
-  deal        Deal     @relation(fields: [dealId], references: [id])
+  investor Investor @relation(fields: [investorId], references: [id])
+  deal     Deal     @relation(fields: [dealId], references: [id])
 }
-model Commitment {
-  id          Int      @id @default(autoincrement())
-  investorId  String
-  amount      Float
-  status      String
-  createdAt   DateTime @default(now())
 
-  investor    Investor @relation(fields: [investorId], references: [id])
+model Commitment {
+  id         Int      @id @default(autoincrement())
+  investorId String
+  amount     Float
+  status     String
+  createdAt  DateTime @default(now())
+
+  investor Investor @relation(fields: [investorId], references: [id])
+}
+
+model BorrowerDocument {
+  id            String   @id @default(cuid())
+  borrowerId    String
+  applicationId String?
+  type          String
+  fileUrl       String
+  status        String   @default("uploaded")
+  uploadedAt    DateTime @default(now())
+
+  borrower    Borrower     @relation(fields: [borrowerId], references: [id])
+  application Application? @relation(fields: [applicationId], references: [id])
 }

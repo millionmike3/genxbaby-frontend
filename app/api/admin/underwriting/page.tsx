@@ -1,9 +1,45 @@
+"use client";
 
-export const dynamic = "force-dynamic";
-
-
-import { getPrisma } from "@/lib/prisma";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+type Borrower = {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+};
+
+type Application = {
+  id: string;
+  loanAmount: number;
+  income: number;
+  employer: string | null;
+  rent: number;
+  city: string | null;
+  dti: number | null;
+  status: string;
+  createdAt: string;
+};
+
+type Score = {
+  id: string;
+  fraudScore: number;
+  riskScore: number;
+  impulsivenessScore: number;
+  createdAt: string;
+};
+
+type Item = {
+  application: Application;
+  borrower: Borrower;
+  score: Score | null;
+};
+
+type ListResponse = {
+  success: boolean;
+  items: Item[];
+};
 
 function formatCurrency(value: number | null | undefined) {
   if (value == null) return "-";
@@ -15,7 +51,7 @@ function formatPercent(value: number | null | undefined) {
   return `${value.toFixed(1)}%`;
 }
 
-function decisionFromScore(score: any, app: any) {
+function decisionFromScore(score: Score | null, app: Application) {
   if (!score) return "No Scores";
 
   const { riskScore, fraudScore, impulsivenessScore } = score;
@@ -41,48 +77,62 @@ function decisionColor(decision: string) {
   }
 }
 
+export default function AdminUnderwritingHomePage() {
+  const [data, setData] = useState<ListResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export default async function AdminUnderwritingQueuePage() {
-  const prisma = getPrisma();
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/underwriting/list", {
+          method: "GET",
+          credentials: "include",
+        });
 
-  // Fetch applications + borrower + latest score
-  const applications = await prisma.application.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      borrower: true,
-    },
-  });
+        const json = await res.json();
 
-  const scores = await prisma.borrowerScore.findMany({
-    where: {
-      applicationId: {
-        in: applications.map((a) => a.id),
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const scoreMap = new Map<string, any>();
-  for (const s of scores) {
-    if (!scoreMap.has(s.applicationId)) {
-      scoreMap.set(s.applicationId, s);
+        if (!res.ok) {
+          setError(json.error || "Failed to load applications");
+        } else {
+          setData(json);
+        }
+      } catch {
+        setError("Failed to load applications");
+      } finally {
+        setLoading(false);
+      }
     }
+
+    load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-slate-300">Loading applications...</p>
+      </div>
+    );
   }
 
-  const items = applications.map((a) => ({
-    application: a,
-    borrower: a.borrower,
-    score: scoreMap.get(a.id) ?? null,
-  }));
+  if (error || !data) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="text-red-500 text-sm">{error || "Error"}</p>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-black text-white p-6 pt-20">
-      <h1 className="text-3xl font-bold mb-4 text-[#3CF46B]">
-        Underwriting Queue
-      </h1>
-      <p className="text-sm text-slate-400 mb-6">
-        All borrower applications, sorted by newest first.
-      </p>
+    <div className="min-h-screen bg-black text-white pt-20 px-4 md:px-8">
+      <header className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-[#3CF46B]">
+          Underwriting Queue
+        </h1>
+        <p className="mt-2 text-sm text-slate-300">
+          All borrower applications, sorted by newest first.
+        </p>
+      </header>
 
       <div className="bg-neutral-900 border border-neutral-700 rounded-xl overflow-hidden">
         <div className="grid grid-cols-6 gap-3 px-4 py-3 text-xs font-semibold text-slate-300 border-b border-neutral-700">
@@ -94,13 +144,13 @@ export default async function AdminUnderwritingQueuePage() {
           <span>Action</span>
         </div>
 
-        {items.length === 0 && (
+        {data.items.length === 0 && (
           <div className="px-4 py-4 text-sm text-slate-400">
             No applications found.
           </div>
         )}
 
-        {items.map(({ application, borrower, score }) => {
+        {data.items.map(({ application, borrower, score }) => {
           const decision = decisionFromScore(score, application);
 
           return (
@@ -108,7 +158,6 @@ export default async function AdminUnderwritingQueuePage() {
               key={application.id}
               className="grid grid-cols-6 gap-3 px-4 py-3 text-xs border-b border-neutral-800 hover:bg-neutral-800/60 transition"
             >
-              {/* Borrower */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
                   {borrower.firstName || borrower.email}
@@ -116,7 +165,6 @@ export default async function AdminUnderwritingQueuePage() {
                 <span className="text-slate-500">{borrower.email}</span>
               </div>
 
-              {/* Loan */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
                   {formatCurrency(application.loanAmount)}
@@ -126,7 +174,6 @@ export default async function AdminUnderwritingQueuePage() {
                 </span>
               </div>
 
-              {/* DTI */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
                   {formatPercent(application.dti)}
@@ -136,7 +183,6 @@ export default async function AdminUnderwritingQueuePage() {
                 </span>
               </div>
 
-              {/* Scores */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
                   {score ? `${score.riskScore} / ${score.fraudScore}` : "—"}
@@ -146,7 +192,6 @@ export default async function AdminUnderwritingQueuePage() {
                 </span>
               </div>
 
-              {/* Status */}
               <div className="flex flex-col">
                 <span className="text-slate-100">{application.status}</span>
                 <span className={`font-semibold ${decisionColor(decision)}`}>
@@ -154,7 +199,6 @@ export default async function AdminUnderwritingQueuePage() {
                 </span>
               </div>
 
-              {/* Action */}
               <div className="flex items-center">
                 <Link
                   href={`/admin/underwriting/${application.id}`}
@@ -167,6 +211,6 @@ export default async function AdminUnderwritingQueuePage() {
           );
         })}
       </div>
-    </main>
+    </div>
   );
 }
