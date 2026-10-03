@@ -1,19 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-function StartForm() {
+export default function BorrowerApplicationStartPage() {
   const router = useRouter();
   const [loanAmount, setLoanAmount] = useState("");
 
   function next() {
-    const query = new URLSearchParams({
-      loanAmount,
-    }).toString();
-
-    router.push(`/borrower-app/application/income?${query}`);
+    router.push(`/borrower-app/application/income?loanAmount=${loanAmount}`);
   }
 
   return (
@@ -24,7 +19,6 @@ function StartForm() {
         <label className="block text-sm font-medium">
           Desired Loan Amount
         </label>
-
         <input
           type="number"
           value={loanAmount}
@@ -40,13 +34,5 @@ function StartForm() {
         </button>
       </div>
     </div>
-  );
-}
-
-export default function StartPage() {
-  return (
-    <Suspense fallback={<div className="text-white p-8">Loading...</div>}>
-      <StartForm />
-    </Suspense>
   );
 }

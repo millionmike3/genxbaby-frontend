@@ -1,6 +1,10 @@
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 
+/* -------------------------------------------------------
+   METADATA — Combined favicon set + cache‑busted favicon.ico
+-------------------------------------------------------- */
+
 export const metadata = {
   title: "GenXBaby",
   description: "Fintech OS for Borrowers, Investors, Owners, and Admins.",
@@ -17,13 +21,19 @@ export const metadata = {
         url: "/favicon-dark.svg",
         media: "(prefers-color-scheme: dark)",
       },
+
+      // Cache‑busted primary favicon.ico
+      {
+        rel: "icon",
+        url: "/favicon.ico?v=5",
+      },
     ],
 
     // iOS home screen icon
     apple: "/apple-touch-icon.png",
 
     // Browser quick icon
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon.ico?v=5",
 
     // Animated favicon
     other: [
@@ -35,6 +45,10 @@ export const metadata = {
     ],
   },
 };
+
+/* -------------------------------------------------------
+   ROOT LAYOUT
+-------------------------------------------------------- */
 
 export default function RootLayout({
   children,
