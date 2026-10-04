@@ -1,6 +1,8 @@
 import { Application, UnderwritingPipelineOutput } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+
 import { emitUnderwritingEvent } from "@/app/api/underwriting/[applicationId]/events/route";
+import { emitAdminPipelineEvent } from "@/app/api/admin/pipeline/events/route";
 
 /**
  * Computes the milestone for an application based on:
@@ -12,22 +14,18 @@ export function computeMilestone(
   app: Application & { underwritingCase?: any },
   pipeline: UnderwritingPipelineOutput
 ): string {
-  // Basic application lifecycle
   if (app.status === "SUBMITTED") return "Application Submitted";
   if (app.status === "PROCESSING") return "In Processing";
 
-  // Underwriting lifecycle
   if (app.underwritingCase?.status === "IN_REVIEW") return "In Underwriting";
   if (app.underwritingCase?.decision === "APPROVE") return "Conditional Approval";
 
-  // Document lifecycle
   if (pipeline.docsRequired > 0 && pipeline.docsSatisfied < pipeline.docsRequired)
     return "Docs In Progress";
 
   if (pipeline.docsRequired > 0 && pipeline.docsSatisfied === pipeline.docsRequired)
     return "Docs Complete";
 
-  // Final milestone
   if (
     app.underwritingCase?.decision === "APPROVE" &&
     pipeline.docsSatisfied === pipeline.docsRequired
@@ -35,7 +33,6 @@ export function computeMilestone(
     return "Clear to Close";
   }
 
-  // Default fallback
   return app.milestone;
 }
 
@@ -69,8 +66,17 @@ export async function recomputePipeline(applicationId: string) {
     },
   });
 
-  // Emit real-time event
+  // Underwriter dashboard SSE
   emitUnderwritingEvent(applicationId, {
+    type: "DOC_PROGRESS_UPDATED",
+    applicationId,
+    docsRequired: pipeline.docsRequired,
+    docsSatisfied: pipeline.docsSatisfied,
+    docsPercent: pipeline.docsPercent,
+  });
+
+  // Admin pipeline dashboard SSE
+  emitAdminPipelineEvent({
     type: "DOC_PROGRESS_UPDATED",
     applicationId,
     docsRequired: pipeline.docsRequired,
@@ -102,11 +108,18 @@ export async function updateMilestone(applicationId: string) {
     data: { milestone },
   });
 
-  // Emit real-time event
+  // Underwriter dashboard SSE
   emitUnderwritingEvent(applicationId, {
     type: "MILESTONE_UPDATED",
     applicationId,
     milestone,
+  });
+
+  // Admin pipeline dashboard SSE
+  emitAdminPipelineEvent({
+    type: "MILESTONE_UPDATED",
+    applicationId,
+    milestone: updated.milestone,
   });
 
   return updated;
@@ -117,15 +130,23 @@ export async function updateMilestone(applicationId: string) {
  * - Recomputes pipeline progress
  * - Recomputes milestone
  * - Emits all SSE events
- *
- * Call this after:
- * - Document status changes
- * - Underwriting decision changes
- * - Application status changes
  */
 export async function recomputeAll(applicationId: string) {
   const pipeline = await recomputePipeline(applicationId);
   const milestone = await updateMilestone(applicationId);
+
+  const app = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { underwritingCase: true },
+  });
+
+  if (app?.underwritingCase) {
+    emitAdminPipelineEvent({
+      type: "UNDERWRITING_UPDATED",
+      applicationId,
+      case: app.underwritingCase,
+    });
+  }
 
   return { pipeline, milestone };
 }
