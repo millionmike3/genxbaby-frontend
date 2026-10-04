@@ -1,23 +1,6 @@
 "use server";
 
-import { requireRole } from "@/lib/auth";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
-
 export default async function AdminPortalPage() {
-  // Enforce admin role
-  await requireRole(["admin"]);
-
-  // Read JWT from cookie
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-
-  // Validate session
-  const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "admin")
-    throw new Error("Unauthorized: admin role required");
-
   return (
     <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">
       <img

@@ -2847,25 +2847,30 @@ model OwnershipEntity {
 }
 
 model Property {
-  id                Int             @id @default(autoincrement())
+  id                Int                 @id @default(autoincrement())
   ownershipEntityId Int
-  ownershipEntity   OwnershipEntity @relation(fields: [ownershipEntityId], references: [id])
+  ownershipEntity   OwnershipEntity     @relation(fields: [ownershipEntityId], references: [id])
+  ownerId           String
+  address           String
+  city              String
+  state             String
+  zip               String
+  type              String // SFR, MF, Mixed-Use, Commercial
+  purchasePrice     Int
+  currentValue      Int?
+  acquisitionDate   DateTime?
+  cashflow          Float
+  value             Float
+  rentRoll          RentRoll[]
+  financials        PropertyFinancials?
+  ownerEquity       OwnerEquity?
 
-  address         String
-  city            String
-  state           String
-  zip             String
-  type            String // SFR, MF, Mixed-Use, Commercial
-  purchasePrice   Int
-  currentValue    Int?
-  acquisitionDate DateTime?
-
-  rentRoll    RentRoll[]
-  financials  PropertyFinancials?
-  ownerEquity OwnerEquity?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  owner       Owner                @relation(fields: [ownerId], references: [id])
+  tenants     Tenant[]
+  payments    Payment[]
+  maintenance MaintenanceRequest[]
 }
 
 model RentRoll {
@@ -3310,4 +3315,46 @@ model BorrowerDocument {
 
   borrower    Borrower     @relation(fields: [borrowerId], references: [id])
   application Application? @relation(fields: [applicationId], references: [id])
+}
+
+model Owner {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  fullName  String
+  createdAt DateTime @default(now())
+
+  properties Property[]
+}
+
+model Tenant {
+  id         String   @id @default(cuid())
+  propertyId Int
+  fullName   String
+  email      String
+  rentAmount Float
+  createdAt  DateTime @default(now())
+
+  property Property  @relation(fields: [propertyId], references: [id])
+  payments Payment[]
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  propertyId Int
+  tenantId   String
+  amount     Float
+  paidAt     DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+}
+
+model MaintenanceRequest {
+  id          String   @id @default(cuid())
+  propertyId  Int
+  description String
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id])
 }
