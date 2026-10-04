@@ -1,13 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
-import { DAL } from "@/lib/dal";
+﻿import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
 
-    const app = await DAL.Application.Basic.getById(id);
+    // Fetch full application with borrower + underwriting case
+    const app = await prisma.application.findUnique({
+      where: { id },
+      include: {
+        borrower: true,
+        underwritingCase: true,
+      },
+    });
 
-    return NextResponse.json({ success: true, data: app });
+    if (!app) {
+      return NextResponse.json(
+        { success: false, error: "Application not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: app,
+    });
   } catch (err) {
     console.error("Application API Error:", err);
 

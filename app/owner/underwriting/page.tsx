@@ -1,3 +1,8 @@
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
 import { getPrisma } from "@/lib/prisma";
 import Link from "next/link";
 

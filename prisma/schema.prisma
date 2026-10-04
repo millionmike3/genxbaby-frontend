@@ -87,10 +87,17 @@ model Borrower {
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  employer       String?
-  email          String                  @unique
-  fullName       String
+  // --- Core Identity Fields (required for 1003) ---
+  firstName      String
+  middleName     String?
+  lastName       String
+  fullName       String? // you already had this, keep it optional
+  ssn            String // encrypted at application layer
+  dob            DateTime
+  citizenship    String?
   phone          String?
+  email          String                  @unique
+  employer       String?
   userId         Int?                    @unique
   riskScore      BorrowerRiskScore?
   behaviorScore  BorrowerBehaviorScore?
@@ -105,16 +112,18 @@ model Borrower {
   BorrowerFinancialStability  BorrowerFinancialStability[]
   BorrowerFinancialDrift      BorrowerFinancialDrift[]
   BorrowerMacroRiskExposure   BorrowerMacroRiskExposure[]
-  MortgageAsset               MortgageAsset[]
-  borrowerProfiles            BorrowerProfile[]
-  borrowerEmployment          BorrowerEmployment[]
-  borrowerIncome              BorrowerIncome[]
-  borrowerAssets              BorrowerAssets[]
-  borrowerLiabilities         BorrowerLiabilities[]
-  borrowerProperty            BorrowerProperty[]
-  borrowerDeclarations        BorrowerDeclarations[]
-  borrowerDemographics        BorrowerDemographics[]
-  borrowerDocuments           BorrowerDocument[]
+
+  MortgageAsset MortgageAsset[]
+
+  borrowerProfiles     BorrowerProfile[]
+  borrowerEmployment   BorrowerEmployment[]
+  borrowerIncome       BorrowerIncome[]
+  borrowerAssets       BorrowerAssets[]
+  borrowerLiabilities  BorrowerLiabilities[]
+  borrowerProperty     BorrowerProperty[]
+  borrowerDeclarations BorrowerDeclarations[]
+  borrowerDemographics BorrowerDemographics[]
+  borrowerDocuments    BorrowerDocument[]
 }
 
 // ------------------------------------------------------------
@@ -294,18 +303,32 @@ model Application {
   borrowerId String?
   borrower   Borrower? @relation(fields: [borrowerId], references: [id])
 
+  // Core mortgage / loan fields (1003)
+  loanAmount      Int? // or Float? if you prefer
+  loanPurpose     String?
+  propertyAddress String?
+  propertyCity    String?
+  propertyState   String?
+  propertyZip     String?
+  propertyCounty  String?
+  units           Int?
+  occupancy       String?
+  propertyType    String?
+
+  // Existing fields
   employer           String?
   underwritingStatus String?
   noteRate           Float?
   liquidAssets       Int?
+  loanOfficerId      String?
+  loanOfficer        LoanOfficer? @relation(fields: [loanOfficerId], references: [id])
+  milestone          String       @default("Application Submitted")
+  status             String       @default("SUBMITTED") // changed from "draft" to match submit route
+  loanType           String?
+  behaviorScore      Float?
+  fraudScore         Float?
+  routingScore       Float?
 
-  status        String  @default("draft")
-  loanType      String?
-  behaviorScore Float?
-  fraudScore    Float?
-  routingScore  Float?
-
-  propertyAddress   String?
   purchasePrice     Int?
   incomeAnnual      Int?
   assetsLiquid      Int?
@@ -315,8 +338,10 @@ model Application {
   debtsMonthly  Int?
   pitiMonthly   Int?
   propertyValue Int?
-  loanAmount    Int?
   totalLiens    Int?
+
+  // Full 1003 payload for audit / replay
+  full1003Json Json?
 
   timelineEvents TimelineEvent[]
   timeline       Timeline[]
@@ -397,6 +422,10 @@ model Application {
   borrowerDemographics BorrowerDemographics[]
   underwriterDecisions UnderwriterDecision[]
   BorrowerDocument     BorrowerDocument[]
+  documentRequirements DocumentRequirement[]
+  pipelineOutput       UnderwritingPipelineOutput? @relation(fields: [underwritingPipelineOutputId], references: [id])
+
+  underwritingPipelineOutputId String?
 }
 
 // ------------------------------------------------------------
@@ -787,19 +816,26 @@ model UnderwritingCase {
   applicationId String      @unique
   application   Application @relation(fields: [applicationId], references: [id])
 
-  dti              Float?
-  ltv              Float?
-  cltv             Float?
-  reservesMonths   Float?
-  riskScore        Float?
-  fraudScore       Float?
+  dti            Float?
+  ltv            Float?
+  cltv           Float?
+  reservesMonths Float?
+  riskScore      Float?
+  fraudScore     Float?
+  routingScore   Float? // NEW
+
   investorDecision String?
   llpa             Float?
   finalRate        Float?
   reasons          Json?
   investorReasons  Json?
-  status           String
-  notes            String?
+
+  status String // PENDING, IN_REVIEW, APPROVED, REFER, DECLINED
+  notes  String?
+
+  ausFinding String? // Approve/Eligible, Refer/Eligible, Refer with Caution, Ineligible
+  decision   String? // APPROVE, REFER, DECLINE, COUNTER
+  conditions String? // JSON or text blob of conditions
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1121,16 +1157,22 @@ model UnderwritingScoreResult {
 }
 
 model UnderwritingPipelineOutput {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  applicationId String   @unique
+  docsRequired  Int      @default(0)
+  docsSatisfied Int      @default(0)
+  docsPercent   Float    @default(0)
+  milestone     String
 
   underwritingCaseId String?
   underwritingCase   UnderwritingCase? @relation(fields: [underwritingCaseId], references: [id])
 
-  steps      Json?
-  finalScore Float?
-  metadata   Json?
+  steps       Json?
+  finalScore  Float?
+  metadata    Json?
+  Application Application[]
 }
 
 model UnderwritingRiskFactors {
@@ -3311,6 +3353,7 @@ model BorrowerDocument {
   type          String
   fileUrl       String
   status        String   @default("uploaded")
+  notes         String?
   uploadedAt    DateTime @default(now())
 
   borrower    Borrower     @relation(fields: [borrowerId], references: [id])
@@ -3357,4 +3400,27 @@ model MaintenanceRequest {
   createdAt   DateTime @default(now())
 
   property Property @relation(fields: [propertyId], references: [id])
+}
+
+model DocumentRequirement {
+  id            String   @id @default(cuid())
+  applicationId String
+  type          String // id, paystub, w2, bank_statement, tax_return, etc.
+  label         String
+  required      Boolean
+  reason        String?
+  satisfied     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id])
+}
+
+model LoanOfficer {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  applications Application[]
 }
