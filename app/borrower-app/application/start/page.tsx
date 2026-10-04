@@ -1,180 +1,146 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-export default function MortgageApplication1003() {
+export default function LoanPropertyInfo() {
+  const router = useRouter();
   const [form, setForm] = useState<any>({});
 
+  useEffect(() => {
+    const saved = localStorage.getItem("1003");
+    if (saved) setForm(JSON.parse(saved));
+  }, []);
+
   function update(field: string, value: any) {
-    setForm((prev: any) => ({ ...prev, [field]: value }));
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+    localStorage.setItem("1003", JSON.stringify(updated));
   }
 
-  async function submitApplication() {
-    try {
-      const res = await fetch("/api/borrower-app/application/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const json = await res.json();
-      alert(json.success ? "Application submitted!" : "Submission failed");
-    } catch (err) {
-      console.error(err);
-      alert("Error submitting application");
-    }
+  function next() {
+    router.push("/borrower-app/application/borrower");
   }
 
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-12 space-y-12">
+    <main className="min-h-screen bg-black text-white p-8 space-y-10">
       <h1 className="text-3xl font-bold text-[#3CF46B]">
-        Uniform Residential Loan Application (1003)
+        Loan & Property Information
       </h1>
 
-      <p className="text-slate-300">
-        Complete your full mortgage application. No login required.
-      </p>
-
-      {/* Borrower Information */}
-      <Section title="Borrower Information">
-        <Input
-          label="Full Name"
-          onChange={(e) => update("fullName", e.target.value)}
-        />
-        <Input
-          label="Email Address"
-          type="email"
-          onChange={(e) => update("email", e.target.value)}
-        />
-        <Input
-          label="Phone Number"
-          type="tel"
-          onChange={(e) => update("phone", e.target.value)}
-        />
-        <Input
-          label="Date of Birth"
-          type="date"
-          onChange={(e) => update("dob", e.target.value)}
-        />
-        <Input
-          label="SSN"
-          type="text"
-          onChange={(e) => update("ssn", e.target.value)}
-        />
-      </Section>
-
-      {/* Employment */}
-      <Section title="Employment Information">
-        <Input
-          label="Employer Name"
-          onChange={(e) => update("employer", e.target.value)}
-        />
-        <Input
-          label="Job Title"
-          onChange={(e) => update("jobTitle", e.target.value)}
-        />
-        <Input
-          label="Monthly Income"
-          type="number"
-          onChange={(e) => update("incomeMonthly", e.target.value)}
-        />
-        <Input
-          label="Years at Job"
-          type="number"
-          onChange={(e) => update("yearsAtJob", e.target.value)}
-        />
-      </Section>
-
-      {/* Assets */}
-      <Section title="Assets">
-        <Input
-          label="Checking Account Balance"
-          type="number"
-          onChange={(e) => update("checkingBalance", e.target.value)}
-        />
-        <Input
-          label="Savings Account Balance"
-          type="number"
-          onChange={(e) => update("savingsBalance", e.target.value)}
-        />
-        <Input
-          label="Other Liquid Assets"
-          type="number"
-          onChange={(e) => update("assetsLiquid", e.target.value)}
-        />
-      </Section>
-
-      {/* Liabilities */}
-      <Section title="Liabilities">
-        <Input
-          label="Monthly Debt Payments"
-          type="number"
-          onChange={(e) => update("debtsMonthly", e.target.value)}
-        />
-        <Input
-          label="Credit Card Balances"
-          type="number"
-          onChange={(e) => update("creditBalances", e.target.value)}
-        />
-        <Input
-          label="Auto Loans"
-          type="number"
-          onChange={(e) => update("autoLoans", e.target.value)}
-        />
-      </Section>
-
-      {/* Property */}
-      <Section title="Property Information">
-        <Input
-          label="Property Address"
-          onChange={(e) => update("propertyAddress", e.target.value)}
-        />
-        <Input
-          label="City"
-          onChange={(e) => update("propertyCity", e.target.value)}
-        />
-        <Input
-          label="State"
-          onChange={(e) => update("propertyState", e.target.value)}
-        />
-        <Input
-          label="ZIP Code"
-          onChange={(e) => update("propertyZip", e.target.value)}
-        />
-        <Input
-          label="Purchase Price"
-          type="number"
-          onChange={(e) => update("purchasePrice", e.target.value)}
-        />
-        <Input
-          label="Loan Amount Requested"
-          type="number"
+      <Section title="Loan Details">
+        <Input label="Loan Amount Requested" type="number"
+          value={form.loanAmount || ""}
           onChange={(e) => update("loanAmount", e.target.value)}
         />
-      </Section>
 
-      {/* Declarations */}
-      <Section title="Declarations">
-        <Checkbox
-          label="I am a U.S. citizen"
-          onChange={(e) => update("isCitizen", e.target.checked)}
-        />
-        <Checkbox
-          label="I intend to occupy the property as my primary residence"
-          onChange={(e) => update("primaryResidence", e.target.checked)}
-        />
-        <Checkbox
-          label="I have not declared bankruptcy in the past 7 years"
-          onChange={(e) => update("noBankruptcy", e.target.checked)}
+        <Select label="Loan Purpose"
+          value={form.loanPurpose || ""}
+          options={["Purchase", "Refinance", "Other"]}
+          onChange={(e) => update("loanPurpose", e.target.value)}
         />
       </Section>
 
-      {/* Submit */}
+      <Section title="Property Details">
+        <Input label="Property Address"
+          value={form.propertyAddress || ""}
+          onChange={(e) => update("propertyAddress", e.target.value)}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Input label="City" value={form.propertyCity || ""}
+            onChange={(e) => update("propertyCity", e.target.value)}
+          />
+          <Input label="State" value={form.propertyState || ""}
+            onChange={(e) => update("propertyState", e.target.value)}
+          />
+          <Input label="ZIP" value={form.propertyZip || ""}
+            onChange={(e) => update("propertyZip", e.target.value)}
+          />
+        </div>
+
+        <Input label="County"
+          value={form.propertyCounty || ""}
+          onChange={(e) => update("propertyCounty", e.target.value)}
+        />
+
+        <Input label="Number of Units" type="number"
+          value={form.units || ""}
+          onChange={(e) => update("units", e.target.value)}
+        />
+
+        <Select label="Occupancy"
+          value={form.occupancy || ""}
+          options={[
+            "Primary Residence",
+            "Second Home",
+            "Investment Property",
+            "FHA Secondary Residence",
+          ]}
+          onChange={(e) => update("occupancy", e.target.value)}
+        />
+
+        <Select label="Property Type"
+          value={form.propertyType || ""}
+          options={[
+            "Single Family",
+            "Condo",
+            "Townhouse",
+            "2-4 Unit",
+            "Manufactured Home",
+            "Mixed Use",
+          ]}
+          onChange={(e) => update("propertyType", e.target.value)}
+        />
+      </Section>
+
+      {/* Refinance Section */}
+      {form.loanPurpose === "Refinance" && (
+        <Section title="Refinance Details">
+          <Input label="Current Property Value" type="number"
+            value={form.refiPropertyValue || ""}
+            onChange={(e) => update("refiPropertyValue", e.target.value)}
+          />
+
+          <Select label="Property Status"
+            value={form.refiStatus || ""}
+            options={["Retained", "Pending Sale", "Sold"]}
+            onChange={(e) => update("refiStatus", e.target.value)}
+          />
+
+          <Input label="Monthly Mortgage Payment" type="number"
+            value={form.refiMonthlyPayment || ""}
+            onChange={(e) => update("refiMonthlyPayment", e.target.value)}
+          />
+
+          <Input label="Unpaid Principal Balance" type="number"
+            value={form.refiUnpaidBalance || ""}
+            onChange={(e) => update("refiUnpaidBalance", e.target.value)}
+          />
+
+          <Checkbox label="Loan will be paid off at closing"
+            checked={form.refiPayoffAtClosing || false}
+            onChange={(e) => update("refiPayoffAtClosing", e.target.checked)}
+          />
+
+          <Select label="Loan Type"
+            value={form.refiLoanType || ""}
+            options={["FHA", "VA", "Conventional", "USDA-RD", "Other"]}
+            onChange={(e) => update("refiLoanType", e.target.value)}
+          />
+
+          <Input label="Credit Limit (if HELOC)" type="number"
+            value={form.refiCreditLimit || ""}
+            onChange={(e) => update("refiCreditLimit", e.target.value)}
+          />
+        </Section>
+      )}
+
       <button
-        onClick={submitApplication}
+        onClick={next}
         className="bg-[#3CF46B] text-black px-6 py-3 rounded-lg font-semibold"
       >
-        Submit Application
+        Next: Borrower Information
       </button>
     </main>
   );
@@ -191,12 +157,13 @@ function Section({ title, children }: any) {
   );
 }
 
-function Input({ label, type = "text", onChange }: any) {
+function Input({ label, type = "text", value, onChange }: any) {
   return (
     <div className="space-y-2">
       <label className="text-slate-300">{label}</label>
       <input
         type={type}
+        value={value}
         className="w-full p-3 rounded bg-neutral-800 border border-neutral-700"
         onChange={onChange}
       />
@@ -204,10 +171,28 @@ function Input({ label, type = "text", onChange }: any) {
   );
 }
 
-function Checkbox({ label, onChange }: any) {
+function Select({ label, options, value, onChange }: any) {
+  return (
+    <div className="space-y-2">
+      <label className="text-slate-300">{label}</label>
+      <select
+        value={value}
+        className="w-full p-3 rounded bg-neutral-800 border border-neutral-700"
+        onChange={onChange}
+      >
+        <option value="">Select…</option>
+        {options.map((o: string) => (
+          <option key={o} value={o}>{o}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function Checkbox({ label, checked, onChange }: any) {
   return (
     <label className="flex items-center gap-3 text-slate-300">
-      <input type="checkbox" onChange={onChange} />
+      <input type="checkbox" checked={checked} onChange={onChange} />
       {label}
     </label>
   );
