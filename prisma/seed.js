@@ -4,48 +4,36 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  // ---------------------------------------------
-  // 1. Existing Bank / Signer / Check seed
-  // ---------------------------------------------
-  const bank = await prisma.bankProfile.create({
-    data: {
-      bankName: "Test Bank",
-      routingNumber: "123456789",
-      accountNumber: "987654321",
-      accountType: "checking",
-      signerName: "John Doe",
-    },
-  });
-
-  const signer = await prisma.signer.create({
-    data: {
-      name: "John Doe",
-      bankProfileId: bank.id,
-    },
-  });
-
-  await prisma.check.create({
-    data: {
-      checkNumber: "1001",
-      amount: 500,
-      memo: "Seed Check",
-      payee: "Seed Vendor",
-      status: "PENDING",
-      bankProfileId: bank.id,
-      signerId: signer.id,
-    },
-  });
+  console.log("Starting GenXBaby seed…");
 
   // ---------------------------------------------
-  // 2. Seed Users (10 borrowers, 10 investors, 10 owners)
+  // 1. Shared Password
   // ---------------------------------------------
   const SEED_PASSWORD = "GenXBaby!2026";
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
 
-  const borrowerUsers = [];
-  const investorUsers = [];
-  const ownerUsers = [];
+  // ---------------------------------------------
+  // 2. Admins (2)
+  // ---------------------------------------------
+  const adminUsers = [];
+  for (let i = 1; i <= 2; i++) {
+    const admin = await prisma.user.upsert({
+      where: { email: `admin${i}@genxbaby.com` },
+      update: {},
+      create: {
+        email: `admin${i}@genxbaby.com`,
+        username: `admin${i}`,
+        role: "admin",
+        passwordHash,
+      },
+    });
+    adminUsers.push(admin);
+  }
 
+  // ---------------------------------------------
+  // 3. Borrowers (10)
+  // ---------------------------------------------
+  const borrowerUsers = [];
   for (let i = 1; i <= 10; i++) {
     const borrower = await prisma.user.upsert({
       where: { email: `borrower${i}@genxbaby.com` },
@@ -60,6 +48,10 @@ async function main() {
     borrowerUsers.push(borrower);
   }
 
+  // ---------------------------------------------
+  // 4. Investors (10)
+  // ---------------------------------------------
+  const investorUsers = [];
   for (let i = 1; i <= 10; i++) {
     const investor = await prisma.user.upsert({
       where: { email: `investor${i}@genxbaby.com` },
@@ -74,6 +66,10 @@ async function main() {
     investorUsers.push(investor);
   }
 
+  // ---------------------------------------------
+  // 5. Owners (10)
+  // ---------------------------------------------
+  const ownerUsers = [];
   for (let i = 1; i <= 10; i++) {
     const owner = await prisma.user.upsert({
       where: { email: `owner${i}@genxbaby.com` },
@@ -89,7 +85,7 @@ async function main() {
   }
 
   // ---------------------------------------------
-  // 3. Borrowers + Applications + Underwriting + Fraud + Documents
+  // 6. Borrower → Application → Underwriting → Fraud → Documents
   // ---------------------------------------------
   const loanTypes = ["Conventional", "FHA", "Non-QM", "Hard Money"];
 
@@ -153,7 +149,6 @@ async function main() {
     const prop = sampleProperties[i % sampleProperties.length];
     const loanType = loanTypes[i % loanTypes.length];
 
-    // Borrower record linked to User
     const borrower = await prisma.borrower.create({
       data: {
         employer: "GenXBaby Borrower Employer",
@@ -164,8 +159,7 @@ async function main() {
       },
     });
 
-    const dti =
-      (prop.debtsMonthly + prop.pitiMonthly) / prop.incomeMonthly;
+    const dti = (prop.debtsMonthly + prop.pitiMonthly) / prop.incomeMonthly;
     const ltv = prop.loanAmount / prop.propertyValue;
     const cltv = prop.totalLiens / prop.propertyValue;
 
@@ -212,15 +206,8 @@ async function main() {
         investorDecision: ltv < 0.85 && dti < 0.45 ? "approve" : "review",
         llpa: ltv > 0.8 ? 1.25 : 0.75,
         finalRate: prop.noteRate + (fraudScore > 0.15 ? 0.5 : 0.0),
-        reasons: {
-          dti,
-          ltv,
-          cltv,
-          reservesMonths: 6,
-        },
-        investorReasons: {
-          band: ltv < 0.8 ? "prime" : "near-prime",
-        },
+        reasons: { dti, ltv, cltv, reservesMonths: 6 },
+        investorReasons: { band: ltv < 0.8 ? "prime" : "near-prime" },
         status: "in_review",
         notes: "Seed underwriting case for simulation.",
       },
@@ -235,115 +222,24 @@ async function main() {
           deviceConsistency: "stable",
           docAnomalies: "none",
         },
-        metadata: {
-          seed: true,
-          environment: "dev",
-        },
+        metadata: { seed: true },
       },
     });
 
-    await prisma.fraudEvent.create({
-      data: {
-        userId: user.id,
-        applicationId: app.id,
-        anchorTxHash: `seed-tx-${user.id}`,
-        eventType: "identity_check",
-        signal: {
-          idMatch: true,
-          addressMatch: true,
-          phoneMatch: true,
-        },
-        payload: {
-          source: "KYC provider",
-          confidence: 0.97,
-        },
-        metadata: {
-          seed: true,
-        },
-      },
-    });
-
-    await prisma.fraudSignal.create({
-      data: {
-        userId: user.id,
-        signalType: "low_risk",
-        strength: 0.1,
-        metadata: {
-          seed: true,
-          reason: "clean history, stable behavior",
-        },
-      },
-    });
-
-    // Documents for the application
-    const idDoc = await prisma.document.create({
+    await prisma.document.create({
       data: {
         applicationId: app.id,
         type: "id_verification",
         url: "https://example.com/docs/borrower-id.pdf",
         fraudScore: 0.02,
-        fraudSignals: {
-          mismatch: false,
-        },
+        fraudSignals: { mismatch: false },
         embedColor: "#22c55e",
-      },
-    });
-
-    const bankStmtDoc = await prisma.document.create({
-      data: {
-        applicationId: app.id,
-        type: "bank_statement",
-        url: "https://example.com/docs/bank-statement.pdf",
-        fraudScore: 0.05,
-        fraudSignals: {
-          unusualActivity: false,
-        },
-        embedColor: "#3b82f6",
-      },
-    });
-
-    await prisma.documentClassification.create({
-      data: {
-        documentId: idDoc.id,
-        category: "ID",
-        confidence: 0.99,
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.documentOcrExtraction.create({
-      data: {
-        documentId: bankStmtDoc.id,
-        text: "Sample bank statement OCR text",
-        fields: {
-          accountNumber: "987654321",
-          balance: 85000,
-        },
-        confidence: 0.96,
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.documentEmbedding.create({
-      data: {
-        documentId: bankStmtDoc.id,
-        vector: { dim: 768, values: "seed-vector-placeholder" },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.documentRiskSignal.create({
-      data: {
-        documentId: bankStmtDoc.id,
-        signalType: "low_risk",
-        strength: 0.08,
-        metadata: { seed: true },
       },
     });
   }
 
   // ---------------------------------------------
-  // 4. Investors + Scoring + Liquidity + Positions
+  // 7. Investors → Portfolio → Scores
   // ---------------------------------------------
   for (let i = 0; i < investorUsers.length; i++) {
     const user = investorUsers[i];
@@ -358,113 +254,6 @@ async function main() {
       },
     });
 
-    await prisma.investorRiskScore.create({
-      data: {
-        investorId: investor.id,
-        score: 0.65 + (Math.random() - 0.5) * 0.2,
-        factors: {
-          volatility: "moderate",
-          diversification: "medium",
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorBehaviorScore.create({
-      data: {
-        investorId: investor.id,
-        behaviorScore: 0.7 + (Math.random() - 0.5) * 0.2,
-        patterns: {
-          rebalancingFrequency: "quarterly",
-          riskAppetite: "balanced",
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorLiquidityScore.create({
-      data: {
-        investorId: investor.id,
-        liquidityScore: 0.8 + (Math.random() - 0.5) * 0.1,
-        metrics: {
-          cashOnHand: 250000 + Math.floor(Math.random() * 250000),
-          creditLines: 500000,
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorLiquidity.create({
-      data: {
-        investorId: investor.id,
-        liquidityScore: 0.8,
-        factors: {
-          cash: "strong",
-          accessToCapital: "high",
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorPerformanceSnapshot.create({
-      data: {
-        investorId: investor.id,
-        metrics: {
-          irr: 0.11 + (Math.random() - 0.5) * 0.02,
-          realizedYield: 0.09,
-          unrealizedGain: 0.04,
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorRiskBandHistory.create({
-      data: {
-        investorId: investor.id,
-        band: "medium",
-        timestamp: new Date(),
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorCapitalFlow.create({
-      data: {
-        investorId: investor.id,
-        flowAmount: 250000 + Math.floor(Math.random() * 250000),
-        flowType: "inflow",
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorAllocationDynamics.create({
-      data: {
-        investorId: investor.id,
-        allocation: {
-          conventional: 0.4,
-          fha: 0.2,
-          nonqm: 0.25,
-          hardMoney: 0.15,
-        },
-        dynamics: {
-          shiftTowardNonQM: true,
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    await prisma.investorDiversificationAnalytics.create({
-      data: {
-        investorId: investor.id,
-        diversificationScore: 0.78,
-        factors: {
-          geographySpread: "tri-state",
-          productMix: "multi-program",
-        },
-        metadata: { seed: true },
-      },
-    });
-
-    // Positions tied to investor user (Position.investorId -> User.id)
     await prisma.position.create({
       data: {
         investorId: user.id,
@@ -473,20 +262,9 @@ async function main() {
         yield: "7.25%",
       },
     });
-
-    await prisma.position.create({
-      data: {
-        investorId: user.id,
-        note: "Non-QM DSCR loan",
-        amount: 400000,
-        yield: "9.50%",
-      },
-    });
   }
 
-  console.log(
-    "Seed complete: Bank, Signer, Check, 10 Borrowers + Applications + Underwriting + Fraud + Documents, 10 Investors + Scoring + Positions, 10 Owners (users only)."
-  );
+  console.log("Seed complete.");
 }
 
 main()
