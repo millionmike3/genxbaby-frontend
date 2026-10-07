@@ -1,6 +1,6 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const backendUrl = process.env.BACKEND_URL;
@@ -19,6 +19,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
 
   } catch (err) {
     console.error("FRONTEND BANK PROFILE CREATE ERROR:", err);
-    return NextResponse.json({ error: "Failed to create bank profile" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create bank profile" },
+      { status: 500 }
+    );
   }
 }

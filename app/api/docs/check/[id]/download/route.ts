@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
-    const { id } = await params;
+    const { id } = params;
 
     const { prisma } = await import("@/lib/prisma");
 

@@ -1,7 +1,7 @@
 import { NextRequest,  NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     // ---------------------------------------------
     // 1. Extract session cookie

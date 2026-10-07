@@ -3,10 +3,10 @@ import { getPrisma } from "@/lib/db/prisma";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
-    const { id: leadId } = await params;
+    const { id: leadId } = params;
     const body = await request.json();
 
     if (!body || typeof body !== "object") {

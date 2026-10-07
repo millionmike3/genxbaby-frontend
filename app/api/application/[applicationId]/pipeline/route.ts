@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DAL } from "@/lib/dal";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const { id } = context.params;
 

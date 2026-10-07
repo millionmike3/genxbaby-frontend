@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { saveLeadEvent } from "@/lib/db/events";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const body = await request.json();
 

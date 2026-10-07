@@ -4,7 +4,7 @@ import { logAudit } from "@/lib/logAudit";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
     // ---------------------------------------------

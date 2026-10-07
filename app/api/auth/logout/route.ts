@@ -1,6 +1,6 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest) {
   try {
     const backendUrl = process.env.BACKEND_URL;
 

@@ -5,7 +5,7 @@ import { jwtVerify } from "jose";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
     // ---------------------------------------------

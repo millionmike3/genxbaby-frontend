@@ -2,11 +2,13 @@
 const nextConfig = {
   typedRoutes: false,
 
-  // ⬇️ This is the critical part
   typescript: {
     ignoreBuildErrors: true,
   },
 
+  experimental: {
+    serverActions: true,
+  },
 };
 
 module.exports = nextConfig;

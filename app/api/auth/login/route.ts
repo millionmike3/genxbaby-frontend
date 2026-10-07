@@ -1,23 +1,40 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  try {
-    const body = await request.json();
-    const backendUrl = process.env.BACKEND_URL;
+export async function POST(req: Request) {
+  const body = await req.json();
 
-    const response = await fetch(`${backendUrl}/api/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+  // Call your backend login endpoint
+  const response = await fetch(`${process.env.BACKEND_URL}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
+
+  // If backend returns an error, forward it
+  if (!response.ok) {
     return NextResponse.json(data, { status: response.status });
-
-  } catch (err) {
-    console.error("FRONTEND LOGIN ERROR:", err);
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }
+
+  // Backend returns:
+  // { token, cookieName, role, roles }
+  const { token, cookieName, role, roles } = data;
+
+  // Prepare frontend response
+  const res = NextResponse.json({
+    success: true,
+    role,
+    roles,
+  });
+
+  // Set the correct cookie based on backend cookieName
+  res.cookies.set(cookieName, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return res;
 }

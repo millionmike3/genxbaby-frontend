@@ -5,7 +5,7 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
 
     const backendUrl = process.env.BACKEND_URL;
 

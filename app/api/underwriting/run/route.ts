@@ -5,7 +5,7 @@ import { ScoringDAL } from "@/lib/dal/scoring";
 import { FraudDAL } from "@/lib/dal/fraud";
 import { runUnderwriting } from "@/lib/engines/underwriting";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   const { applicationId } = await request.json();
 
   const app = await ApplicationDAL.getById(applicationId);

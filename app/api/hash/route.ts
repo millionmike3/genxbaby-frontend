@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import crypto from "crypto";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const body = await request.json();
 

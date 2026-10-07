@@ -2,7 +2,7 @@ console.log("LOADING CHECK CREATE ROUTE");
 
 import { NextRequest,  NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   console.log("POST /api/checks/create HIT");
 
   try {

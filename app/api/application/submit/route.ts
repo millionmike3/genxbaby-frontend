@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
     // Load Prisma at runtime (server-only)

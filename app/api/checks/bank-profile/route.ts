@@ -1,6 +1,6 @@
 import { NextRequest,  NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const url = new URL(request.url);
     const bankProfileId = url.searchParams.get("id");

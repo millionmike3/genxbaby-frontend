@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-
 // Replace with your DB logic
 async function getFilteredLeads(filters: any) {
-  // Example placeholder
   return [];
 }
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Record<string, string> }
+) {
   const { searchParams } = new URL(request.url);
 
   const filters = {
@@ -22,7 +23,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<Re
   return NextResponse.json(leads);
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Record<string, string> }
+) {
   return NextResponse.json({
     error: "Use /api/leads/import for CSV uploads",
   });

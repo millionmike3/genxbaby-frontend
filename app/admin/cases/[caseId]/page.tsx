@@ -5,10 +5,9 @@ import { getPrisma } from "@/lib/prisma";
 export default async function UnderwritingCaseDetailPage({
   params,
 }: {
-  params: Promise<{ caseId: string }>;
+  params: { caseId: string };
 }) {
-  // Next.js 16: params is a Promise
-  const { caseId } = await params;
+  const { caseId } = params;
 
   const prisma = await getPrisma();
 

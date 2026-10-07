@@ -16,7 +16,7 @@ interface EnvironmentInput {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   const body = (await request.json()) as EnvironmentInput;
 

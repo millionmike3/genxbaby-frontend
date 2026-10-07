@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { InvestorAnalyticsDAL } from "@/lib/dal/investorAnalytics";
 import { computeInvestorAnalytics } from "@/lib/engines/investorAnalytics";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
 
     const portfolio = await InvestorAnalyticsDAL.getPortfolio(id);
     const analytics = computeInvestorAnalytics(portfolio);

@@ -1,7 +1,7 @@
 import { NextRequest,  NextResponse } from "next/server";
 import { createSession } from "@/lib/session";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const { email, password } = await request.json();
 

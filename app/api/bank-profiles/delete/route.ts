@@ -1,6 +1,6 @@
-import { NextRequest,  NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest) {
   try {
     const form = await request.formData();
     const id = form.get("id") as string;
@@ -12,14 +12,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<R
       );
     }
 
-    // ---------------------------------------------
-    // Proxy delete request to backend
-    // ---------------------------------------------
     const backendUrl = process.env.BACKEND_URL;
 
     const response = await fetch(`${backendUrl}/api/bank-profiles/delete`, {
       method: "POST",
-      body: form, // send formData directly
+      body: form,
     });
 
     const data = await response.json();

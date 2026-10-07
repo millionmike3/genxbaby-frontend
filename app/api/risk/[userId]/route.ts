@@ -1,8 +1,8 @@
 import { NextRequest,  NextResponse } from "next/server";
 import { ScoringDAL } from "@/lib/dal/scoring";
 
-export async function GET(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
-  const { userId } = await params;
+export async function GET(request: NextRequest, { params }: { params: Record<string, string> }) {
+  const { userId } = params;
 
   if (!userId || typeof userId !== "string") {
     return NextResponse.json({ error: "Invalid userId" }, { status: 400 });

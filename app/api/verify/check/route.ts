@@ -3,7 +3,7 @@ import { getPrisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
     const { searchParams } = new URL(request.url);

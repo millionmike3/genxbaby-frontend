@@ -9,9 +9,9 @@ async function logContactAttempt(
   return;
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
-    const { id: leadId } = await context.params;
+    const { id: leadId } = params;
     const body = await request.json();
 
     const attempt: LeadContactAttempt = {

@@ -2,7 +2,7 @@ import { NextRequest,  NextResponse } from "next/server";
 import { BehaviorDAL } from "@/lib/dal/behavior";
 import { DocumentDAL } from "@/lib/dal/document";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   const { applicationId } = await request.json();
 
   const profile = await BehaviorDAL.getProfile(applicationId);

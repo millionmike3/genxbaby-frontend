@@ -3,9 +3,9 @@ import { getPrisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
-  const { bankProfileID } = await params;
+  const { bankProfileID } = params;
 
   const prisma = await getPrisma();
 

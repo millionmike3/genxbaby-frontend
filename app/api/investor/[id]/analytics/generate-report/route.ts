@@ -3,9 +3,9 @@ import { InvestorAnalyticsDAL } from "@/lib/dal/investorAnalytics";
 import { computeInvestorAnalytics } from "@/lib/engines/investorAnalytics";
 import { DocumentDAL } from "@/lib/dal/document";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
-    const { id } = await context.params;
+    const { id } = params;
 
     const portfolio = await InvestorAnalyticsDAL.getPortfolio(id);
     const analytics = computeInvestorAnalytics(portfolio);

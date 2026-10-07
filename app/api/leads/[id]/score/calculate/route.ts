@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: leadId } = await params;
+    const { id: leadId } = params;
     const body = await request.json();
 
     if (!body || typeof body !== "object") {

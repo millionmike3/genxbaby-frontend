@@ -3,7 +3,7 @@ import { getFraudForApplication } from "@/lib/dal/fraud";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id } = params;
     const events = await getFraudForApplication(id);
 
     return NextResponse.json({ success: true, data: events });

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 // ---------------------------------------------
 // RATE LIMITING CONFIG
@@ -31,7 +32,7 @@ function rateLimit(key: string) {
 }
 
 // ---------------------------------------------
-// LOGIN ROUTE (FRONTEND PROXY)
+// ADMIN LOGIN ROUTE (DIRECT AUTH)
 // ---------------------------------------------
 export async function POST(request: NextRequest) {
   try {
@@ -60,45 +61,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ---------------------------------------------
-    // 1. Proxy login request to backend
-    // ---------------------------------------------
-    const backendUrl = process.env.BACKEND_URL;
+    // Load Prisma dynamically (Turbopack-safe)
+    const { prisma } = await import("@/lib/prisma");
 
-    const response = await fetch(`${backendUrl}/api/admin/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
+    // Find admin user
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+    if (!user || user.role !== "admin") {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
-    // Backend returns: { success, token }
-    const token = data.token;
+    // Validate password (bcrypt)
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
 
-    // ---------------------------------------------
-    // 2. Set admin session cookie
-    // ---------------------------------------------
+    // Create JWT
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: "admin",
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    // Response
     const res = NextResponse.json({ success: true });
 
-    res.cookies.set({
-      name: "admin_session",
-      value: token,
+    // Set secure cookie
+    res.cookies.set("admin_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      path: "/",
       sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
     return res;
   } catch (err) {
-    console.error("FRONTEND ADMIN LOGIN ERROR:", err);
+    console.error("Admin Login Error:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

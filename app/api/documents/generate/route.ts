@@ -1,7 +1,7 @@
 import { NextRequest,  NextResponse } from "next/server";
 import { DocumentDAL } from "@/lib/dal/document";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   const body = await request.json();
 
   // Generate document content (PDF, HTML, text, etc.)

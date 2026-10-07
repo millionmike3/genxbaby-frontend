@@ -16,7 +16,7 @@ function buildMerkleRoot(leaves: string[]) {
 
     for (let i = 0; i < level.length; i += 2) {
       const left = level[i];
-      const right = level[i + 1] ?? left; // duplicate last if odd count
+      const right = level[i + 1] ?? left;
       next.push(keccak256(stringToBytes(left + right)));
     }
 
@@ -25,14 +25,14 @@ function buildMerkleRoot(leaves: string[]) {
 
   return level[0];
 }
+
 export const dynamic = "force-dynamic";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<Record<string, string>> }
+  { params }: { params: Record<string, string> }
 ) {
   try {
-    // Load Prisma at runtime (server-only)
     const { prisma } = await import("@/lib/prisma");
 
     // 1. Load audit logs

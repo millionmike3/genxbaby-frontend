@@ -5,7 +5,7 @@ function calculateLeadScore(data: any): number {
   return Math.floor(Math.random() * 100);
 }
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     const body = await request.json();
 

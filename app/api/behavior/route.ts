@@ -12,7 +12,7 @@ import {
   normalizeInput,
 } from "@/lib/scoring";
 
-export async function POST(request: NextRequest, { params }: { params: Promise<Record<string, string>> }) {
+export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
   try {
     // Authenticate user
     const session = await auth();

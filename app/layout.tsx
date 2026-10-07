@@ -9,7 +9,6 @@ export const metadata = {
   title: "GenXBaby",
   description: "Fintech OS for Borrowers, Investors, Owners, and Admins.",
   icons: {
-    // Light + Dark mode favicons
     icon: [
       {
         rel: "icon",
@@ -21,21 +20,15 @@ export const metadata = {
         url: "/favicon-dark.svg",
         media: "(prefers-color-scheme: dark)",
       },
-
-      // Cache‑busted primary favicon.ico
       {
         rel: "icon",
         url: "/favicon.ico?v=5",
       },
     ],
 
-    // iOS home screen icon
     apple: "/apple-touch-icon.png",
-
-    // Browser quick icon
     shortcut: "/favicon.ico?v=5",
 
-    // Animated favicon
     other: [
       {
         rel: "icon",
