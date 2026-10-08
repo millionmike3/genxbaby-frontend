@@ -31,8 +31,8 @@ export async function POST(req: Request) {
   // Set the correct cookie based on backend cookieName
   res.cookies.set(cookieName, token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: false,
+    sameSite: "lax",
     path: "/",
   });
 

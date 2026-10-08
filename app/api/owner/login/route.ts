@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     res.cookies.set("owner_token", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "strict",
       path: "/",
     });

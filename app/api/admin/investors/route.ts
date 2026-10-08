@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        name: true,
+        passwordHash: true,
         email: true,
         phone: true,
         investorPotentialScore: true,
