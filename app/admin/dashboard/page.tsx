@@ -11,7 +11,7 @@ export default async function AdminDashboardPage() {
 
   // Validate session
   const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("admin_token")?.value;
   const session = await getSession(token);
 
   if (!session) throw new Error("Not authenticated");
