@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { getServerSession } from "next-auth";
-import { getSession } from "@/lib/session";
 
 // Optional NextAuth session (if you use it anywhere)
 export async function auth() {
@@ -13,7 +12,7 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "dev-secret"
 );
 
-// Read user from auth_token cookie (legacy system)
+// Legacy — still safe to keep if old routes use it
 export async function getUserFromCookie() {
   const cookieStore = cookies();
   const token = cookieStore.get("auth_token")?.value;
@@ -29,7 +28,7 @@ export async function getUserFromCookie() {
   }
 }
 
-// Admin-only guard (legacy)
+// Legacy admin guard — safe to keep for old pages
 export async function requireAdmin() {
   const user = await getUserFromCookie();
 
@@ -40,19 +39,18 @@ export async function requireAdmin() {
   return user;
 }
 
-// NEW — Universal role guard for borrower, investor, owner, admin
+// NEW — Correct universal role guard for admin
 export async function requireRole(roles: string[]) {
-  const cookieStore = await cookies();   // <-- FIX
-  const token = cookieStore.get("session")?.value;
+  const token = cookies().get("admin_token")?.value;
+  if (!token) throw new Error("Unauthorized");
 
-  const session = await getSession(token);
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-  if (!session) throw new Error("Not authenticated");
+  const { payload } = await jwtVerify(token, secret);
 
-  if (!roles.includes(session.role)) {
-    throw new Error(`Unauthorized: ${roles.join(", ")} role required`);
+  if (!roles.includes(payload.role)) {
+    throw new Error("Unauthorized");
   }
 
-  return session;
+  return payload;
 }
-

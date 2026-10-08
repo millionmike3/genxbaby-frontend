@@ -1,7 +1,8 @@
-import { NextRequest,  NextResponse } from "next/server";
-import { createSession } from "@/lib/session";
+import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-export async function POST(request: NextRequest, { params }: { params: Record<string, string> }) {
+export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
@@ -12,31 +13,45 @@ export async function POST(request: NextRequest, { params }: { params: Record<st
       );
     }
 
-    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    // Load Prisma dynamically (Turbopack-safe)
+    const { prisma } = await import("@/lib/prisma");
 
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      return NextResponse.json(
-        { error: "Server misconfigured: missing admin credentials" },
-        { status: 500 }
-      );
-    }
+    // Find admin user in DB
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+    if (!user || user.role !== "admin") {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    // Create JWT session token
-    const token = await createSession("admin-1", "admin");
+    // Validate password using bcrypt
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
 
-    // Create response FIRST
+    // Create JWT for admin session
+    const token = jwt.sign(
+      {
+        id: user.id,
+        role: "admin",
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    // Build response
     const res = NextResponse.json({ success: true });
 
-    // Write cookie using response.cookies.set()
-    res.cookies.set("session", token, {
+    // Set correct admin cookie
+    res.cookies.set("admin_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
