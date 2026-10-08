@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     const res = NextResponse.json({ success: true });
 
     res.cookies.set({
-      name: "admin_session",
+      name: "admin_token",
       value: data.token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
