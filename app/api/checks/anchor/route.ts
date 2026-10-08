@@ -6,7 +6,8 @@ export async function POST(request: NextRequest, { params }: { params: Record<st
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = (request as any).cookies.get("admin_session")?.value;
+   const cookie = request.cookies.get("admin_token")?.value;
+
 
     if (!cookie) {
       return NextResponse.json(

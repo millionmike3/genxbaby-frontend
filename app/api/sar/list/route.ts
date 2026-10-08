@@ -10,7 +10,8 @@ export async function GET(
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = request.cookies.get("admin_session")?.value;
+    const cookie = request.cookies.get("admin_token")?.value;
+
 
     if (!cookie) {
       return NextResponse.json(

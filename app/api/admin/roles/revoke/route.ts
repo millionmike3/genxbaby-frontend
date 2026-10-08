@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 export async function POST(request: NextRequest) {
   try {
     // 1. Extract session cookie
-    const cookie = (request as any).cookies.get("admin_session")?.value;
+   const cookie = request.cookies.get("admin_token")?.value;
     if (!cookie) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -6,7 +6,8 @@ import { getSession } from "@/lib/session";
 export async function POST(req: Request) {
   // Extract session token from cookies
   const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("admin_token")?.value;
+
 
   const session = await getSession(token);
   if (!session) {
