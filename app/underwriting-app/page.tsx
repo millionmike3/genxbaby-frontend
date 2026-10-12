@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import BehavioralPanel from "./components/BehavioralPanel";
 
 type UWApplication = {
   id: string;
@@ -10,38 +11,61 @@ type UWApplication = {
   fraudScore?: number;
   behaviorScore?: number;
   persona?: string;
+  userId?: string;
 };
 
 export default function UnderwriterAppHome() {
   const [pipeline, setPipeline] = useState<UWApplication[]>([]);
   const [selected, setSelected] = useState<UWApplication | null>(null);
 
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("gx_token") : null;
+
+  // Load pipeline from gateway
   useEffect(() => {
-    // TODO: Replace with real API: /api/uw/applications
-    (async () => {
-      const mock: UWApplication[] = [
-        {
-          id: "UW-APP-001",
-          borrowerName: "Marcus Hill",
-          amount: 510000,
-          status: "UW Review",
-          fraudScore: 0.22,
-          behaviorScore: 0.71,
-          persona: "Strategist",
-        },
-        {
-          id: "UW-APP-002",
-          borrowerName: "Alicia Gomez",
-          amount: 285000,
-          status: "Conditions",
-          fraudScore: 0.09,
-          behaviorScore: 0.44,
-          persona: "Planner",
-        },
-      ];
-      setPipeline(mock);
-      setSelected(mock[0]);
-    })();
+    async function loadPipeline() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_GATEWAY_URL}/underwriting/pipeline`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ).then((r) => r.json());
+
+        if (Array.isArray(res) && res.length > 0) {
+          setPipeline(res);
+          setSelected(res[0]);
+        } else {
+          // fallback mock
+          const mock: UWApplication[] = [
+            {
+              id: "UW-APP-001",
+              borrowerName: "Marcus Hill",
+              amount: 510000,
+              status: "UW Review",
+              fraudScore: 0.22,
+              behaviorScore: 0.71,
+              persona: "Strategist",
+              userId: "USER-001",
+            },
+            {
+              id: "UW-APP-002",
+              borrowerName: "Alicia Gomez",
+              amount: 285000,
+              status: "Conditions",
+              fraudScore: 0.09,
+              behaviorScore: 0.44,
+              persona: "Planner",
+              userId: "USER-002",
+            },
+          ];
+          setPipeline(mock);
+          setSelected(mock[0]);
+        }
+      } catch (err) {
+        console.error("Pipeline load error:", err);
+      }
+    }
+
+    loadPipeline();
   }, []);
 
   return (
@@ -106,6 +130,11 @@ export default function UnderwriterAppHome() {
               </p>
             )}
           </div>
+
+          {/* ⭐ Behavioral Intelligence Panel */}
+          {selected?.userId && (
+            <BehavioralPanel userId={selected.userId} />
+          )}
 
           {/* Fraud / Behavior / Persona */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

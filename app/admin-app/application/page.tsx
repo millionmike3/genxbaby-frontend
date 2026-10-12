@@ -44,81 +44,88 @@ export default function AdminApplicationPage() {
   const [newNote, setNewNote] = useState("");
 
   useEffect(() => {
-    // TODO: Replace with real API calls
-    (async () => {
-      const mockApps: Application[] = [
-        {
-          id: "APP-ADM-001",
-          borrowerName: "Sarah Johnson",
-          amount: 420000,
-          status: "UW Review",
-          fraudScore: 0.18,
-          behaviorScore: 0.62,
-          persona: "Planner",
-        },
-      ];
-      setApplications(mockApps);
-      setSelected(mockApps[0]);
+    const token = localStorage.getItem("gx_token");
 
-      const mockNotes: Note[] = [
+    async function load() {
+      // 1. Load applications
+      const apps = await fetch(
+        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/admin/applications`,
         {
-          id: "NOTE-1",
-          author: "Admin Turner",
-          role: "admin",
-          text: "Requested UW to re-evaluate fraud score.",
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      setNotes(mockNotes);
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).then((r) => r.json());
 
-      const mockDocs: Document[] = [
-        {
-          id: "DOC-1",
-          type: "Income",
-          url: "#",
-          status: "Verified",
-        },
-        {
-          id: "DOC-2",
-          type: "Credit",
-          url: "#",
-          status: "Pending Review",
-        },
-      ];
-      setDocuments(mockDocs);
+      setApplications(apps);
+      setSelected(apps[0]);
 
-      const mockAudit: AuditEvent[] = [
+      if (!apps[0]) return;
+
+      const appId = apps[0].id;
+
+      // 2. Load notes
+      const notesRes = await fetch(
+        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/admin/applications/${appId}/notes`,
         {
-          id: "AUD-1",
-          actor: "UW Davis",
-          role: "uw",
-          action: "Updated risk score",
-          createdAt: new Date().toISOString(),
-        },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).then((r) => r.json());
+      setNotes(notesRes);
+
+      // 3. Load documents
+      const docsRes = await fetch(
+        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/admin/applications/${appId}/documents`,
         {
-          id: "AUD-2",
-          actor: "LO Brown",
-          role: "lo",
-          action: "Added borrower note",
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      setAudit(mockAudit);
-    })();
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).then((r) => r.json());
+      setDocuments(docsRes);
+
+      // 4. Load audit log
+      const auditRes = await fetch(
+        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/admin/applications/${appId}/audit`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      ).then((r) => r.json());
+      setAudit(auditRes);
+    }
+
+    load();
   }, []);
 
-  function handleAddNote() {
-    if (!newNote.trim()) return;
+  async function handleAddNote() {
+    if (!newNote.trim() || !selected) return;
+
+    const token = localStorage.getItem("gx_token");
+
+    // POST note to backend
+    await fetch(
+      `${process.env.NEXT_PUBLIC_GATEWAY_URL}/admin/applications/${selected.id}/notes`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: newNote.trim(),
+          author: "Admin Turner",
+          role: "admin",
+        }),
+      }
+    );
+
+    // Add note locally
     const note: Note = {
       id: `NOTE-${Date.now()}`,
-      author: "Admin",
+      author: "Admin Turner",
       role: "admin",
       text: newNote.trim(),
       createdAt: new Date().toISOString(),
     };
+
     setNotes((prev) => [note, ...prev]);
     setNewNote("");
-    // TODO: POST to /api/admin/notes
   }
 
   return (
