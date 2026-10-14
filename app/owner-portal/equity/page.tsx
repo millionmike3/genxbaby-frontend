@@ -1,4 +1,3 @@
-"use server";
 
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";

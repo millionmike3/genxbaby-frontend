@@ -1,0 +1,67 @@
+
+import { getPrisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+export const dynamic = "force-dynamic";
+
+export default async function UnderwriterDashboard() {
+  const cookieStore = cookies();
+  const token = cookieStore.get("session_underwriter")?.value;
+
+  if (!token) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white p-6">
+        <h1>Unauthorized</h1>
+      </main>
+    );
+  }
+
+  const { payload } = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.JWT_SECRET!)
+  );
+
+  const prisma = await getPrisma();
+
+  const underwriter = await prisma.underwriter.findUnique({
+    where: { id: payload.underwriterId },
+    include: {
+      loans: true,
+    },
+  });
+
+  return (
+    <main className="min-h-screen bg-slate-950 text-white p-6 space-y-10">
+      <h1 className="text-3xl font-bold text-[#3CF46B]">
+        Underwriter Dashboard
+      </h1>
+
+      <p className="text-slate-400 text-sm">
+        Welcome back, {underwriter?.fullName}
+      </p>
+
+      <section className="space-y-4">
+        {underwriter?.loans.map((loan) => (
+          <div
+            key={loan.id}
+            className="bg-neutral-900 border border-neutral-700 rounded-xl p-4"
+          >
+            <p className="text-slate-100 text-sm">
+              <strong>Borrower:</strong> {loan.borrowerName}
+            </p>
+            <p className="text-slate-300 text-sm">
+              <strong>Status:</strong> {loan.status}
+            </p>
+            <p className="text-slate-300 text-sm">
+              <strong>Loan Amount:</strong> ${loan.loanAmount.toLocaleString()}
+            </p>
+            <p className="text-slate-300 text-sm">
+              <strong>Conditions:</strong> {loan.conditions || "None"}
+            </p>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
+}

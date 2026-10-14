@@ -1,4 +1,3 @@
-"use server";
 
 import "@/app/globals.css";
 import { ReactNode } from "react";

@@ -1,4 +1,3 @@
-"use server";
 
 import { Suspense } from "react";
 import { getPrisma } from "@/lib/prisma";
@@ -117,7 +116,9 @@ export default async function AdminFraudPage() {
               key={c.id}
               className="bg-slate-800/60 p-6 rounded-xl border border-slate-700"
             >
-              <h3 className="text-xl font-semibold">{c.investor?.name ?? "Investor"}</h3>
+              <h3 className="text-xl font-semibold">
+                {c.investor?.name ?? "Investor"}
+              </h3>
 
               <p className="text-slate-300">
                 Case: {c.case?.id ?? "Unknown Case"}

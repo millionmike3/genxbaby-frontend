@@ -1,130 +1,152 @@
-"use client";
 
-import { useEffect, useState } from "react";
+import { getPrisma } from "@/lib/db/prisma";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+import Link from "next/link";
 
-export default function OwnerDashboardPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/owner/dashboard", {
-          method: "GET",
-          credentials: "include",
-        });
+export default async function OwnerDashboard() {
+  const cookieStore = cookies();
+  const token = cookieStore.get("session_owner")?.value;
 
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error("Failed to load owner dashboard:", err);
-        setData({ success: false });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, []);
-
-  if (loading) {
+  if (!token) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-slate-300">Loading owner dashboard…</p>
-      </div>
+      <main className="min-h-screen bg-slate-950 text-white p-6">
+        <h1>Unauthorized</h1>
+      </main>
     );
   }
 
-  if (!data?.success) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-red-500 text-sm">Failed to load owner dashboard</p>
-      </div>
-    );
-  }
+  const { payload } = await jwtVerify(
+    token,
+    new TextEncoder().encode(process.env.JWT_SECRET!)
+  );
 
-  const { owner, properties } = data;
+  const prisma = await getPrisma();
+
+  // Fetch high-level system data
+  const [
+    totalBorrowers,
+    totalLoans,
+    totalStaff,
+    totalUnderwriters,
+    totalLoanOfficers,
+    totalInvestors,
+    totalRevenue,
+    fraudEvents,
+  ] = await Promise.all([
+    prisma.borrower.count(),
+    prisma.mortgage.count(),
+    prisma.staff.count(),
+    prisma.underwriter.count(),
+    prisma.loanOfficer.count(),
+    prisma.investor.count(),
+    prisma.revenue.aggregate({ _sum: { amount: true } }),
+    prisma.fraudEvent.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
+  ]);
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20 px-6 space-y-10">
-      {/* Header */}
+    <main className="min-h-screen bg-slate-950 text-white p-6 space-y-12">
+      {/* HEADER */}
       <header>
-        <h1 className="text-3xl font-bold text-[#3CF46B]">Owner Dashboard</h1>
-        <p className="text-slate-400 mt-2">Welcome back, {owner.fullName}</p>
+        <h1 className="text-4xl font-bold text-[#3CF46B] mb-2">
+          Owner Command Center
+        </h1>
+        <p className="text-sm text-slate-400">
+          System-wide control, analytics, and operational oversight.
+        </p>
       </header>
 
-      {/* Properties */}
-      <section className="bg-neutral-900 border border-neutral-700 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-[#3CF46B] mb-4">
-          Your Properties
-        </h2>
+      {/* KPI STRIP */}
+      <section className="grid grid-cols-4 gap-4">
+        <DashboardCard label="Borrowers" value={totalBorrowers} />
+        <DashboardCard label="Loans" value={totalLoans} />
+        <DashboardCard label="Staff" value={totalStaff} />
+        <DashboardCard label="Revenue" value={`$${totalRevenue._sum.amount?.toLocaleString() ?? 0}`} />
+      </section>
 
-        {properties.length === 0 ? (
-          <p className="text-slate-400">No properties found.</p>
-        ) : (
-          <ul className="space-y-6">
-            {properties.map((p: any) => (
+      {/* SECOND KPI STRIP */}
+      <section className="grid grid-cols-3 gap-4">
+        <DashboardCard label="Underwriters" value={totalUnderwriters} />
+        <DashboardCard label="Loan Officers" value={totalLoanOfficers} />
+        <DashboardCard label="Investors" value={totalInvestors} />
+      </section>
+
+      {/* GRID LAYOUT */}
+      <section className="grid grid-cols-12 gap-6">
+        {/* SYSTEM MANAGEMENT */}
+        <div className="col-span-6 bg-neutral-900 border border-neutral-700 rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-3">System Management</h2>
+
+          <ul className="space-y-3 text-sm">
+            <DashboardLink href="/owner/manage/staff" label="Manage Staff" />
+            <DashboardLink href="/owner/manage/underwriters" label="Manage Underwriters" />
+            <DashboardLink href="/owner/manage/loan-officers" label="Manage Loan Officers" />
+            <DashboardLink href="/owner/manage/investors" label="Manage Investors" />
+            <DashboardLink href="/owner/manage/pricing" label="Pricing Engine" />
+            <DashboardLink href="/owner/manage/rules" label="Underwriting Rules" />
+          </ul>
+        </div>
+
+        {/* FRAUD + BEHAVIOR INTELLIGENCE */}
+        <div className="col-span-6 bg-neutral-900 border border-neutral-700 rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-3">Fraud & Behavioral Intelligence</h2>
+
+          <ul className="space-y-3 text-sm">
+            {fraudEvents.map((event) => (
               <li
-                key={p.id}
-                className="border border-neutral-800 rounded-lg p-4 bg-neutral-800/40"
+                key={event.id}
+                className="bg-neutral-800 p-4 rounded-lg border border-neutral-700"
               >
-                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                  {/* Property Info */}
-                  <div>
-                    <p className="font-semibold text-slate-200">
-                      {p.address}, {p.city}, {p.state} {p.zip}
-                    </p>
-                    <p className="text-slate-400 text-sm">
-                      Value: ${p.value?.toLocaleString() ?? "—"}
-                    </p>
-                    <p className="text-slate-400 text-sm">
-                      Cashflow: ${p.cashflow?.toLocaleString() ?? "—"}
-                    </p>
-                  </div>
-
-                  {/* Tenants / Payments / Maintenance */}
-                  <div className="text-right">
-                    <p className="text-[#3CF46B] font-bold text-lg">
-                      Tenants: {p.tenants?.length ?? 0}
-                    </p>
-                    <p className="text-slate-400 text-sm">
-                      Payments: {p.payments?.length ?? 0}
-                    </p>
-                    <p className="text-slate-400 text-sm">
-                      Maintenance: {p.maintenance?.length ?? 0}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Maintenance Requests */}
-                {p.maintenance?.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-[#3CF46B] mb-2">
-                      Maintenance Requests
-                    </h3>
-                    <ul className="space-y-2 text-sm text-slate-300">
-                      {p.maintenance.map((m: any) => (
-                        <li key={m.id} className="flex justify-between">
-                          <span>{m.description}</span>
-                          <span
-                            className={
-                              m.status === "open"
-                                ? "text-yellow-400"
-                                : "text-[#3CF46B]"
-                            }
-                          >
-                            {m.status}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <p className="text-slate-100">
+                  <strong>{event.eventType}</strong>
+                </p>
+                <p className="text-slate-300 text-xs">
+                  {JSON.stringify(event.metadata)}
+                </p>
+                <p className="text-slate-400 text-xs">
+                  {new Date(event.createdAt).toLocaleString()}
+                </p>
               </li>
             ))}
           </ul>
-        )}
+        </div>
+
+        {/* PIPELINE OVERVIEW */}
+        <div className="col-span-12 bg-neutral-900 border border-neutral-700 rounded-xl p-6">
+          <h2 className="text-xl font-semibold mb-3">Pipeline Overview</h2>
+
+          <Link
+            href="/crm"
+            className="text-[#3CF46B] underline text-sm"
+          >
+            Open CRM Dashboard
+          </Link>
+        </div>
       </section>
+    </main>
+  );
+}
+
+function DashboardCard({ label, value }) {
+  return (
+    <div className="bg-neutral-900 border border-neutral-700 rounded-xl p-4">
+      <p className="text-slate-400 text-xs">{label}</p>
+      <p className="text-2xl font-bold">{value}</p>
     </div>
+  );
+}
+
+function DashboardLink({ href, label }) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="text-[#3CF46B] text-sm underline hover:text-[#32d05f] transition"
+      >
+        {label}
+      </Link>
+    </li>
   );
 }

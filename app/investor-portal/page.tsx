@@ -1,4 +1,3 @@
-"use server";
 
 import { requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";

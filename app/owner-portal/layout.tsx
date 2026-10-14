@@ -1,4 +1,3 @@
-"use server";
 
 import { headers, cookies } from "next/headers";
 import Link from "next/link";

@@ -1,4 +1,3 @@
-"use server";
 
 export function getActorRiskScores(timeline: any[]) {
   const map: Record<string, { actor: string; score: number; events: number }> =

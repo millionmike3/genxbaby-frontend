@@ -1,4 +1,3 @@
-"use server";
 
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";

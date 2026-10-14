@@ -3424,3 +3424,13 @@ model LoanOfficer {
   createdAt    DateTime      @default(now())
   applications Application[]
 }
+model PricingAuditLog {
+  id            String   @id @default(cuid())
+  actorRole     String
+  actorId       String?
+  action        String
+  module        String
+  details       String
+  createdAt     DateTime @default(now())
+}
+

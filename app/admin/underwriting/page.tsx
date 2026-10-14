@@ -1,10 +1,11 @@
 
-export const dynamic = "force-dynamic";
-
-
-import { getPrisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
+// Formatting helpers
 function formatCurrency(value: number | null | undefined) {
   if (value == null) return "-";
   return `$${value.toLocaleString()}`;
@@ -15,149 +16,145 @@ function formatPercent(value: number | null | undefined) {
   return `${value.toFixed(1)}%`;
 }
 
-function decisionFromScore(score: any, app: any) {
-  if (!score) return "No Scores";
-
-  const { riskScore, fraudScore, impulsivenessScore } = score;
-  const dti = app.dti ?? 0;
-
-  if (fraudScore >= 180) return "Declined (Fraud)";
-  if (riskScore >= 730 && dti < 35 && impulsivenessScore < 70) return "Approved";
-  if (riskScore <= 620 || dti > 45 || impulsivenessScore > 90) return "Declined";
-  return "Review";
-}
-
 function decisionColor(decision: string) {
   switch (decision) {
-    case "Approved":
+    case "APPROVED":
       return "text-[#3CF46B]";
-    case "Declined":
-    case "Declined (Fraud)":
+    case "DECLINED":
+    case "DECLINED_FRAUD":
       return "text-red-500";
-    case "Review":
+    case "REVIEW":
       return "text-yellow-400";
     default:
       return "text-slate-300";
   }
 }
 
+// Mortgage LOS underwriting decision logic
+function computeUWDecision(loan: any) {
+  if (!loan.underwriting) return "REVIEW";
+
+  const { dti, ltv, riskTier, decision } = loan.underwriting;
+
+  if (loan.fraud?.riskScore >= 180) return "DECLINED_FRAUD";
+  if (decision === "APPROVED") return "APPROVED";
+  if (decision === "DECLINED") return "DECLINED";
+
+  if (riskTier === "A" && dti < 40 && ltv < 80) return "APPROVED";
+  if (riskTier === "D" || dti > 50 || ltv > 95) return "DECLINED";
+
+  return "REVIEW";
+}
 
 export default async function AdminUnderwritingQueuePage() {
-  const prisma = getPrisma();
+  await requireRole(["admin"]);
 
-  // Fetch applications + borrower + latest score
-  const applications = await prisma.application.findMany({
+  // Fetch mortgages needing underwriting
+  const loans = await prisma.mortgage.findMany({
+    where: {
+      OR: [
+        { status: "PRICED" },
+        { status: "FRAUD_REVIEW" },
+        { status: "UW_REVIEW" },
+        { status: "UW_PENDING" },
+      ],
+    },
     orderBy: { createdAt: "desc" },
     include: {
       borrower: true,
+      property: true,
+      pricing: true,
+      fraud: true,
+      underwriting: true,
+      conditions: true,
     },
   });
-
-  const scores = await prisma.borrowerScore.findMany({
-    where: {
-      applicationId: {
-        in: applications.map((a) => a.id),
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const scoreMap = new Map<string, any>();
-  for (const s of scores) {
-    if (!scoreMap.has(s.applicationId)) {
-      scoreMap.set(s.applicationId, s);
-    }
-  }
-
-  const items = applications.map((a) => ({
-    application: a,
-    borrower: a.borrower,
-    score: scoreMap.get(a.id) ?? null,
-  }));
 
   return (
     <main className="min-h-screen bg-black text-white p-6 pt-20">
       <h1 className="text-3xl font-bold mb-4 text-[#3CF46B]">
         Underwriting Queue
       </h1>
+
       <p className="text-sm text-slate-400 mb-6">
-        All borrower applications, sorted by newest first.
+        All mortgage files requiring underwriting review.
       </p>
 
       <div className="bg-neutral-900 border border-neutral-700 rounded-xl overflow-hidden">
+        {/* Header */}
         <div className="grid grid-cols-6 gap-3 px-4 py-3 text-xs font-semibold text-slate-300 border-b border-neutral-700">
           <span>Borrower</span>
           <span>Loan</span>
-          <span>DTI</span>
+          <span>DTI / LTV</span>
           <span>Risk / Fraud</span>
           <span>Status</span>
           <span>Action</span>
         </div>
 
-        {items.length === 0 && (
+        {loans.length === 0 && (
           <div className="px-4 py-4 text-sm text-slate-400">
-            No applications found.
+            No loans awaiting underwriting.
           </div>
         )}
 
-        {items.map(({ application, borrower, score }) => {
-          const decision = decisionFromScore(score, application);
+        {loans.map((loan) => {
+          const uwDecision = computeUWDecision(loan);
 
           return (
             <div
-              key={application.id}
+              key={loan.id}
               className="grid grid-cols-6 gap-3 px-4 py-3 text-xs border-b border-neutral-800 hover:bg-neutral-800/60 transition"
             >
               {/* Borrower */}
               <div className="flex flex-col">
-                <span className="text-slate-100">
-                  {borrower.firstName || borrower.email}
-                </span>
-                <span className="text-slate-500">{borrower.email}</span>
+                <span className="text-slate-100">{loan.borrower.fullName}</span>
+                <span className="text-slate-500">{loan.borrower.email}</span>
               </div>
 
               {/* Loan */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
-                  {formatCurrency(application.loanAmount)}
+                  {formatCurrency(loan.loanAmount)}
                 </span>
                 <span className="text-slate-500">
-                  Income: {formatCurrency(application.income)}
+                  {loan.property.address}
                 </span>
               </div>
 
-              {/* DTI */}
+              {/* DTI / LTV */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
-                  {formatPercent(application.dti)}
+                  {formatPercent(loan.underwriting?.dti)}
                 </span>
                 <span className="text-slate-500">
-                  Rent: {formatCurrency(application.rent)}
+                  LTV: {formatPercent(loan.underwriting?.ltv)}
                 </span>
               </div>
 
-              {/* Scores */}
+              {/* Risk / Fraud */}
               <div className="flex flex-col">
                 <span className="text-slate-100">
-                  {score ? `${score.riskScore} / ${score.fraudScore}` : "—"}
+                  {loan.fraud
+                    ? `${loan.fraud.riskScore} / ${loan.fraud.flags.length} flags`
+                    : "—"}
                 </span>
                 <span className="text-slate-500">
-                  {score ? `Beh: ${score.impulsivenessScore}` : ""}
+                  Tier: {loan.underwriting?.riskTier ?? "—"}
                 </span>
               </div>
 
               {/* Status */}
               <div className="flex flex-col">
-                <span className="text-slate-100">{application.status}</span>
-                <span className={`font-semibold ${decisionColor(decision)}`}>
-                  {decision}
+                <span className="text-slate-100">{loan.status}</span>
+                <span className={`font-semibold ${decisionColor(uwDecision)}`}>
+                  {uwDecision}
                 </span>
               </div>
 
               {/* Action */}
               <div className="flex items-center">
                 <Link
-                  href={`/admin/underwriting/${application.id}`}
+                  href={`/admin/mortgages/${loan.id}`}
                   className="inline-flex items-center justify-center bg-[#3CF46B] text-black font-semibold px-3 py-1 rounded-md hover:bg-[#32d05f] transition"
                 >
                   Review

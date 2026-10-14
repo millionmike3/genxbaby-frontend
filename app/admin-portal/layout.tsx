@@ -1,4 +1,3 @@
-"use server";
 
 import { requireRole } from "@/lib/auth";
 import { ReactNode } from "react";
@@ -19,6 +18,7 @@ function Unauthorized() {
 
 export default async function AdminPortalLayout({ children }: { children: ReactNode }) {
   try {
+    // ⭐ This now works because requireRole() accepts auth_token OR admin_token
     await requireRole(["admin"]);
   } catch {
     return <Unauthorized />;

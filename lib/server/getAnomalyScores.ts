@@ -1,4 +1,3 @@
-"use server";
 
 export function getAnomalyScores(timeline: any[]) {
   const anomalies: any[] = [];

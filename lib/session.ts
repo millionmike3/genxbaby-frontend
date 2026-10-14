@@ -3,63 +3,41 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getPrisma } from "@/lib/db/prisma";
-
-const secret = new TextEncoder().encode(process.env.SESSION_SECRET);
-const SESSION_DURATION = 7 * 24 * 60 * 60; // 7 days
+import { JWT_SECRET } from "@/lib/jwt";
 
 export type Role = "admin" | "investor" | "borrower";
 
-export interface Session {
-  userId: string;
+export interface SessionPayload {
+  id: number;
   role: Role;
-  expiresAt: number;
+  fullName?: string | null;
 }
 
-export async function createSession(userId: string, role: Role) {
-  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_DURATION;
-
-  return await new SignJWT({ userId, role, expiresAt })
+// Create a JWT session (used in login route)
+export async function createSession(payload: SessionPayload) {
+  return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime(expiresAt)
-    .setIssuedAt()
-    .sign(secret);
+    .setExpirationTime("7d")
+    .sign(JWT_SECRET);
 }
 
-// getSession(token) — correct pattern
-export async function getSession(token: string | undefined): Promise<Session | null> {
+// Validate JWT and return payload
+export async function getSession(token: string | undefined) {
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, secret);
-
-    if (
-      typeof payload.userId !== "string" ||
-      typeof payload.role !== "string" ||
-      typeof payload.expiresAt !== "number"
-    ) {
-      return null;
-    }
-
-    const session: Session = {
-      userId: payload.userId,
-      role: payload.role as Role,
-      expiresAt: payload.expiresAt,
-    };
-
-    if (session.expiresAt < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
-
-    return session;
-  } catch {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return payload as SessionPayload;
+  } catch (err) {
+    console.error("JWT verification failed:", err);
     return null;
   }
 }
 
-// ⭐ Corrected getCurrentUser()
+// Get current user from JWT cookie
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("admin_token")?.value;
 
   if (!token) return null;
 
@@ -69,7 +47,7 @@ export async function getCurrentUser() {
   const prisma = await getPrisma();
 
   const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
+    where: { id: Number(session.id) },
   });
 
   return user;

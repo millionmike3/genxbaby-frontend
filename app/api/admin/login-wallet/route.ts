@@ -48,19 +48,25 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    // 4. Set admin cookie
+    // ⭐ 4. Create response object FIRST
     const res = NextResponse.json({ success: true });
+
+    // ⭐ 5. Set admin cookie (localhost-safe)
     res.cookies.set("admin_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7
+      secure: false,          // MUST be false on localhost
+      sameSite: "lax",        // MUST NOT be "none" on localhost
+      path: "/",              // MUST be root
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return res;
+
   } catch (err) {
     console.error("ADMIN WALLET LOGIN ERROR:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

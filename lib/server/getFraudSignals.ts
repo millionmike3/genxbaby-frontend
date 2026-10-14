@@ -1,5 +1,4 @@
 // lib/server/getFraudSignals.ts
-"use server";
 
 export function getFraudSignals(timeline: any[]) {
   const signals: any[] = [];

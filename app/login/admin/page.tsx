@@ -6,13 +6,26 @@ import { useRouter } from "next/navigation";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
+  const [password, setPassword] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e) {
     e.preventDefault();
 
-    // TODO: Replace with your real auth logic
-    router.push("/admin-portal");
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log(data.error);
+      return;
+    }
+
+    router.push("/admin/dashboard");
   }
 
   return (
@@ -36,8 +49,8 @@ export default function AdminLoginPage() {
           <input
             type="password"
             placeholder="Password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 rounded-md bg-slate-800 border border-slate-700 text-white"
           />
 

@@ -1,5 +1,4 @@
 // lib/server/getAnomalies.ts
-"use server";
 
 export function getAnomalies(timeline: any[]) {
   const anomalies: any[] = [];

@@ -1,5 +1,4 @@
 // lib/server/getAdminScores.ts
-"use server";
 
 export function getAdminScores(timeline: any[]) {
   const scores: Record<string, number> = {};

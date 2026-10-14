@@ -1,4 +1,3 @@
-"use server";
 
 import { requireRole } from "@/lib/auth";
 import { cookies } from "next/headers";
@@ -9,9 +8,11 @@ export default async function AdminDashboardPage() {
   // Require admin role
   await requireRole(["admin"]);
 
-  // Validate session
-  const cookieStore = cookies();
+  // Read cookie
+  const cookieStore = await cookies();
   const token = cookieStore.get("admin_token")?.value;
+
+  // Validate session
   const session = await getSession(token);
 
   if (!session) throw new Error("Not authenticated");
@@ -56,6 +57,15 @@ export default async function AdminDashboardPage() {
               User Management
             </Link>
           </li>
+          <li><Link href="/admin/mortgages">Mortgage Applications</Link></li>
+          <li><Link href="/admin/properties">Property Intelligence</Link></li>
+          <li><Link href="/admin/pricing">Pricing Engine</Link></li>
+          <li><Link href="/admin/underwriting">Underwriting Dashboard</Link></li>
+          <li> <Link href="/admin/fraud">Fraud Intelligence</Link></li>
+          <li><Link href="/admin/investors">Investor Pricing Sheets</Link></li>
+          <li><Link href="/admin/servicing">Servicing Engine</Link></li>
+          <li><Link href="/admin/pipeline">Pipeline Dashboard</Link></li>
+          
           <li>
             <Link href="/admin/analytics" className="hover:text-[#3CF46B]">
               System Analytics

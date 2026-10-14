@@ -1,6 +1,8 @@
+"use server";
+
 import { createBankProfile } from "../actions";
 
-export default function NewBankProfilePage() {
+export default async function NewBankProfilePage() {
   return (
     <div className="p-10 max-w-xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold">Add Bank Profile</h1>

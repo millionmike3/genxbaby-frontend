@@ -1,4 +1,3 @@
-"use server";
 
 export function getFraudScores(timeline: any[]) {
   const scores: any[] = [];
