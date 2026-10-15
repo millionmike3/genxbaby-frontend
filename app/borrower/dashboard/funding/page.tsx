@@ -1,4 +1,5 @@
 import { getPrisma } from "@/lib/db/prisma";
+import { requireRole } from "@/lib/auth";
 import Link from "next/link";
 
 function statusColor(status: string) {
@@ -15,7 +16,11 @@ function statusColor(status: string) {
   }
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function BorrowerFundingPage() {
+  await requireRole(["borrower"]);
+
   const prisma = await getPrisma();
 
   // TODO: Replace with authenticated borrower userId
@@ -29,8 +34,10 @@ export default async function BorrowerFundingPage() {
           borrowerProperty: true,
           PricingResult: true,
           underwriting: true,
-          servicingEvents: true,
-          ServicingRiskSignal: true,
+          loanServicingEvents: true,
+          servicingRiskSignal: true,
+          servicingEventScore: true,
+          servicingRecord: true,
           milestones: true,
         },
       },
@@ -47,8 +54,9 @@ export default async function BorrowerFundingPage() {
 
   const loan = borrower.applications[0];
   const property = loan.borrowerProperty?.[0];
-  const servicing = loan.servicingEvents?.[0];
-  const riskSignal = loan.ServicingRiskSignal;
+  const servicingEvent = loan.loanServicingEvents?.[0];
+  const riskSignal = loan.servicingRiskSignal;
+  const servicingRecord = loan.servicingRecord;
 
   return (
     <main className="min-h-screen bg-slate-950 text-white p-6 space-y-12">
@@ -73,18 +81,31 @@ export default async function BorrowerFundingPage() {
 
         <p className="text-slate-300 text-sm">
           <strong>Clear‑to‑Close:</strong>{" "}
-          {servicing?.createdAt
-            ? new Date(servicing.createdAt).toLocaleString()
+          {servicingRecord?.status === "CTC"
+            ? new Date(servicingRecord.updatedAt).toLocaleString()
             : "Not yet"}
         </p>
 
         <p className="text-slate-300 text-sm">
           <strong>Funded:</strong>{" "}
-          {riskSignal?.createdAt
-            ? new Date(riskSignal.createdAt).toLocaleString()
+          {servicingRecord?.status === "FUNDED"
+            ? new Date(servicingRecord.updatedAt).toLocaleString()
             : "Not yet"}
         </p>
       </section>
+
+      {/* PROPERTY SUMMARY */}
+      {property && (
+        <section className="bg-neutral-900 border border-neutral-700 rounded-xl p-6 space-y-3">
+          <h2 className="text-xl font-semibold mb-3">Property</h2>
+          <p className="text-slate-300 text-sm">
+            <strong>Address:</strong> {property.address}
+          </p>
+          <p className="text-slate-300 text-sm">
+            <strong>Value:</strong> ${property.value?.toLocaleString()}
+          </p>
+        </section>
+      )}
 
       {/* CLOSING CHECKLIST */}
       <section className="bg-neutral-900 border border-neutral-700 rounded-xl p-6 space-y-4">
