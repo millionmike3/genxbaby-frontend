@@ -339,6 +339,7 @@ model Application {
   pitiMonthly   Int?
   propertyValue Int?
   totalLiens    Int?
+  
 
   // Full 1003 payload for audit / replay
   full1003Json Json?
@@ -364,7 +365,7 @@ model Application {
   amortization                 LoanAmortization?
   payoff                       LoanPayoff?
   delinquency                  LoanDelinquency?
-  servicingEvents              LoanServicingEvent[]
+  
   FraudAiInferenceLog          FraudAiInferenceLog?
   FraudEscalation              FraudEscalation?
   FraudEscalationPipelineLayer FraudEscalationPipelineLayer?
@@ -406,8 +407,7 @@ model Application {
   StressTestScenario   StressTestScenario?
   StressTestResult     StressTestResult?
 
-  ServicingEventScore  ServicingEventScore?
-  ServicingRiskSignal  ServicingRiskSignal?
+  
   ScoringResult        ScoringResult?
   AnchorRecord         AnchorRecord?
   pipelineDeals        PipelineDeal[]
@@ -424,6 +424,11 @@ model Application {
   BorrowerDocument     BorrowerDocument[]
   documentRequirements DocumentRequirement[]
   pipelineOutput       UnderwritingPipelineOutput? @relation(fields: [underwritingPipelineOutputId], references: [id])
+
+  servicingRecord       ServicingRecord?
+  loanServicingEvents   LoanServicingEvent[]
+  servicingEventScore   ServicingEventScore?
+  servicingRiskSignal   ServicingRiskSignal?
 
   underwritingPipelineOutputId String?
 }
@@ -2447,13 +2452,17 @@ model LoanServicingEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId String?
-  application   Application? @relation(fields: [applicationId], references: [id])
+  applicationId     String?
+  application       Application? @relation(fields: [applicationId], references: [id])
+
+  servicingRecordId String?
+  servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
 
   eventType String?
   payload   Json?
   metadata  Json?
 }
+
 
 // ------------------------------------------------------------
 // TS-REFERENCED SERVICING MODELS
@@ -2464,13 +2473,17 @@ model ServicingEventScore {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
+  applicationId     String? @unique
+  application       Application? @relation(fields: [applicationId], references: [id])
+
+  servicingRecordId String? @unique
+  servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
 
   score    Float?
   factors  Json?
   metadata Json?
 }
+
 
 // ------------------------------------------------------------
 // BANKING DOMAIN
@@ -2866,13 +2879,17 @@ model ServicingRiskSignal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId String?      @unique
-  application   Application? @relation(fields: [applicationId], references: [id])
+  applicationId     String? @unique
+  application       Application? @relation(fields: [applicationId], references: [id])
+
+  servicingRecordId String? @unique
+  servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
 
   signalType String?
   strength   Float?
   metadata   Json?
 }
+
 
 model OwnershipEntity {
   id               Int     @id @default(autoincrement())
@@ -3432,5 +3449,24 @@ model PricingAuditLog {
   module        String
   details       String
   createdAt     DateTime @default(now())
+}
+model ServicingRecord {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  applicationId String   @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  status        String   @default("ACTIVE")
+  nextPaymentDue DateTime?
+  escrowBalance Float?   @default(0)
+  delinquencyDays Int?   @default(0)
+  performanceScore Float? @default(0)
+
+  // Relations
+  events        LoanServicingEvent[]
+  riskSignals   ServicingRiskSignal?
+  eventScore    ServicingEventScore?
 }
 

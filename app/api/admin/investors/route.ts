@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    // Load Prisma at runtime (server-only)
     const { prisma } = await import("@/lib/prisma");
 
     const { searchParams } = new URL(request.url);
@@ -13,12 +12,21 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
-        passwordHash: true,
+        name: true,
         email: true,
         phone: true,
         investorPotentialScore: true,
         investorPotentialBand: true,
         createdAt: true,
+
+        user: {
+          select: {
+            passwordHash: true,
+            email: true,
+            phone: true,
+            role: true,
+          },
+        },
       },
     });
 

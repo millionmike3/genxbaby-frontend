@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
+import { JWT_SECRET } from "@/lib/jwt";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,22 +14,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Load Prisma dynamically (Turbopack-safe)
     const { prisma } = await import("@/lib/prisma");
 
-    // Find admin user in DB
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
+    if (!user) {
+  return NextResponse.json(
+    { error: "Invalid credentials" },
+    { status: 401 }
+  );
     }
 
-    // Validate password using bcrypt
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       return NextResponse.json(
@@ -37,26 +35,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT for admin session
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: "admin",
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    // Create JWT using JOSE (NOT jsonwebtoken)
+    const token = await new SignJWT({
+      id: user.id,
+      role: "admin",
+      fullName: user.username ?? null,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(JWT_SECRET);
 
-    // Build response
     const res = NextResponse.json({ success: true });
 
-    // Set correct admin cookie
     res.cookies.set("admin_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return res;

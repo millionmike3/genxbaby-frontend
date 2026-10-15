@@ -50,23 +50,29 @@ export default async function AdminUnderwritingQueuePage() {
   await requireRole(["admin"]);
 
   // Fetch mortgages needing underwriting
-  const loans = await prisma.mortgage.findMany({
-    where: {
-      OR: [
-        { status: "PRICED" },
-        { status: "FRAUD_REVIEW" },
-        { status: "UW_REVIEW" },
-        { status: "UW_PENDING" },
-      ],
-    },
-    orderBy: { createdAt: "desc" },
-    include: {
-      borrower: true,
-      property: true,
-      pricing: true,
-      fraud: true,
-      underwriting: true,
-      conditions: true,
+  const loans = await prisma.Application.findMany({
+  where: {
+    OR: [
+      { status: "PRICED" },
+      { status: "FRAUD_REVIEW" },
+      { status: "UW_REVIEW" },
+      { status: "UW_PENDING" },
+    ],
+  },
+  orderBy: { createdAt: "desc" },
+  include: {
+    borrower: true,
+    underwriting: true,
+    PricingResult: true,
+    FraudResult: true,
+    borrowerProperty: true,
+    BorrowerDocument: true,
+    timelineEvents: true,
+    timeline: true,
+    documents: true,
+    disclosures: true,
+    fraudEvents: true,
+    milestones: true,
     },
   });
 

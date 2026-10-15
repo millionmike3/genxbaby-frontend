@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       .sign(JWT_SECRET);
 
     // Create response
-    const res = NextResponse.json({ success: true });
+    const res = NextResponse.json({ success: true, role: user.role });
 
     // Set cookie (localhost-safe)
     res.cookies.set("admin_token", token, {

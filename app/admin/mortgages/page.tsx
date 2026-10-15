@@ -6,15 +6,11 @@ import Link from "next/link";
 export default async function MortgageAdminPage() {
   await requireRole(["admin"]);
 
-  const mortgages = await prisma.mortgage.findMany({
+  const mortgages = await prisma.MortgageAsset.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       borrower: true,
-      property: true,
-      pricing: true,
-      fraud: true,
-      underwriting: true,
-      conditions: true,
+      
     },
   });
 

@@ -1,22 +1,42 @@
-
+// app/admin/dashboard/page.tsx (or app/admin/page.tsx depending on your route)
 import { requireRole } from "@/lib/auth";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
-  // Require admin role
+  // Use your existing auth guard
   await requireRole(["admin"]);
 
-  // Read cookie
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token")?.value;
+  // Use the canonical session resolver
+  const user = await getCurrentUser();
 
-  // Validate session
-  const session = await getSession(token);
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Not authenticated</h1>
+          <Link href="/admin/login" className="text-[#3CF46B] underline">
+            Go to Admin Login
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "admin") throw new Error("Unauthorized");
+  if (user.role !== "admin") {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold">Unauthorized</h1>
+          <p className="text-slate-400">Admin access required.</p>
+        </div>
+      </main>
+    );
+  }
+
+  const fullName = user.username ?? user.email ?? "Admin";
 
   return (
     <main className="min-h-screen bg-slate-900 text-white px-6 md:px-12 lg:px-20 py-16 space-y-12">
@@ -27,7 +47,7 @@ export default async function AdminDashboardPage() {
           Admin Dashboard
         </h1>
         <p className="text-slate-300">
-          Welcome back, {session.fullName ?? "Admin"} — full system control is active.
+          Welcome back, {fullName} — full system control is active.
         </p>
       </header>
 
@@ -52,35 +72,17 @@ export default async function AdminDashboardPage() {
         </h2>
 
         <ul className="space-y-3 text-slate-300">
-          <li>
-            <Link href="/admin/users" className="hover:text-[#3CF46B]">
-              User Management
-            </Link>
-          </li>
+          <li><Link href="/admin/users">User Management</Link></li>
           <li><Link href="/admin/mortgages">Mortgage Applications</Link></li>
           <li><Link href="/admin/properties">Property Intelligence</Link></li>
           <li><Link href="/admin/pricing">Pricing Engine</Link></li>
           <li><Link href="/admin/underwriting">Underwriting Dashboard</Link></li>
-          <li> <Link href="/admin/fraud">Fraud Intelligence</Link></li>
+          <li><Link href="/admin/fraud">Fraud Intelligence</Link></li>
           <li><Link href="/admin/investors">Investor Pricing Sheets</Link></li>
           <li><Link href="/admin/servicing">Servicing Engine</Link></li>
           <li><Link href="/admin/pipeline">Pipeline Dashboard</Link></li>
-          
-          <li>
-            <Link href="/admin/analytics" className="hover:text-[#3CF46B]">
-              System Analytics
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/fraud" className="hover:text-[#3CF46B]">
-              Fraud Intelligence
-            </Link>
-          </li>
-          <li>
-            <Link href="/admin/config" className="hover:text-[#3CF46B]">
-              Configuration & Integrations
-            </Link>
-          </li>
+          <li><Link href="/admin/analytics">System Analytics</Link></li>
+          <li><Link href="/admin/config">Configuration & Integrations</Link></li>
         </ul>
       </section>
 

@@ -8,7 +8,7 @@ export default function LoginPageClient() {
   const searchParams = useSearchParams();
 
   // Redirect target after successful login
-  const redirectTo = searchParams.get("redirect") || "/admin/audit";
+  const redirectTo = searchParams.get("redirect") || "/admin/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,8 +24,9 @@ export default function LoginPageClient() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          address: email,
+          email,
           password,
         }),
       });

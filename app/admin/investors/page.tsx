@@ -1,4 +1,3 @@
-
 import { Suspense } from "react";
 import { getPrisma } from "@/lib/db/prisma";
 import Link from "next/link";
@@ -22,16 +21,82 @@ function statusColor(status: string) {
 }
 
 // -----------------------------
-// API-Fetched Investors (Lightweight Table)
+// Fetch admin token from API route
 // -----------------------------
-async function getInvestors(limit = 50) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/admin/investors?limit=${limit}`,
-    { cache: "no-store" }
-  );
+async function getAdminToken() {
+  const base =
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    process.env.VERCEL_URL ??
+    "http://localhost:3000";
+
+  const url = new URL("/api/admin/token", base);
+
+  const res = await fetch(url.toString(), { cache: "no-store" });
+
+  // If the route failed, log the body so we can see the real error
+  if (!res.ok) {
+    console.error("Token API failed:", await res.text());
+    return null;
+  }
 
   const json = await res.json();
-  return json.data ?? [];
+  return json.token;
+}
+
+// -----------------------------
+// API-Fetched Investors (Lightweight Table)
+// -----------------------------
+async function getInvestors(token: string | null, limit = 50) {
+  const base =
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    process.env.VERCEL_URL ??
+    "http://localhost:3000";
+
+  const url = new URL(`/api/admin/investors?limit=${limit}`, base);
+
+  const res = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: token ? { Cookie: `admin_token=${token}` } : {},
+  });
+
+  if (!res.ok) {
+    console.error("Investor API failed:", await res.text());
+    throw new Error("Failed to fetch investors");
+  }
+
+  const json = await res.json();
+  return json.data;
+}
+
+// -----------------------------
+// FULL INVESTOR PORTAL (DB-backed)
+// -----------------------------
+async function getFullInvestorPortal() {
+  const prisma = await getPrisma();
+
+  return prisma.investor.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      fundingRequests: true,
+      pricingSheet: true,
+      InvestorCapitalFlow: true,
+      InvestorAllocationDynamics: true,
+      investments: true,
+      commitments: true,
+      pipelineDeals: {
+        include: {
+          application: {
+            include: {
+              borrower: true,
+              borrowerProperty: true,
+              PricingResult: true,
+              underwriting: true,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
 // -----------------------------
@@ -70,38 +135,13 @@ function InvestorsTable({ rows }: { rows: any[] }) {
 }
 
 // -----------------------------
-// FULL INVESTOR PORTAL (DB-backed)
-// -----------------------------
-async function getFullInvestorPortal() {
-  const prisma = await getPrisma();
-
-  return prisma.investor.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      fundingRequests: true,
-      pricingSheets: true,
-      allocations: {
-        include: {
-          mortgage: {
-            include: {
-              borrower: true,
-              property: true,
-              pricing: true,
-              underwriting: true,
-            },
-          },
-        },
-      },
-    },
-  });
-}
-
-// -----------------------------
 // MAIN PAGE EXPORT
 // -----------------------------
 export default async function AdminInvestorsPage() {
+  const token = await getAdminToken();   // ✔ Turbopack-safe
+
   const [apiInvestors, fullInvestors] = await Promise.all([
-    getInvestors(),
+    getInvestors(token),
     getFullInvestorPortal(),
   ]);
 
@@ -118,20 +158,15 @@ export default async function AdminInvestorsPage() {
         </p>
       </header>
 
-      {/* =============================== */}
-      {/* LIGHTWEIGHT INVESTOR TABLE */}
-      {/* =============================== */}
+      {/* LIGHTWEIGHT TABLE */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Investor Onboarding Scores</h2>
-
         <Suspense fallback={<div>Loading...</div>}>
           <InvestorsTable rows={apiInvestors} />
         </Suspense>
       </section>
 
-      {/* =============================== */}
       {/* FULL INVESTOR LIST */}
-      {/* =============================== */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Investors</h2>
 
@@ -152,9 +187,20 @@ export default async function AdminInvestorsPage() {
           )}
 
           {fullInvestors.map((inv) => {
-            const committed = inv.committedCapital ?? 0;
-            const deployed = inv.deployedCapital ?? 0;
-            const allocations = inv.allocations.length;
+            const committed =
+              inv.commitments?.reduce(
+                (sum, c) => sum + (c.amount ?? 0),
+                0
+              ) ?? 0;
+
+            const deployed =
+              inv.investments?.reduce(
+                (sum, i) => sum + (i.amount ?? 0),
+                0
+              ) ?? 0;
+
+            const allocations =
+              inv.InvestorAllocationDynamics?.length ?? 0;
 
             return (
               <div
@@ -200,9 +246,7 @@ export default async function AdminInvestorsPage() {
         </div>
       </section>
 
-      {/* =============================== */}
       {/* FUNDING REQUESTS */}
-      {/* =============================== */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Funding Requests</h2>
 
@@ -258,94 +302,75 @@ export default async function AdminInvestorsPage() {
         </div>
       </section>
 
-      {/* =============================== */}
       {/* PRICING SHEETS */}
-      {/* =============================== */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Investor Pricing Sheets</h2>
 
         <div className="space-y-4">
-          {fullInvestors.flatMap((inv) => inv.pricingSheets).length === 0 && (
+          {fullInvestors.flatMap((inv) => inv.pricingSheet ? [inv.pricingSheet] : []).length === 0 && (
             <p className="text-sm text-slate-400">No pricing sheets uploaded.</p>
           )}
 
           {fullInvestors.flatMap((inv) =>
-            inv.pricingSheets.map((sheet) => (
-              <div
-                key={sheet.id}
-                className="bg-neutral-900 border border-neutral-700 rounded-xl p-6"
-              >
-                <h3 className="text-lg font-semibold">
-                  {sheet.investor?.name ?? "Investor"}
-                </h3>
-
-                <p className="text-slate-300 text-sm">
-                  Uploaded: {new Date(sheet.createdAt).toLocaleString()}
-                </p>
-
-                <p className="text-slate-400 text-sm mt-1">
-                  Rows: {sheet.rowCount}
-                </p>
-
-                <div className="flex gap-3 mt-4">
-                  <Link
-                    href={`/admin/pricing/sheets/${sheet.id}`}
-                    className="px-4 py-2 bg-neutral-700 rounded-md text-sm hover:bg-neutral-600 transition"
+            inv.pricingSheet
+              ? [
+                  <div
+                    key={inv.pricingSheet.id}
+                    className="bg-neutral-900 border border-neutral-700 rounded-xl p-6"
                   >
-                    View Sheet
-                  </Link>
-                </div>
-              </div>
-            ))
+                    <h3 className="text-lg font-semibold">
+                      {inv.name}
+                    </h3>
+
+                    <p className="text-slate-300 text-sm">
+                      Uploaded: {new Date(inv.pricingSheet.createdAt).toLocaleString()}
+                    </p>
+
+                    <p className="text-slate-400 text-sm mt-1">
+                      Rows: {inv.pricingSheet.rowCount}
+                    </p>
+
+                    <div className="flex gap-3 mt-4">
+                      <Link
+                        href={`/admin/pricing/sheets/${inv.pricingSheet.id}`}
+                        className="px-4 py-2 bg-neutral-700 rounded-md text-sm hover:bg-neutral-600 transition"
+                      >
+                        View Sheet
+                      </Link>
+                    </div>
+                  </div>,
+                ]
+              : []
           )}
         </div>
       </section>
 
-      {/* =============================== */}
       {/* ALLOCATIONS */}
-      {/* =============================== */}
       <section>
         <h2 className="text-xl font-semibold mb-4">Investor Allocations</h2>
 
         <div className="space-y-4">
-          {fullInvestors.flatMap((inv) => inv.allocations).length === 0 && (
+          {fullInvestors.flatMap((inv) => inv.InvestorAllocationDynamics).length === 0 && (
             <p className="text-sm text-slate-400">No allocations found.</p>
           )}
 
           {fullInvestors.flatMap((inv) =>
-            inv.allocations.map((alloc) => (
+            inv.InvestorAllocationDynamics.map((alloc) => (
               <div
                 key={alloc.id}
                 className="bg-neutral-900 border border-neutral-700 rounded-xl p-6"
               >
                 <h3 className="text-lg font-semibold">
-                  Loan #{alloc.mortgageId} — {alloc.investorId}
+                  Allocation #{alloc.id} — {inv.name}
                 </h3>
 
                 <p className="text-slate-300 mt-2">
                   <strong>Amount:</strong> ${alloc.amount.toLocaleString()}
                 </p>
 
-                <p className="text-slate-300">
-                  <strong>Borrower:</strong> {alloc.mortgage.borrower.fullName}
-                </p>
-
-                <p className="text-slate-300">
-                  <strong>Property:</strong> {alloc.mortgage.property.address}
-                </p>
-
                 <p className="text-slate-500 text-sm mt-1">
                   {alloc.createdAt.toDateString()}
                 </p>
-
-                <div className="flex gap-3 mt-4">
-                  <Link
-                    href={`/admin/mortgages/${alloc.mortgageId}`}
-                    className="px-4 py-2 bg-neutral-700 rounded-md text-sm hover:bg-neutral-600 transition"
-                  >
-                    View Loan
-                  </Link>
-                </div>
               </div>
             ))
           )}
