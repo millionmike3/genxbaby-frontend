@@ -1,18 +1,19 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorPerformanceChart } from "../_components/InvestorCharts";
 
 export default async function InvestorPerformancePage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
   // Latest snapshot for KPI metrics
   const perf = await prisma.investorPerformanceSnapshot.findFirst({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "desc" },
   });
 
@@ -20,7 +21,7 @@ export default async function InvestorPerformancePage() {
 
   // Time-series snapshots for chart
   const snapshots = await prisma.investorPerformanceSnapshot.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "asc" },
     take: 12,
   });

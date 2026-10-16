@@ -8,5 +8,6 @@ export default function LoginPage() {
     <Suspense>
       <LoginPageClient />
     </Suspense>
+    
   );
 }

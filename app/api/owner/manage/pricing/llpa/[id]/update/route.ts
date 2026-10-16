@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "@/lib/db/prisma";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { auth, requireRole } from "@/lib/auth";
 
 export async function POST(req, { params }) {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session_owner")?.value 
-             || cookieStore.get("session_admin")?.value;
-
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // 🔒 Enforce ADMIN or OWNER role
+  try {
+    await requireRole(["ADMIN", "OWNER"]);
+  } catch {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { payload } = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.JWT_SECRET!)
-  );
-
-  if (payload.role !== "ADMIN" && payload.role !== "OWNER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  // 🔐 Verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const prisma = await getPrisma();

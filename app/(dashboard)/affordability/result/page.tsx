@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function AffordabilityResultPage() {
   const prisma = await getPrisma();
 
-  const userId = "REPLACE_WITH_AUTH_USER_ID";
+  const userId = 0;
 
   const result = await prisma.affordabilityResult.findFirst({
     where: { borrowerId: userId },

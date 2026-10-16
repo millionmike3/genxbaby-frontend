@@ -8,26 +8,40 @@ import RentRollTrendChart from "./RentRollTrendChart";
 import MortgagePaymentTrendChart from "./MortgagePaymentTrendChart";
 
 export default async function OwnerCharts() {
+  // Read correct cookie
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  const token = cookieStore.get("auth_token")?.value;
 
+  if (!token) throw new Error("Not authenticated");
+
+  // Parse JWT
+  const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
-  if (session.role !== "owner") throw new Error("Unauthorized");
+
+  // Correct role check
+  if (session.role !== "OWNER") throw new Error("Unauthorized");
 
   const prisma = await getPrisma();
-  const ownerId = Number(session.userId);
 
+  // Owner.userId is Int → use session.id (Int)
+  const owner = await prisma.owner.findFirst({
+    where: { userId: session.id },
+  });
+
+  if (!owner) throw new Error("Owner record not found");
+
+  // Fetch properties (OwnershipEntity.ownerId is Int → use owner.userId)
   const properties = await prisma.property.findMany({
-    where: { ownershipEntity: { ownerId } },
+    where: { ownershipEntity: { ownerId: owner.userId } },
     include: {
       ownerEquity: true,
       rentRoll: true,
     },
   });
 
+  // Fetch mortgage assets (MortgageAsset.ownerId is String → use owner.id)
   const mortgageAssets = await prisma.mortgageAsset.findMany({
-    where: { ownerId },
+    where: { ownerId: owner.id },
     include: { payments: true },
   });
 

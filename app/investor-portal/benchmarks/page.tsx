@@ -1,27 +1,31 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorBenchmarkChart } from "../_components/InvestorBenchmarkChart";
 
 export default async function InvestorBenchmarkPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
+  // Fetch equity snapshots
   const snapshots = await prisma.investorEquitySnapshot.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "asc" },
     take: 24,
   });
 
+  // Fetch benchmark snapshots
   const benchmarks = await prisma.investorBenchmarkSnapshot.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "asc" },
     take: 24,
   });
 
+  // Build chart data
   const chartData = snapshots.map((snap, i) => {
     const b = benchmarks[i];
 

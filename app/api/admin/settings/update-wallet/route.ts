@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     // ---------------------------------------------
     // 1. Extract session cookie
     // ---------------------------------------------
-    const cookie = request.cookies.get("admin_token")?.value;
+    const cookie = request.cookies.get("auth_token")?.value;
 
 
     if (!cookie) {

@@ -2,8 +2,13 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function PricingDashboardPage() {
+  // Correct cookie (NOT "session")
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) throw new Error("Not authenticated");
+
+  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 

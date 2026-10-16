@@ -2,7 +2,7 @@
 import { requireRole } from "@/lib/auth";
 
 export default async function LLPAAdminPage() {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   const res = await fetch("http://localhost:3000/api/pricing/llpa");
   const llpa = await res.json();

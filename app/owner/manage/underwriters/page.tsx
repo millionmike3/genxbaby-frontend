@@ -1,4 +1,3 @@
-
 import { getPrisma } from "@/lib/db/prisma";
 import Link from "next/link";
 
@@ -6,8 +5,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ManageUnderwritersPage() {
   const prisma = await getPrisma();
-  const underwriters = await prisma.underwriter.findMany({
-    orderBy: { fullName: "asc" },
+
+  // ✔ Underwriters are Users with role = "UNDERWRITER"
+  const underwriters = await prisma.user.findMany({
+    where: { role: "UNDERWRITER" },
+    orderBy: { username: "asc" }, // fallback to email if username is null
   });
 
   return (
@@ -27,7 +29,6 @@ export default async function ManageUnderwritersPage() {
             <tr className="text-slate-400">
               <th className="text-left py-2">Name</th>
               <th className="text-left py-2">Email</th>
-              <th className="text-left py-2">Authority Level</th>
               <th className="text-left py-2">Actions</th>
             </tr>
           </thead>
@@ -35,9 +36,10 @@ export default async function ManageUnderwritersPage() {
           <tbody>
             {underwriters.map((u) => (
               <tr key={u.id} className="border-t border-neutral-800">
-                <td className="py-2">{u.fullName}</td>
+                <td className="py-2">
+                  {u.username || u.email || "Unnamed Underwriter"}
+                </td>
                 <td className="py-2">{u.email}</td>
-                <td className="py-2">{u.level}</td>
                 <td className="py-2">
                   <Link
                     href={`/owner/manage/underwriters/${u.id}`}

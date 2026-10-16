@@ -12,9 +12,9 @@ export async function POST(req: Request) {
   const insurance = Number(data.get("insurance"));
   const hoa = Number(data.get("hoa") ?? 0);
 
-  const userId = "REPLACE_WITH_AUTH_USER_ID";
+  const userId = 0;
 
-  const borrower = await prisma.borrower.findUnique({
+  const borrower = await prisma.borrower.findFirst({
     where: { userId },
     include: {
       income: true,

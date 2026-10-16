@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPropertiesPage() {
   // Ensure only admins can access this page
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   // Fetch all properties
   const properties = await prisma.property.findMany({

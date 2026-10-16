@@ -1,9 +1,6 @@
-
-import { headers, cookies } from "next/headers";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { getSession } from "@/lib/session";
-import { requireRole } from "@/lib/auth";
+import { auth, requireRole } from "@/lib/auth";
 
 function Unauthorized() {
   return (
@@ -14,24 +11,21 @@ function Unauthorized() {
 }
 
 export default async function OwnerPortalLayout({ children }) {
-  // Enforce owner role
+  // Enforce correct role
   try {
-    await requireRole(["owner"]);
+    await requireRole(["OWNER"]);
   } catch {
     return <Unauthorized />;
   }
 
-  // Read cookies (must be awaited in Next.js 16)
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // Read verified session
+  const session = await auth();
+  if (!session?.user) {
+    return <Unauthorized />;
+  }
 
-  // Server-side active route detection
-  const hdrs = headers();
-  const pathname =
-    hdrs.get("x-pathname") ||
-    hdrs.get("referer") ||
-    "";
+  // Active route detection removed (it was crashing)
+  const pathname = "";
 
   const navItems = [
     { name: "Overview", href: "/owner-portal" },
@@ -45,7 +39,6 @@ export default async function OwnerPortalLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex">
-      {/* Sidebar */}
       <aside className="w-64 bg-slate-800 border-r border-slate-700 p-6">
         <h1 className="text-2xl font-bold mb-8">Owner Portal</h1>
 
@@ -68,7 +61,6 @@ export default async function OwnerPortalLayout({ children }) {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-10">{children}</main>
     </div>
   );

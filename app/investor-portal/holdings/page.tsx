@@ -1,18 +1,19 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorHoldingsTreeMap } from "../_components/InvestorHoldingsTreeMap";
 
 export default async function InvestorHoldingsPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
   // Fetch holdings with fund + metadata
   const holdings = await prisma.investorHolding.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     include: {
       fund: true,
       performance: true,

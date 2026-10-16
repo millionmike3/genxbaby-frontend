@@ -1,9 +1,6 @@
-
-import { requireRole } from "@/lib/auth";
+import { auth, requireRole } from "@/lib/auth";
 import { ReactNode } from "react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { headers } from "next/headers";
+import AdminSidebar from "./_components/AdminSidebar";
 
 function Unauthorized() {
   return (
@@ -16,54 +13,25 @@ function Unauthorized() {
   );
 }
 
-export default async function AdminPortalLayout({ children }: { children: ReactNode }) {
+export default async function AdminPortalLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  // 🔒 Enforce admin role (auth_token + uppercase role)
   try {
-    // ⭐ This now works because requireRole() accepts auth_token OR admin_token
-    await requireRole(["admin"]);
+    await requireRole(["ADMIN"]);
   } catch {
     return <Unauthorized />;
   }
 
-  const hdrs = headers();
-  const pathname =
-    hdrs.get("x-pathname") ||
-    hdrs.get("referer") ||
-    "";
-
-  const navItems = [
-    { name: "Dashboard", href: "/admin-portal" },
-    { name: "Users", href: "/admin-portal/users" },
-    { name: "Sessions", href: "/admin-portal/sessions" },
-    { name: "Signals", href: "/admin-portal/signals" },
-    { name: "Audit Log", href: "/admin-portal/audit" },
-    { name: "Integrations", href: "/admin-portal/integrations" },
-    { name: "System Config", href: "/admin-portal/system" },
-  ];
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) return <Unauthorized />;
 
   return (
     <section className="min-h-screen bg-slate-900 text-white flex">
-      <aside className="w-64 bg-slate-800 border-r border-slate-700 p-6">
-        <h1 className="text-2xl font-bold mb-8">Admin Portal</h1>
-
-        <nav className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "block px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition",
-                  isActive && "bg-slate-700 text-white"
-                )}
-              >
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
-
+      <AdminSidebar />
       <main className="flex-1 p-10">{children}</main>
     </section>
   );

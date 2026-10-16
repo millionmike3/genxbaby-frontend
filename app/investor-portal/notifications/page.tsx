@@ -1,16 +1,18 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 
 export default async function InvestorNotificationsPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
+  // Fetch investor notifications using unified session.user.id
   const notifications = await prisma.investorNotification.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "desc" },
     take: 50,
   });

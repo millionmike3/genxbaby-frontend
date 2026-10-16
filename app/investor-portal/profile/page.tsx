@@ -1,16 +1,18 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 
 export default async function InvestorProfilePage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
+  // Fetch investor profile using unified session.user.id
   const investor = await prisma.investorProfile.findFirst({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
   });
 
   return (
@@ -50,12 +52,10 @@ export default async function InvestorProfilePage() {
             <strong>Account Type:</strong> {investor?.accountType ?? "—"}
           </p>
           <p className="text-slate-300">
-            <strong>Routing:</strong>{" "}
-            {investor?.routingMasked ?? "—"}
+            <strong>Routing:</strong> {investor?.routingMasked ?? "—"}
           </p>
           <p className="text-slate-300">
-            <strong>Account:</strong>{" "}
-            {investor?.accountMasked ?? "—"}
+            <strong>Account:</strong> {investor?.accountMasked ?? "—"}
           </p>
         </div>
 

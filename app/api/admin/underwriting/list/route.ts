@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const token = cookieHeader
     .split(";")
     .map((c) => c.trim())
-    .find((c) => c.startsWith("admin_token="))
+    .find((c) => c.startsWith("auth_token="))
     ?.split("=")[1];
 
   if (!token) {

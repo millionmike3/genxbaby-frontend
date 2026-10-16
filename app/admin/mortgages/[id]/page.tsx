@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import ClientView from "./ClientView";
 
 export default async function MortgageDetailPage({ params }) {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   const loan = await prisma.mortgage.findUnique({
     where: { id: Number(params.id) },

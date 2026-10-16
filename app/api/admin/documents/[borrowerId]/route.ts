@@ -14,14 +14,14 @@ export async function GET(
   const token = cookieHeader
     .split(";")
     .map((c) => c.trim())
-    .find((c) => c.startsWith("admin_token="))
+    .find((c) => c.startsWith("auth_token="))
     ?.split("=")[1];
 
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as any;
-    if (payload.role !== "admin") {
+    if (payload.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   } catch {

@@ -6,7 +6,7 @@ export default async function BorrowerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireRole(["borrower"]);
+  await requireRole(["BORROWER"]);
 
   return (
     <section className="min-h-screen bg-slate-950 text-slate-100 flex">

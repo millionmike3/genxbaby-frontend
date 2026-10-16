@@ -12,7 +12,7 @@ import {
 
 interface RentRollPoint {
   month: string;
-  rentCollected: number;
+  rent: number; // match your actual data
 }
 
 interface RentRollTrendChartProps {
@@ -22,21 +22,14 @@ interface RentRollTrendChartProps {
 export default function RentRollTrendChart({ data }: RentRollTrendChartProps) {
   return (
     <div className="border rounded-lg p-4 bg-white shadow">
-      <h2 className="text-xl font-semibold mb-4">Rent Roll Trend</h2>
+      {/* Dark text for heading */}
+      <h2 className="text-xl font-semibold mb-4 text-gray-900">Rent Roll Trend</h2>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis
-            dataKey="month"
-            tick={{ fontSize: 12 }}
-            stroke="#6b7280"
-          />
-          <YAxis
-            tick={{ fontSize: 12 }}
-            stroke="#6b7280"
-            domain={["auto", "auto"]}
-          />
+          <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#6b7280" />
+          <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
           <Tooltip
             contentStyle={{
               backgroundColor: "white",
@@ -46,7 +39,7 @@ export default function RentRollTrendChart({ data }: RentRollTrendChartProps) {
           />
           <Line
             type="monotone"
-            dataKey="rentCollected"
+            dataKey="rent"
             stroke="#2563eb"
             strokeWidth={2}
             dot={{ r: 3 }}

@@ -29,7 +29,7 @@ export default function UnderwriterLoginPage() {
       return;
     }
 
-    router.push("/uw/dashboard");
+    router.push("/underwriting-portal");
   }
 
   return (

@@ -10,14 +10,15 @@ export default function OwnerLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/owner/login", {
+    const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 
@@ -29,7 +30,7 @@ export default function OwnerLoginPage() {
       return;
     }
 
-    router.push("/owner/dashboard");
+    router.push(data.redirect); // 🔥 This now sends owner to /owner-portal
   }
 
   return (

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 export async function GET() {
   try {
     const cookieStore = await cookies();   // ✔ Turbopack requires await
-    const token = cookieStore.get("admin_token")?.value ?? null;
+    const token = cookieStore.get("auth_token")?.value ?? null;
 
     return NextResponse.json({ token });
   } catch (err) {

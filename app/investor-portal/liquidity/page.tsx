@@ -1,17 +1,19 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorLiquidityStressChart } from "../_components/InvestorLiquidityStressChart";
 
 export default async function InvestorLiquidityPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
+  // Fetch diversification analytics using unified session.user.id
   const div = await prisma.investorDiversificationAnalytics.findFirst({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "desc" },
   });
 

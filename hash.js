@@ -1,2 +1,3 @@
 import bcrypt from "bcryptjs";
-console.log(await bcrypt.hash("Pass2Reckless818$!", 10));
+console.log(await bcrypt.hash("GenXBaby2026$", 10));
+

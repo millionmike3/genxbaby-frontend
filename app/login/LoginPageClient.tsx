@@ -1,14 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function LoginPageClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Redirect target after successful login
-  const redirectTo = searchParams.get("redirect") || "/admin/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,10 +21,7 @@ export default function LoginPageClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -39,7 +32,8 @@ export default function LoginPageClient() {
         return;
       }
 
-      router.push(redirectTo);
+      // 🔥 FIX: Use the role-based redirect returned from API
+      router.push(data.redirect);
     } catch (err) {
       console.error(err);
       setError("Unexpected error");

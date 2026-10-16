@@ -6,7 +6,7 @@ import { computeMilestone } from "@/lib/pipeline"; // your utilities
 export const dynamic = "force-dynamic";
 
 export default async function PipelineDashboardPage() {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
   const admin = await getCurrentUser();
 
   if (!admin) {

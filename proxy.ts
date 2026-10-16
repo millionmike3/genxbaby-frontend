@@ -1,14 +1,13 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export function proxy(req: NextRequest) {
-  const session = req.cookies.get("session")?.value;
+  const token = req.cookies.get("auth_token")?.value;
 
   const res = NextResponse.next();
 
-  // Example: attach session to response headers if needed
-  if (session) {
-    res.headers.set("x-session", session);
+  if (token) {
+    // Attach JWT to a safe custom header
+    res.headers.set("x-auth-token", token);
   }
 
   return res;

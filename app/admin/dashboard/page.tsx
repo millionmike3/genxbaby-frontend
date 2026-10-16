@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
   // Use your existing auth guard
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   // Use the canonical session resolver
   const user = await getCurrentUser();
@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
     );
   }
 
-  const fullName = user.username ?? user.email ?? "Admin";
+  const fullName = user.username ?? user.email ?? "ADMIN";
 
   return (
     <main className="min-h-screen bg-slate-900 text-white px-6 md:px-12 lg:px-20 py-16 space-y-12">

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const res = NextResponse.json({ success: true });
 
     // ⭐ 5. Set admin cookie (localhost-safe)
-    res.cookies.set("admin_token", token, {
+    res.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: false,          // MUST be false on localhost
       sameSite: "lax",        // MUST NOT be "none" on localhost

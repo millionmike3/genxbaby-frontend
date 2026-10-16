@@ -29,7 +29,7 @@ export default function BorrowerLoginPage() {
       return;
     }
 
-    router.push("/borrower/dashboard");
+    router.push("/borrower-portal");
   }
 
   return (

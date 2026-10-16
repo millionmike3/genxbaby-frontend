@@ -1,46 +1,37 @@
-
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import { getServerSession } from "next-auth";
 import { JWT_SECRET } from "@/lib/jwt";
 
-// Optional NextAuth session
 export async function auth() {
-  return await getServerSession();
-}
+  const cookieStore = await cookies();   // 🔥 REQUIRED in Next.js 16
 
-// Read user from either admin_token or auth_token
-export async function getUserFromCookie() {
-  const cookieStore = await cookies();
-
-  const token =
-    cookieStore.get("admin_token")?.value ||
-    cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("auth_token")?.value;
 
   if (!token) return null;
 
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload;
+
+    return {
+      user: {
+        id: payload.id,
+        role: payload.role,
+        fullName: payload.fullName,
+      },
+    };
   } catch (err) {
     console.error("JWT verification failed:", err);
     return null;
   }
 }
 
-// Universal role guard
 export async function requireRole(roles: string[]) {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies();   // 🔥 REQUIRED
 
-  const token =
-    cookieStore.get("admin_token")?.value ||
-    cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("auth_token")?.value;
 
-  if (!token) {
-    throw new Error("Unauthorized");
-  }
+  if (!token) throw new Error("Unauthorized");
 
-  // Verify JWT using unified secret
   const { payload } = await jwtVerify(token, JWT_SECRET);
 
   if (!roles.includes(payload.role)) {

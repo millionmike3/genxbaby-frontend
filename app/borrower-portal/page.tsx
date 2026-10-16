@@ -1,29 +1,30 @@
-
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
+import { auth, requireRole } from "@/lib/auth";
 
 export default async function BorrowerPortalOverviewPage() {
-  // 1. Read JWT from cookie (must await cookies() in Next.js 16)
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  // 2. Validate session
-  const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
-  if (session.role !== "borrower")
+  // 🔒 Enforce borrower role
+  try {
+    await requireRole(["BORROWER"]);
+  } catch {
     throw new Error("Unauthorized: borrower role required");
+  }
+
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
-  // 3. Fetch user
+  // Fetch user
   const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
+    where: { id: session.user.id },
   });
 
   if (!user) throw new Error("User not found");
 
-  // 4. Fetch borrower + latest application + intelligence
+  // Fetch borrower + latest application + intelligence
   const borrower = await prisma.borrower.findUnique({
     where: { userId: user.id },
     include: {

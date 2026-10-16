@@ -7,10 +7,9 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     // ---------------------------------------------
-    // 1. Extract session cookie
+    // 1. Extract unified session cookie
     // ---------------------------------------------
-   const cookie = request.cookies.get("admin_token")?.value;
-
+    const cookie = request.cookies.get("auth_token")?.value;
 
     if (!cookie) {
       return NextResponse.json(
@@ -47,7 +46,17 @@ export async function POST(request: NextRequest) {
     }
 
     // ---------------------------------------------
-    // 3. Parse request body
+    // 3. Ensure admin role (uppercase)
+    // ---------------------------------------------
+    if (payload.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    // ---------------------------------------------
+    // 4. Parse request body
     // ---------------------------------------------
     let body;
     try {
@@ -63,20 +72,20 @@ export async function POST(request: NextRequest) {
     const details = body?.metadata ?? {};
 
     // ---------------------------------------------
-    // 4. Capture IP address
+    // 5. Capture IP address
     // ---------------------------------------------
     const forwarded = request.headers.get("x-forwarded-for");
     const realIp = request.headers.get("x-real-ip");
     const ip = forwarded || realIp || request.ip || "unknown";
 
     // ---------------------------------------------
-    // 5. Write audit log entry
+    // 6. Write audit log entry
     // ---------------------------------------------
     const prisma = await getPrisma();
 
     await prisma.audit.create({
       data: {
-        adminId: payload.adminId ? Number(payload.adminId) : null,
+        adminId: Number(payload.id),   // ⭐ FIXED
         action,
         details,
         metadata: {
@@ -89,6 +98,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
+
   } catch (err) {
     console.error("AUDIT LOG ERROR:", err);
     return NextResponse.json(

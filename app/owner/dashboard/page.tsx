@@ -1,51 +1,57 @@
-
+import { auth, requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerDashboard() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session_owner")?.value;
-
-  if (!token) {
+  // 🔒 Enforce owner role using unified auth system
+  try {
+    await requireRole(["OWNER"]);
+  } catch {
     return (
       <main className="min-h-screen bg-slate-950 text-white p-6">
-        <h1>Unauthorized</h1>
+        <h1 className="text-2xl font-bold">Unauthorized</h1>
+        <p className="text-slate-400">Owner access required.</p>
       </main>
     );
   }
 
-  const { payload } = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.JWT_SECRET!)
-  );
+  // 🔐 Read verified JWT session
+  const session = await auth();
+
+  if (!session?.user || session.user.role !== "owner") {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white p-6">
+        <h1 className="text-2xl font-bold">Unauthorized</h1>
+        <p className="text-slate-400">Owner access required.</p>
+      </main>
+    );
+  }
 
   const prisma = await getPrisma();
 
-  // Fetch high-level system data
+  // 📊 Fetch high-level system data
   const [
-    totalBorrowers,
-    totalLoans,
-    totalStaff,
-    totalUnderwriters,
-    totalLoanOfficers,
-    totalInvestors,
-    totalRevenue,
-    fraudEvents,
-  ] = await Promise.all([
-    prisma.borrower.count(),
-    prisma.mortgage.count(),
-    prisma.staff.count(),
-    prisma.underwriter.count(),
-    prisma.loanOfficer.count(),
-    prisma.investor.count(),
-    prisma.revenue.aggregate({ _sum: { amount: true } }),
-    prisma.fraudEvent.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
-  ]);
-
+  totalBorrowers,
+  totalLoans,
+  totalStaff,
+  totalUnderwriters,
+  totalLoanOfficers,
+  totalInvestors,
+  fraudEvents,
+] = await Promise.all([
+  prisma.borrower.count(),
+  prisma.application.count(),
+  prisma.user.count({ where: { role: "STAFF" } }),
+  prisma.user.count({ where: { role: "UNDERWRITER" } }),
+  prisma.user.count({ where: { role: "LOAN_OFFICER" } }),
+  prisma.user.count({ where: { role: "INVESTOR" } }),
+  prisma.fraudEvent.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  }),
+]);
   return (
     <main className="min-h-screen bg-slate-950 text-white p-6 space-y-12">
       {/* HEADER */}
@@ -60,11 +66,12 @@ export default async function OwnerDashboard() {
 
       {/* KPI STRIP */}
       <section className="grid grid-cols-4 gap-4">
-        <DashboardCard label="Borrowers" value={totalBorrowers} />
-        <DashboardCard label="Loans" value={totalLoans} />
-        <DashboardCard label="Staff" value={totalStaff} />
-        <DashboardCard label="Revenue" value={`$${totalRevenue._sum.amount?.toLocaleString() ?? 0}`} />
+      <DashboardCard label="Borrowers" value={totalBorrowers} />
+      <DashboardCard label="Loans" value={totalLoans} />
+      <DashboardCard label="Staff" value={totalStaff} />
+      <DashboardCard label="Loan Officers" value={totalLoanOfficers} />
       </section>
+
 
       {/* SECOND KPI STRIP */}
       <section className="grid grid-cols-3 gap-4">
@@ -81,9 +88,18 @@ export default async function OwnerDashboard() {
 
           <ul className="space-y-3 text-sm">
             <DashboardLink href="/owner/manage/staff" label="Manage Staff" />
-            <DashboardLink href="/owner/manage/underwriters" label="Manage Underwriters" />
-            <DashboardLink href="/owner/manage/loan-officers" label="Manage Loan Officers" />
-            <DashboardLink href="/owner/manage/investors" label="Manage Investors" />
+            <DashboardLink
+              href="/owner/manage/underwriters"
+              label="Manage Underwriters"
+            />
+            <DashboardLink
+              href="/owner/manage/loan-officers"
+              label="Manage Loan Officers"
+            />
+            <DashboardLink
+              href="/owner/manage/investors"
+              label="Manage Investors"
+            />
             <DashboardLink href="/owner/manage/pricing" label="Pricing Engine" />
             <DashboardLink href="/owner/manage/rules" label="Underwriting Rules" />
           </ul>
@@ -91,7 +107,9 @@ export default async function OwnerDashboard() {
 
         {/* FRAUD + BEHAVIOR INTELLIGENCE */}
         <div className="col-span-6 bg-neutral-900 border border-neutral-700 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-3">Fraud & Behavioral Intelligence</h2>
+          <h2 className="text-xl font-semibold mb-3">
+            Fraud & Behavioral Intelligence
+          </h2>
 
           <ul className="space-y-3 text-sm">
             {fraudEvents.map((event) => (
@@ -117,10 +135,7 @@ export default async function OwnerDashboard() {
         <div className="col-span-12 bg-neutral-900 border border-neutral-700 rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-3">Pipeline Overview</h2>
 
-          <Link
-            href="/crm"
-            className="text-[#3CF46B] underline text-sm"
-          >
+          <Link href="/crm" className="text-[#3CF46B] underline text-sm">
             Open CRM Dashboard
           </Link>
         </div>

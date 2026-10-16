@@ -1,20 +1,21 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 
 export default async function InvestorScenariosPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
   const risk = await prisma.investorRiskScore.findFirst({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
   });
 
   const equity = await prisma.investorEquitySnapshot.findFirst({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "desc" },
   });
 

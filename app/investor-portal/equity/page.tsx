@@ -1,18 +1,19 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorEquityGrowthChart } from "../_components/InvestorCharts";
 
 export default async function InvestorEquityPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
   // Fetch 24 months of equity snapshots for chart
   const snapshots = await prisma.investorEquitySnapshot.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "asc" },
     take: 24,
   });

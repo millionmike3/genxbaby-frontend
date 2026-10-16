@@ -6,23 +6,34 @@ import { useRouter } from "next/navigation";
 export default function OwnerLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e) {
     e.preventDefault();
+    setError("");
 
-    // TODO: Replace with your real auth logic
-    router.push("/owner-portal");
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Invalid credentials");
+      return;
+    }
+
+    router.push(data.redirect);
   }
 
   return (
     <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6">
       <div className="w-full max-w-md bg-slate-900 p-8 rounded-xl border border-slate-800">
         <h1 className="text-3xl font-bold mb-6">Owner Login</h1>
-
-        <p className="text-slate-400 mb-6">
-          Sign in to access your organization’s oversight, compliance, and behavioral intelligence dashboards.
-        </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
@@ -36,10 +47,14 @@ export default function OwnerLoginPage() {
           <input
             type="password"
             placeholder="Password"
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 rounded-md bg-slate-800 border border-slate-700 text-white"
           />
+
+          {error && (
+            <div className="text-red-400 text-sm">{error}</div>
+          )}
 
           <button
             type="submit"

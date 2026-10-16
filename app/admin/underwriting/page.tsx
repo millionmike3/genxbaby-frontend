@@ -47,7 +47,7 @@ function computeUWDecision(loan: any) {
 }
 
 export default async function AdminUnderwritingQueuePage() {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   // Fetch mortgages needing underwriting
   const loans = await prisma.Application.findMany({

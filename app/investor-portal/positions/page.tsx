@@ -1,37 +1,21 @@
+import { auth, requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 
 export default async function InvestorScoringPage() {
-  // 1. Read JWT from cookie
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  // 🔒 Enforce investor role
+  await requireRole(["INVESTOR"]);
 
-  // 2. Validate session
-  const session = await getSession(token);
-  if (!session) {
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
     throw new Error("Not authenticated");
-  }
-
-  // 3. Enforce investor role
-  if (session.role !== "investor") {
-    throw new Error("Unauthorized: investor role required");
   }
 
   const prisma = await getPrisma();
 
-  // 4. Fetch user from DB
-  const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
-  });
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // 5. Fetch investor scoring records
+  // Fetch investor scoring records using unified session.user.id
   const investor = await prisma.investor.findFirst({
-    where: { userId: user.id },
+    where: { userId: session.user.id },
     include: {
       investorRiskScore: true,
       investorBehaviorScore: true,

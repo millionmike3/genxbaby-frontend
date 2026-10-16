@@ -3,7 +3,7 @@ import BehavioralPanel from "../underwriting-app/components/BehavioralPanel";
 
 export default async function InvestorPortal() {
   // Enforce investor-only access
-  const session = await requireRole(["investor"]);
+  const session = await requireRole(["INVESTOR"]);
 
   // Placeholder portfolio data — replace with DAL later
   const portfolioValue = "$482,900";

@@ -1,18 +1,19 @@
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
 import { InvestorTransactionsTimeline } from "../_components/InvestorTransactionsTimeline";
 
 export default async function InvestorTransactionsPage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
   // Fetch all transactions (contributions, distributions, reinvestments, transfers)
   const tx = await prisma.investorTransaction.findMany({
-    where: { investorId: Number(session.userId) },
+    where: { investorId: session.user.id },
     orderBy: { createdAt: "asc" },
     take: 50,
   });

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     // ---------------------------------------------
     // 1. Ensure admin role
     // ---------------------------------------------
-    await requireRole(["admin"]);
+    await requireRole(["ADMIN"]);
 
     // ---------------------------------------------
     // 2. Fetch all users

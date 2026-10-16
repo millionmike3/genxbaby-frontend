@@ -7,9 +7,9 @@ export default async function AffordabilityCalculatorPage() {
   const prisma = await getPrisma();
 
   // TODO: Replace with authenticated borrower userId
-  const userId = "REPLACE_WITH_AUTH_USER_ID";
+  const userId = 0;
 
-  const borrower = await prisma.borrower.findUnique({
+  const borrower = await prisma.borrower.findFirst({
     where: { userId },
     include: {
       income: true,

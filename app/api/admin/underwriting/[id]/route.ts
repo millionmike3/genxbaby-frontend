@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+import { JWT_SECRET } from "@/lib/jwt";
 import { getPrisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET!;
 
 /* ============================
    Fraud Flags
@@ -48,25 +48,21 @@ export async function GET(
   /* ============================
      Admin JWT Authentication
   ============================= */
-  const cookieHeader = req.headers.get("cookie") ?? "";
-  const token = cookieHeader
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith("admin_token="))
-    ?.split("=")[1];
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value ?? null;
 
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let adminId: string;
-
+  let payload: any;
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    if (payload.role !== "admin") {
+    const verified = await jwtVerify(token, JWT_SECRET);
+    payload = verified.payload;
+
+    if (payload.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    adminId = payload.sub;
   } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -84,12 +80,15 @@ export async function GET(
   });
 
   if (!application) {
-    return NextResponse.json({ error: "Application not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Application not found" },
+      { status: 404 }
+    );
   }
 
   /* ============================
      Fetch Score
-  ============================= */
+============================ */
   const score = await prisma.borrowerScore.findFirst({
     where: { applicationId },
     orderBy: { createdAt: "desc" },
@@ -104,13 +103,13 @@ export async function GET(
 
   /* ============================
      Fraud Flags + Persona
-  ============================= */
+============================ */
   const fraudFlags = getFraudFlags(application, score);
   const persona = getPersona(application, score);
 
   /* ============================
      Application Timeline
-  ============================= */
+============================ */
   const timeline = await prisma.application.findMany({
     where: { borrowerId: application.borrowerId },
     orderBy: { createdAt: "desc" },
@@ -118,7 +117,7 @@ export async function GET(
 
   /* ============================
      Document Status (placeholder)
-  ============================= */
+============================ */
   const documents = [
     { id: "id", type: "Government ID", status: "Missing", uploadedAt: null },
     { id: "paystubs", type: "Paystubs (30 days)", status: "Missing", uploadedAt: null },
@@ -127,9 +126,6 @@ export async function GET(
     { id: "utility", type: "Utility Bill", status: "Missing", uploadedAt: null },
   ];
 
-  /* ============================
-     Final Response
-  ============================= */
   return NextResponse.json({
     success: true,
     borrower: application.borrower,

@@ -1,4 +1,3 @@
-
 import { requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
@@ -8,12 +7,13 @@ import OwnerDashboardWidgets from "./_components/OwnerDashboardWidgets";
 import OwnerCharts from "./_components/charts/OwnerCharts";
 
 export default async function OwnerPortalHome() {
-  // Enforce owner role
-  await requireRole(["owner"]);
+  // Enforce owner role (uppercase)
+  await requireRole(["OWNER"]);
 
-  // Read JWT from cookie (must await cookies() in Next.js 16)
+  // Read JWT from correct cookie
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("auth_token")?.value;
+  if (!token) throw new Error("Not authenticated");
 
   // Validate session
   const session = await getSession(token);
@@ -22,28 +22,15 @@ export default async function OwnerPortalHome() {
   const prisma = await getPrisma();
 
   // Fetch user
-  const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
-  });
-
+  const user = await prisma.user.findUnique({ where: { id: session.id } });
   if (!user) throw new Error("User not found");
 
   // Fetch owner record
   const owner = await prisma.owner.findFirst({
     where: { userId: user.id },
     include: {
-      properties: {
-        include: {
-          ownerEquity: true,
-          rentRoll: true,
-          financials: true,
-        },
-      },
-      mortgageAssets: {
-        include: {
-          payments: true,
-        },
-      },
+      properties: { include: { ownerEquity: true, rentRoll: true, financials: true } },
+      mortgageAssets: { include: { payments: true } },
     },
   });
 
@@ -54,8 +41,7 @@ export default async function OwnerPortalHome() {
         <h1 className="text-4xl font-bold mb-4">Owner Portal</h1>
         <p className="text-slate-300 text-lg">
           Welcome, {owner?.name ?? user.email}. Use the navigation to access your
-          properties, mortgage assets, performance analytics, cashflow, and
-          equity intelligence.
+          properties, mortgage assets, performance analytics, cashflow, and equity intelligence.
         </p>
       </div>
 

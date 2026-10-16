@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 export default async function MortgageAdminPage() {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   const mortgages = await prisma.MortgageAsset.findMany({
     orderBy: { createdAt: "desc" },

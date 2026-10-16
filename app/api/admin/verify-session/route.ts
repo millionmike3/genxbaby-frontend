@@ -1,44 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse } from "next/server";
+import { auth, requireRole } from "@/lib/auth";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const cookie = request.headers.get("cookie");
+    // 🔒 Enforce admin role
+    await requireRole(["ADMIN"]);
 
-    if (!cookie || !cookie.includes("admin_session=")) {
+    // 🔐 Read verified session
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json(
         { authenticated: false },
         { status: 401 }
       );
     }
-
-    const token = cookie
-      .split(";")
-      .find((c) => c.trim().startsWith("admin_session="))
-      ?.split("=")[1];
-
-    if (!token) {
-      return NextResponse.json(
-        { authenticated: false },
-        { status: 401 }
-      );
-    }
-
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-
-    const { payload } = await jwtVerify(token, secret);
 
     return NextResponse.json({
       authenticated: true,
       admin: {
-        id: payload.adminId,
-        email: payload.email,
-        role: payload.role,
-        wallet: payload.wallet,
+        id: session.user.id,
+        role: session.user.role,
+        fullName: session.user.fullName,
       },
     });
   } catch (err) {
-    console.error("SESSION VERIFY ERROR:", err);
+    console.error("ADMIN SESSION ERROR:", err);
     return NextResponse.json(
       { authenticated: false },
       { status: 401 }

@@ -1,4 +1,3 @@
-
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
@@ -17,19 +16,35 @@ import {
 } from "../_components/PortfolioCharts";
 
 export default async function OwnerPortalPortfolioIntelligencePage() {
-  // Session validated in OwnerPortalLayout, but we still need userId
+  // Correct cookie (NOT "session")
   const cookieStore = await cookies(); // MUST be awaited in Next.js 16
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("auth_token")?.value;
 
+  if (!token) throw new Error("Not authenticated");
+
+  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
-  const ownerId = Number(session.userId);
+
+  // Fetch user (User.id is Int)
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // Fetch owner (Owner.userId is Int)
+  const owner = await prisma.owner.findFirst({
+    where: { userId: user.id },
+  });
+
+  if (!owner) throw new Error("Owner record not found");
 
   // Load properties + mortgages
   const properties = await prisma.property.findMany({
-    where: { ownershipEntity: { ownerId } },
+    where: { ownershipEntity: { ownerId: owner.userId } },
     include: {
       ownerEquity: true,
       financials: true,
@@ -37,7 +52,7 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
   });
 
   const mortgages = await prisma.mortgageAsset.findMany({
-    where: { ownerId },
+    where: { ownerId: owner.id }, // MortgageAsset.ownerId is String
     include: {
       performance: true,
     },

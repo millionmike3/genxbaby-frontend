@@ -1,35 +1,32 @@
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
+import { auth, requireRole } from "@/lib/auth";
 
 export default async function BorrowerDocsPage() {
-  // 1. Read JWT from cookie
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  // 2. Validate session
-  const session = await getSession(token);
-  if (!session) {
-    throw new Error("Not authenticated");
+  // 🔒 Enforce borrower role
+  try {
+    await requireRole(["BORROWER"]);
+  } catch {
+    throw new Error("Unauthorized: borrower role required");
   }
 
-  // 3. Enforce borrower role
-  if (session.role !== "borrower") {
-    throw new Error("Unauthorized: borrower role required");
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
   }
 
   const prisma = await getPrisma();
 
-  // 4. Fetch user from DB
+  // Fetch user from DB
   const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
+    where: { id: session.user.id },
   });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  // 5. Fetch borrower + latest application + documents + AI layers
+  // Fetch borrower + latest application + documents + AI layers
   const borrower = await prisma.borrower.findUnique({
     where: { userId: user.id },
     include: {

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 import { requireRole } from "@/lib/authz";
 
 export default async function InvestorScoringPage() {
-  await requireRole(["investor"]);
+  await requireRole(["INVESTOR"]);
 
   const session = await getSession();
   const userId = Number(session.userId);

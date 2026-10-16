@@ -7,9 +7,9 @@ export const dynamic = "force-dynamic";
 export default async function PortfolioSanitizerPage() {
   const prisma = await getPrisma();
 
-  const userId = "REPLACE_WITH_AUTH_USER_ID";
+  const userId = 0;
 
-  const owner = await prisma.owner.findUnique({
+  const owner = await prisma.owner.findFirst({
     where: { userId },
     include: {
       properties: {

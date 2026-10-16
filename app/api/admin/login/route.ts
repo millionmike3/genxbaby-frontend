@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       where: { email },
     });
 
-    if (!user || user.role !== "admin") {
+    if (!user || user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -36,10 +36,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build JWT payload
+    // Build JWT payload (unified format)
     const payload = {
       id: user.id,
-      role: user.role,
+      role: "ADMIN",            // ⭐ MUST be uppercase
       fullName: user.fullName ?? null,
     };
 
@@ -50,12 +50,15 @@ export async function POST(request: NextRequest) {
       .sign(JWT_SECRET);
 
     // Create response
-    const res = NextResponse.json({ success: true, role: user.role });
+    const res = NextResponse.json({
+      success: true,
+      redirect: "/admin-portal",
+    });
 
-    // Set cookie (localhost-safe)
-    res.cookies.set("admin_token", token, {
+    // ⭐ Unified cookie name for ALL portals
+    res.cookies.set("auth_token", token, {
       httpOnly: true,
-      secure: false, // localhost only
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days

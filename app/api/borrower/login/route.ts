@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getPrisma } from "@/lib/prisma";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET!; // must exist in .env.local
+import { SignJWT } from "jose";
+import { JWT_SECRET } from "@/lib/jwt";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,24 +31,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create JWT
-    const token = jwt.sign(
-      {
-        sub: borrower.id,
-        role: "borrower",
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Create unified JWT payload
+    const payload = {
+      id: borrower.id,
+      role: "BORROWER",
+      fullName: borrower.fullName ?? null,
+    };
+
+    // Create JWT using JOSE + Uint8Array secret
+    const token = await new SignJWT(payload)
+      .setProtectedHeader({ alg: "HS256" })
+      .setExpirationTime("7d")
+      .sign(JWT_SECRET);
 
     // Response
     const res = NextResponse.json({ success: true });
 
-    // Set secure cookie
-    res.cookies.set("borrower_token", token, {
+    // Set unified cookie
+    res.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });

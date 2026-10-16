@@ -1,19 +1,18 @@
-
-import { cookies } from "next/headers";
-import { getSession } from "@/lib/session";
+import { auth } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
 
 export default async function BorrowerDisbursementPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  const session = await getSession(token);
-  if (!session) throw new Error("Not authenticated");
+  // 🔐 Read verified session from auth_token
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
+  }
 
   const prisma = await getPrisma();
 
+  // Fetch disbursement using unified session.user.id
   const disbursement = await prisma.disbursement.findFirst({
-    where: { borrowerId: Number(session.userId) },
+    where: { borrowerId: session.user.id },
   });
 
   return (

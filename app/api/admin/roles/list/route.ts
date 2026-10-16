@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     // ---------------------------------------------
     // 1. Ensure admin role
     // ---------------------------------------------
-    await requireRole(["admin"]);
+    await requireRole(["ADMIN"]);
 
     // ---------------------------------------------
     // 2. Fetch roles + admins
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const roles = await prisma.role.findMany();
 
     const admins = await prisma.user.findMany({
-      where: { role: "admin" },
+      where: { role: "ADMIN" },
     });
 
     return NextResponse.json({ roles, admins });

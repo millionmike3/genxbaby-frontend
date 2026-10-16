@@ -29,7 +29,7 @@ export default function InvestorLoginPage() {
       return;
     }
 
-    router.push("/investor/dashboard");
+    router.push("/investor-portal");
   }
 
   return (

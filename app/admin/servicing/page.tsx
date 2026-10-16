@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function ServicingEnginePage() {
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
   const admin = await getCurrentUser();
 
   if (!admin) {

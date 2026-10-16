@@ -1,4 +1,3 @@
-
 import { getPrisma } from "@/lib/db/prisma";
 import Link from "next/link";
 
@@ -6,8 +5,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ManageStaffPage() {
   const prisma = await getPrisma();
-  const staff = await prisma.staff.findMany({
-    orderBy: { fullName: "asc" },
+
+  // ✔ Staff are Users with role = "STAFF"
+  const staff = await prisma.user.findMany({
+    where: { role: "STAFF" },
+    orderBy: { username: "asc" }, // fallback to email if username is null
   });
 
   return (
@@ -27,7 +29,6 @@ export default async function ManageStaffPage() {
             <tr className="text-slate-400">
               <th className="text-left py-2">Name</th>
               <th className="text-left py-2">Email</th>
-              <th className="text-left py-2">Status</th>
               <th className="text-left py-2">Actions</th>
             </tr>
           </thead>
@@ -35,9 +36,10 @@ export default async function ManageStaffPage() {
           <tbody>
             {staff.map((s) => (
               <tr key={s.id} className="border-t border-neutral-800">
-                <td className="py-2">{s.fullName}</td>
+                <td className="py-2">
+                  {s.username || s.email || "Unnamed Staff"}
+                </td>
                 <td className="py-2">{s.email}</td>
-                <td className="py-2">{s.status}</td>
                 <td className="py-2">
                   <Link
                     href={`/owner/manage/staff/${s.id}`}

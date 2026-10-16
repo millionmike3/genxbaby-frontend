@@ -1,31 +1,23 @@
-
+import { auth, requireRole } from "@/lib/auth";
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 
 export const dynamic = "force-dynamic";
 
 export default async function StaffDashboard() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session_staff")?.value;
+  // 🔒 Enforce staff role
+  await requireRole(["STAFF"]);
 
-  if (!token) {
-    return (
-      <main className="min-h-screen bg-slate-950 text-white p-6">
-        <h1>Unauthorized</h1>
-      </main>
-    );
+  // 🔐 Read verified session from auth_token (staff token)
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error("Not authenticated");
   }
-
-  const { payload } = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.JWT_SECRET!)
-  );
 
   const prisma = await getPrisma();
 
+  // Fetch staff record using unified session.user.id
   const staff = await prisma.staff.findUnique({
-    where: { id: payload.staffId },
+    where: { id: session.user.id },
     include: {
       tasks: true,
       loans: true,

@@ -23,7 +23,13 @@ enum Pillar {
 
 enum UserRole {
   ADMIN
+  OWNER
+  UNDERWRITER
   INVESTOR
+  LOAN_OFFICER
+  PROCESSOR
+  SERVICING
+  STAFF
   BORROWER
 }
 
@@ -38,18 +44,19 @@ enum InvestorAction {
 // ------------------------------------------------------------
 
 model User {
-  id            Int             @id @default(autoincrement())
-  email         String          @unique
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
   username      String?
   phone         String?
   passwordHash  String?
-  role          String          @default("user")
+  role          UserRole @default(BORROWER)
+
   walletAddress String?
   ownerId       String?
-  xp            Int             @default(0)
-  createdAt     DateTime        @default(now())
-  riskScore     UserRiskScore?
-  riskSignal    UserRiskSignal?
+  xp            Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  owner Owner?
 
   positions        Position[]
   auditLogs        AuditLog[]
@@ -75,7 +82,10 @@ model User {
   bluetoothAlerts          BluetoothAlert[]
   bluetoothRiskEvents      BluetoothRiskEvent[]
   OwnershipEntity          OwnershipEntity[]
-  MortgageAsset            MortgageAsset[]
+  UserRiskScore            UserRiskScore?
+  UserRiskSignal           UserRiskSignal?
+  sessions                 Session[]
+
 }
 
 // ------------------------------------------------------------
@@ -124,6 +134,7 @@ model Borrower {
   borrowerDeclarations BorrowerDeclarations[]
   borrowerDemographics BorrowerDemographics[]
   borrowerDocuments    BorrowerDocument[]
+  tasks                Task[]
 }
 
 // ------------------------------------------------------------
@@ -202,6 +213,7 @@ model Lead {
   behaviorEvents   BehaviorEvent[]
   BluetoothEvent   BluetoothEvent[]
   scoringResults   LeadScoringResult[]
+  tasks            Task[]
 }
 
 model LeadEvent {
@@ -339,7 +351,6 @@ model Application {
   pitiMonthly   Int?
   propertyValue Int?
   totalLiens    Int?
-  
 
   // Full 1003 payload for audit / replay
   full1003Json Json?
@@ -362,10 +373,10 @@ model Application {
   fraudChains          ApplicationFraudSignalChain[]
   documentCompleteness ApplicationDocumentCompleteness[]
 
-  amortization                 LoanAmortization?
-  payoff                       LoanPayoff?
-  delinquency                  LoanDelinquency?
-  
+  amortization LoanAmortization?
+  payoff       LoanPayoff?
+  delinquency  LoanDelinquency?
+
   FraudAiInferenceLog          FraudAiInferenceLog?
   FraudEscalation              FraudEscalation?
   FraudEscalationPipelineLayer FraudEscalationPipelineLayer?
@@ -407,7 +418,6 @@ model Application {
   StressTestScenario   StressTestScenario?
   StressTestResult     StressTestResult?
 
-  
   ScoringResult        ScoringResult?
   AnchorRecord         AnchorRecord?
   pipelineDeals        PipelineDeal[]
@@ -425,10 +435,10 @@ model Application {
   documentRequirements DocumentRequirement[]
   pipelineOutput       UnderwritingPipelineOutput? @relation(fields: [underwritingPipelineOutputId], references: [id])
 
-  servicingRecord       ServicingRecord?
-  loanServicingEvents   LoanServicingEvent[]
-  servicingEventScore   ServicingEventScore?
-  servicingRiskSignal   ServicingRiskSignal?
+  servicingRecord     ServicingRecord?
+  loanServicingEvents LoanServicingEvent[]
+  servicingEventScore ServicingEventScore?
+  servicingRiskSignal ServicingRiskSignal?
 
   underwritingPipelineOutputId String?
 }
@@ -2452,8 +2462,8 @@ model LoanServicingEvent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId     String?
-  application       Application? @relation(fields: [applicationId], references: [id])
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
 
   servicingRecordId String?
   servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
@@ -2462,7 +2472,6 @@ model LoanServicingEvent {
   payload   Json?
   metadata  Json?
 }
-
 
 // ------------------------------------------------------------
 // TS-REFERENCED SERVICING MODELS
@@ -2473,17 +2482,16 @@ model ServicingEventScore {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId     String? @unique
-  application       Application? @relation(fields: [applicationId], references: [id])
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
 
-  servicingRecordId String? @unique
+  servicingRecordId String?          @unique
   servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
 
   score    Float?
   factors  Json?
   metadata Json?
 }
-
 
 // ------------------------------------------------------------
 // BANKING DOMAIN
@@ -2879,17 +2887,16 @@ model ServicingRiskSignal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  applicationId     String? @unique
-  application       Application? @relation(fields: [applicationId], references: [id])
+  applicationId String?      @unique
+  application   Application? @relation(fields: [applicationId], references: [id])
 
-  servicingRecordId String? @unique
+  servicingRecordId String?          @unique
   servicingRecord   ServicingRecord? @relation(fields: [servicingRecordId], references: [id])
 
   signalType String?
   strength   Float?
   metadata   Json?
 }
-
 
 model OwnershipEntity {
   id               Int     @id @default(autoincrement())
@@ -2976,9 +2983,10 @@ model OwnerEquity {
 }
 
 model MortgageAsset {
-  id      Int  @id @default(autoincrement())
-  ownerId Int
-  owner   User @relation(fields: [ownerId], references: [id])
+  id String @id @default(cuid())
+
+  ownerId String
+  owner   Owner  @relation(fields: [ownerId], references: [id])
 
   borrowerId String?
   borrower   Borrower? @relation(fields: [borrowerId], references: [id])
@@ -2998,7 +3006,7 @@ model MortgageAsset {
 
 model PaymentHistory {
   id              Int           @id @default(autoincrement())
-  mortgageAssetId Int
+  mortgageAssetId String
   mortgageAsset   MortgageAsset @relation(fields: [mortgageAssetId], references: [id])
 
   amount    Int
@@ -3012,10 +3020,10 @@ model PaymentHistory {
 
 model MortgagePerformance {
   id              Int           @id @default(autoincrement())
-  mortgageAssetId Int           @unique
+  mortgageAssetId String        @unique
   mortgageAsset   MortgageAsset @relation(fields: [mortgageAssetId], references: [id])
 
-  dti           Float? // borrower-level DTI
+  dti           Float?
   ltv           Float?
   cltv          Float?
   riskScore     Float?
@@ -3378,12 +3386,15 @@ model BorrowerDocument {
 }
 
 model Owner {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  fullName  String
-  createdAt DateTime @default(now())
+  id     String @id @default(cuid())
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
 
-  properties Property[]
+  email    String?
+  fullName String?
+
+  properties     Property[]
+  mortgageAssets MortgageAsset[]
 }
 
 model Tenant {
@@ -3441,32 +3452,57 @@ model LoanOfficer {
   createdAt    DateTime      @default(now())
   applications Application[]
 }
-model PricingAuditLog {
-  id            String   @id @default(cuid())
-  actorRole     String
-  actorId       String?
-  action        String
-  module        String
-  details       String
-  createdAt     DateTime @default(now())
-}
-model ServicingRecord {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 
-  applicationId String   @unique
+model PricingAuditLog {
+  id        String   @id @default(cuid())
+  actorRole String
+  actorId   String?
+  action    String
+  module    String
+  details   String
+  createdAt DateTime @default(now())
+}
+
+model ServicingRecord {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicationId String      @unique
   application   Application @relation(fields: [applicationId], references: [id])
 
-  status        String   @default("ACTIVE")
-  nextPaymentDue DateTime?
-  escrowBalance Float?   @default(0)
-  delinquencyDays Int?   @default(0)
-  performanceScore Float? @default(0)
+  status           String    @default("ACTIVE")
+  nextPaymentDue   DateTime?
+  escrowBalance    Float?    @default(0)
+  delinquencyDays  Int?      @default(0)
+  performanceScore Float?    @default(0)
 
   // Relations
-  events        LoanServicingEvent[]
-  riskSignals   ServicingRiskSignal?
-  eventScore    ServicingEventScore?
+  events      LoanServicingEvent[]
+  riskSignals ServicingRiskSignal?
+  eventScore  ServicingEventScore?
 }
 
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  borrowerId String?
+  borrower   Borrower? @relation(fields: [borrowerId], references: [id])
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+}
+model Session {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  createdAt     DateTime @default(now())
+  lastActiveAt  DateTime?
+  ipAddress     String?
+  revoked       Boolean  @default(false)
+
+  user          User     @relation(fields: [userId], references: [id])
+}

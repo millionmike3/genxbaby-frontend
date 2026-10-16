@@ -7,10 +7,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     // ---------------------------------------------
-    // 1. Extract session cookie
+    // 1. Extract unified session cookie
     // ---------------------------------------------
-    const cookie = request.cookies.get("admin_token")?.value;
-
+    const cookie = request.cookies.get("auth_token")?.value;
 
     if (!cookie) {
       return NextResponse.json(
@@ -47,9 +46,9 @@ export async function GET(request: NextRequest) {
     }
 
     // ---------------------------------------------
-    // 3. Ensure admin role
+    // 3. Ensure admin role (uppercase)
     // ---------------------------------------------
-    if (payload.role !== "admin") {
+    if (payload.role !== "ADMIN") {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -74,6 +73,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ logs });
+
   } catch (err) {
     console.error("AUDIT LIST ERROR:", err);
     return NextResponse.json(

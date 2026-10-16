@@ -1,9 +1,7 @@
-
-import { headers, cookies } from "next/headers";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { getSession } from "@/lib/session";
-import { requireRole } from "@/lib/auth";
+import { auth, requireRole } from "@/lib/auth";
 
 function Unauthorized() {
   return (
@@ -20,25 +18,22 @@ export default async function BorrowerPortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Enforce borrower role
+  // 🔒 Enforce borrower role
   try {
-    await requireRole(["borrower"]);
+    await requireRole(["BORROWER"]);
   } catch {
     return <Unauthorized />;
   }
 
-  // Read cookies (must be awaited in Next.js 16)
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-  const session = await getSession(token);
+  // 🔐 Read verified session
+  const session = await auth();
+  if (!session?.user) return <Unauthorized />;
 
-  // Server-side active route detection
+  // 📍 Correct pathname detection for Next.js 16
   const hdrs = headers();
-  const pathname =
-    hdrs.get("x-pathname") ||
-    hdrs.get("referer") ||
-    "";
+  const pathname = hdrs.get("next-url") || "";
 
+  // 📌 Borrower navigation items
   const navItems = [
     { name: "Overview", href: "/borrower-portal" },
     { name: "Loan Status", href: "/borrower-portal/status" },

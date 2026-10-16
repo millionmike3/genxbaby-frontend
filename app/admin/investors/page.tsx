@@ -56,7 +56,7 @@ async function getInvestors(token: string | null, limit = 50) {
 
   const res = await fetch(url.toString(), {
     cache: "no-store",
-    headers: token ? { Cookie: `admin_token=${token}` } : {},
+    headers: token ? { Cookie: `auth_token=${token}` } : {},
   });
 
   if (!res.ok) {

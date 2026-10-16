@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     .sign(new TextEncoder().encode(process.env.JWT_SECRET!));
 
   // Set cookie
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set("session", token, {
     httpOnly: true,
     secure: true,

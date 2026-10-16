@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/authz";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await requireRole(["borrower"]);
+    const session = await requireRole(["BORROWER"]);
 
     if (!session || !session.user || !session.user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -4,7 +4,7 @@ import { getPrisma } from "@/lib/db/prisma";
 
 export default async function AdminPortalSessionsPage() {
   // Enforce admin role
-  await requireRole(["admin"]);
+  await requireRole(["ADMIN"]);
 
   const prisma = await getPrisma();
 

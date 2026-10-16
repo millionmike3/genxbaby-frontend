@@ -5,7 +5,16 @@ import { cookies } from "next/headers";
 import { getPrisma } from "@/lib/db/prisma";
 import { JWT_SECRET } from "@/lib/jwt";
 
-export type Role = "admin" | "investor" | "borrower";
+export type Role =
+  | "ADMIN"
+  | "INVESTOR"
+  | "BORROWER"
+  | "OWNER"
+  | "UNDERWRITER"
+  | "PROCESSING"
+  | "SERVICING"
+  | "STAFF"
+  | "LOAN_OFFICER";
 
 export interface SessionPayload {
   id: number;
@@ -21,23 +30,23 @@ export async function createSession(payload: SessionPayload) {
     .sign(JWT_SECRET);
 }
 
-// Validate JWT and return payload
+// Legacy-safe: validate JWT and return payload
+// (Unified system uses auth(), but this keeps compatibility)
 export async function getSession(token: string | undefined) {
   if (!token) return null;
 
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload as SessionPayload;
-  } catch (err) {
-    console.error("JWT verification failed:", err);
+  } catch {
     return null;
   }
 }
 
-// Get current user from JWT cookie
+// Unified system: get current user from auth_token
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token")?.value;
+  const token = cookieStore.get("auth_token")?.value;
 
   if (!token) return null;
 

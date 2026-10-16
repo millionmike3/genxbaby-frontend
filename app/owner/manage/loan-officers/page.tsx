@@ -1,4 +1,3 @@
-
 import { getPrisma } from "@/lib/db/prisma";
 import Link from "next/link";
 
@@ -6,8 +5,10 @@ export const dynamic = "force-dynamic";
 
 export default async function ManageLoanOfficersPage() {
   const prisma = await getPrisma();
+
+  // ✔ Loan officers are stored in the LoanOfficer model
   const officers = await prisma.loanOfficer.findMany({
-    orderBy: { fullName: "asc" },
+    orderBy: { name: "asc" }, // ✔ FIXED (fullName → name)
   });
 
   return (
@@ -27,7 +28,6 @@ export default async function ManageLoanOfficersPage() {
             <tr className="text-slate-400">
               <th className="text-left py-2">Name</th>
               <th className="text-left py-2">Email</th>
-              <th className="text-left py-2">Pipeline</th>
               <th className="text-left py-2">Actions</th>
             </tr>
           </thead>
@@ -35,9 +35,8 @@ export default async function ManageLoanOfficersPage() {
           <tbody>
             {officers.map((o) => (
               <tr key={o.id} className="border-t border-neutral-800">
-                <td className="py-2">{o.fullName}</td>
+                <td className="py-2">{o.name || "Unnamed Officer"}</td>
                 <td className="py-2">{o.email}</td>
-                <td className="py-2">{o.pipelineCount}</td>
                 <td className="py-2">
                   <Link
                     href={`/owner/manage/loan-officers/${o.id}`}

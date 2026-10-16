@@ -29,7 +29,7 @@ export default function LoanOfficerLoginPage() {
       return;
     }
 
-    router.push("/lo/dashboard");
+    router.push("/loan-officer-portal");
   }
 
   return (

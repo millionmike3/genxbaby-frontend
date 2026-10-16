@@ -19,7 +19,7 @@ function statusColor(status: string) {
 export const dynamic = "force-dynamic";
 
 export default async function BorrowerFundingPage() {
-  await requireRole(["borrower"]);
+  await requireRole(["BORROWER"]);
 
   const prisma = await getPrisma();
 

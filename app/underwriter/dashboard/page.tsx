@@ -1,15 +1,13 @@
-
 import { getPrisma } from "@/lib/db/prisma";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
+import { auth, requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function UnderwriterDashboard() {
-  const cookieStore = cookies();
-  const token = cookieStore.get("session_underwriter")?.value;
-
-  if (!token) {
+  // 🔒 Enforce underwriter role
+  try {
+    await requireRole(["UNDERWRITER"]);
+  } catch {
     return (
       <main className="min-h-screen bg-slate-950 text-white p-6">
         <h1>Unauthorized</h1>
@@ -17,19 +15,33 @@ export default async function UnderwriterDashboard() {
     );
   }
 
-  const { payload } = await jwtVerify(
-    token,
-    new TextEncoder().encode(process.env.JWT_SECRET!)
-  );
+  // 🔐 Read verified session
+  const session = await auth();
+  if (!session?.user) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white p-6">
+        <h1>Unauthorized</h1>
+      </main>
+    );
+  }
 
   const prisma = await getPrisma();
 
+  // ⭐ Underwriter ID comes from payload.id
   const underwriter = await prisma.underwriter.findUnique({
-    where: { id: payload.underwriterId },
+    where: { userId: Number(session.user.id) },
     include: {
       loans: true,
     },
   });
+
+  if (!underwriter) {
+    return (
+      <main className="min-h-screen bg-slate-950 text-white p-6">
+        <h1>No underwriter record found</h1>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 text-white p-6 space-y-10">
@@ -38,11 +50,11 @@ export default async function UnderwriterDashboard() {
       </h1>
 
       <p className="text-slate-400 text-sm">
-        Welcome back, {underwriter?.fullName}
+        Welcome back, {underwriter.fullName}
       </p>
 
       <section className="space-y-4">
-        {underwriter?.loans.map((loan) => (
+        {underwriter.loans.map((loan) => (
           <div
             key={loan.id}
             className="bg-neutral-900 border border-neutral-700 rounded-xl p-4"

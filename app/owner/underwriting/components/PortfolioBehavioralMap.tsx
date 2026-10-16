@@ -4,7 +4,8 @@ import { Group } from "@visx/group";
 import { LinePath } from "@visx/shape";
 import { Circle } from "@visx/shape";
 import { scaleLinear } from "@visx/scale";
-import { curveMonotoneX } from "@visx/curve";
+import { curveMonotoneX } from "d3-shape";      // ✅ RIGHT
+
 
 export default function PortfolioBehavioralMap({
   data,

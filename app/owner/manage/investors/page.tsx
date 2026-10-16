@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function ManageInvestorsPage() {
   const prisma = await getPrisma();
   const investors = await prisma.investor.findMany({
-    orderBy: { fullName: "asc" },
+    orderBy: { name: "asc" },
   });
 
   return (

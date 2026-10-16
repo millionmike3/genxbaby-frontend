@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/authz";
 
 export default async function InvestorPositionsPage() {
-  const session = await requireRole(["investor"]);
+  const session = await requireRole(["INVESTOR"]);
 
   const positions = [
     { id: 1, note: "GX-2026-001", amount: 25000, yield: "8.2%" },

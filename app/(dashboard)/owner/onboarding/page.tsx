@@ -8,9 +8,9 @@ export default async function OwnerOnboardingPage() {
   const prisma = await getPrisma();
 
   // TODO: Replace with authenticated owner userId
-  const userId = "REPLACE_WITH_AUTH_USER_ID";
+  const userId = 0;
 
-  const owner = await prisma.owner.findUnique({
+  const owner = await prisma.owner.findFirst({
     where: { userId },
   });
 

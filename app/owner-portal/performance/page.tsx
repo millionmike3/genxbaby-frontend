@@ -1,26 +1,28 @@
-
 import { getPrisma } from "@/lib/db/prisma";
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerPortalPerformancePage() {
-  // Session validated in layout, but we still need userId
+  // Correct cookie (NOT "session")
   const cookieStore = await cookies(); // MUST be awaited in Next.js 16
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("auth_token")?.value;
 
+  if (!token) throw new Error("Not authenticated");
+
+  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
-  // Fetch user
+  // Fetch user (User.id is Int)
   const user = await prisma.user.findUnique({
-    where: { id: Number(session.userId) },
+    where: { id: session.id },
   });
 
   if (!user) throw new Error("User not found");
 
-  // Fetch owner + properties + financials
+  // Fetch owner + properties + financials (Owner.userId is Int)
   const owner = await prisma.owner.findFirst({
     where: { userId: user.id },
     include: {

@@ -25,7 +25,7 @@ export default function LoanOfficerLoginPage() {
       return;
     }
 
-    router.push("/loan-officer/dashboard");
+    router.push("/loan-officer-portal");
   }
 
   return (
