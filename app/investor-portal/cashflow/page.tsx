@@ -56,4 +56,18 @@ export default async function InvestorCashflowPage() {
           .map((f) => (
             <div
               key={f.id}
-              className="bg-s
+              className="bg-slate-800/60 p-6 rounded-xl border border-slate-700"
+            >
+              <h3 className="text-xl font-semibold">{f.type}</h3>
+              <p className="text-3xl font-bold mt-2">
+                {`$${f.amount.toLocaleString()}`}
+              </p>
+              <p className="text-slate-400 text-sm">
+                {f.createdAt.toDateString()}
+              </p>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}

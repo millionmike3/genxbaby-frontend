@@ -6,13 +6,21 @@ export default async function BorrowerPortalOverviewPage() {
   try {
     await requireRole(["BORROWER"]);
   } catch {
-    throw new Error("Unauthorized: borrower role required");
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        Unauthorized: borrower role required
+      </main>
+    );
   }
 
   // 🔐 Read verified session from auth_token
   const session = await auth();
   if (!session?.user) {
-    throw new Error("Not authenticated");
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        Unauthorized: invalid session
+      </main>
+    );
   }
 
   const prisma = await getPrisma();
@@ -22,7 +30,13 @@ export default async function BorrowerPortalOverviewPage() {
     where: { id: session.user.id },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) {
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        User not found
+      </main>
+    );
+  }
 
   // Fetch borrower + latest application + intelligence
   const borrower = await prisma.borrower.findUnique({
@@ -44,7 +58,6 @@ export default async function BorrowerPortalOverviewPage() {
   });
 
   const latestApp = borrower?.applications?.[0] ?? null;
-  const uw = latestApp?.underwriting ?? null;
 
   return (
     <main className="px-6 md:px-12 lg:px-20 py-16 text-white bg-slate-900">

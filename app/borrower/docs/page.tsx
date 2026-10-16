@@ -6,13 +6,21 @@ export default async function BorrowerDocsPage() {
   try {
     await requireRole(["BORROWER"]);
   } catch {
-    throw new Error("Unauthorized: borrower role required");
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        Unauthorized: borrower role required
+      </main>
+    );
   }
 
   // 🔐 Read verified session from auth_token
   const session = await auth();
   if (!session?.user) {
-    throw new Error("Not authenticated");
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        Unauthorized: invalid session
+      </main>
+    );
   }
 
   const prisma = await getPrisma();
@@ -23,7 +31,11 @@ export default async function BorrowerDocsPage() {
   });
 
   if (!user) {
-    throw new Error("User not found");
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white bg-slate-900">
+        User not found
+      </main>
+    );
   }
 
   // Fetch borrower + latest application + documents + AI layers
@@ -47,7 +59,7 @@ export default async function BorrowerDocsPage() {
     },
   });
 
-  const app = borrower?.applications[0] ?? null;
+  const app = borrower?.applications?.[0] ?? null;
   const docs = app?.documents ?? [];
 
   return (
@@ -56,8 +68,7 @@ export default async function BorrowerDocsPage() {
 
       {!app ? (
         <p className="text-slate-400">
-          No application found. Start your first application to upload
-          documents.
+          No application found. Start your first application to upload documents.
         </p>
       ) : (
         <>
