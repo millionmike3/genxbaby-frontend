@@ -1,38 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { roleLogin } from "@/lib/auth/login";
+import { dashboardMap } from "@/lib/auth/dashboard-map";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password } = await req.json();
 
-    const { prisma } = await import("@/lib/prisma");
+    // 🔥 Use the new unified login helper
+    const result = await roleLogin(email, password, "INVESTOR");
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user || user.password !== password || user.role !== "investor") {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    if (!result) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
     }
 
-    const token = jwt.sign(
-      { id: user.id, role: "investor" },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
+    // 🔥 Unified redirect system
+    const redirect = dashboardMap["INVESTOR"];
 
-    const res = NextResponse.json({ success: true });
+    const res = NextResponse.json({
+      success: true,
+      redirect,
+    });
 
-    res.cookies.set("investor_token", token, {
+    // 🔥 Unified cookie system
+    res.cookies.set("auth_token", result.token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
       path: "/",
+      domain: "genxbaby.com",
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return res;
   } catch (err) {
-    console.error("Investor Login Error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("INVESTOR LOGIN ERROR:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

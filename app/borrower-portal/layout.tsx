@@ -66,6 +66,15 @@ export default async function BorrowerPortalLayout({
             );
           })}
         </nav>
+        <form action="/api/logout" method="post">
+  <button
+    type="submit"
+    className="mt-6 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold"
+  >
+    Logout
+  </button>
+</form>
+
       </aside>
 
       {/* Main Content */}

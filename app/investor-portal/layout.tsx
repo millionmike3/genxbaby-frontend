@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { auth, requireRole } from "@/lib/auth";
-import InvestorSidebar from "@/dashboard/layout/investor/sidebar";
 
 function Unauthorized() {
   return (
@@ -29,27 +28,47 @@ export default async function InvestorPortalLayout({
     return <Unauthorized />;
   }
 
-  // 🔐 Read verified session
-  const session = await auth();
+  // 🔐 Read verified session safely
+  let session;
+  try {
+    session = await auth();
+  } catch {
+    return <Unauthorized />;
+  }
+
   if (!session?.user) return <Unauthorized />;
 
-  // 📍 Correct pathname detection for Next.js 16
-  const hdrs = headers();
-  const pathname = hdrs.get("next-url") || "";
+  // 📍 SAFE Next.js 16 pathname detection
+  const hdrs = await headers();
+  const pathname =
+    hdrs.get("x-invoke-path") ??
+    hdrs.get("referer") ??
+    "/investor-portal";
 
+  // ⭐ FULL INVESTOR PORTAL NAVIGATION
   const navItems = [
-    { name: "Overview", href: "/investor-portal" },
-    { name: "Portfolio", href: "/investor-portal/portfolio" },
-    { name: "Deals", href: "/investor-portal/deals" },
-    { name: "Commitments", href: "/investor-portal/commitments" },
-    { name: "Analytics", href: "/investor-portal/analytics" },
-    { name: "Messages", href: "/investor-portal/messages" },
+    { name: "Dashboard", href: "/investor-portal" },
+    { name: "Proof of Funds", href: "/investor-portal/proof-of-funds" },
+    { name: "Deal Prospecting", href: "/investor-portal/deal-prospecting" },
+    { name: "Certified Check", href: "/investor-portal/certified-check" },
+    { name: "Mortgage LOS", href: "/investor-portal/mortgage-los" },
+    { name: "CRM", href: "/investor-portal/crm" },
+    { name: "Dialer", href: "/investor-portal/dialer" },
+    { name: "Messaging", href: "/investor-portal/messaging" },
+    { name: "Email", href: "/investor-portal/email" },
+    { name: "Stock Sanitizer", href: "/investor-portal/stock-sanitizer" },
+    { name: "Lending Sanitizer", href: "/investor-portal/lending-sanitizer" },
+    { name: "Productivity Sanitizer", href: "/investor-portal/productivity-sanitizer" },
+    { name: "Behavioral Risk Engine", href: "/investor-portal/behavioral-risk-engine" },
+    { name: "Customer Behavior", href: "/investor-portal/customer-behavior" },
+    { name: "Lead Behavior", href: "/investor-portal/lead-behavior" },
+    { name: "Pricing Engine", href: "/investor-portal/pricing-engine" },
   ];
 
   return (
     <section className="min-h-screen bg-slate-950 text-white flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-800 border-r border-slate-700 p-6">
+      <aside className="w-72 bg-slate-800 border-r border-slate-700 p-6">
         <h1 className="text-2xl font-bold mb-8">Investor Portal</h1>
 
         <nav className="space-y-2">
@@ -69,6 +88,16 @@ export default async function InvestorPortalLayout({
             );
           })}
         </nav>
+
+        {/* Logout */}
+        <form action="/api/logout" method="post">
+          <button
+            type="submit"
+            className="mt-6 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold"
+          >
+            Logout
+          </button>
+        </form>
       </aside>
 
       {/* Main Content */}
