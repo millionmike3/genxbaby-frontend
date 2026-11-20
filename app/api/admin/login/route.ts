@@ -36,10 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Build JWT payload (unified format)
+    // ⭐ FIXED: Unified JWT payload
     const payload = {
-      id: user.id,
-      role: "ADMIN",            // ⭐ MUST be uppercase
+      userId: user.id,          // REQUIRED
+      ownerId: user.ownerId,    // UUID or null
+      role: "ADMIN",            // REQUIRED
       fullName: user.fullName ?? null,
     };
 
@@ -55,13 +56,13 @@ export async function POST(request: NextRequest) {
       redirect: "/admin-portal",
     });
 
-    // ⭐ Unified cookie name for ALL portals
+    // Unified cookie name
     res.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return res;

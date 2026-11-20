@@ -21,17 +21,20 @@ export default async function UnderwriterLayout({
           <Link href="/underwriter-portal/fraud-events">Fraud Events</Link>
           <Link href="/underwriter-portal/decisions">Decisions</Link>
         </nav>
-      </aside>
-<form action="/api/logout" method="post">
-  <button
+        <button
     type="submit"
     className="mt-6 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold"
   >
     Logout
   </button>
+      </aside>
+<form action="/api/logout" method="post">
+  
 </form>
 
       <main className="flex-1 p-10">{children}</main>
+      
     </div>
+    
   );
 }

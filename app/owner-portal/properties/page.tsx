@@ -3,33 +3,31 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerPortalPropertiesPage() {
-  // Correct cookie (NOT "session")
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) throw new Error("Not authenticated");
 
-  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
-  // Fetch user (User.id is Int)
+  // ⭐ FIXED: User.id must come from session.userId
   const user = await prisma.user.findUnique({
-    where: { id: session.id },
+    where: { id: session.userId },
   });
 
   if (!user) throw new Error("User not found");
 
-  // Fetch owner (Owner.userId is Int)
+  // Owner.userId is INT
   const owner = await prisma.owner.findFirst({
-    where: { userId: user.id },
+    where: { userId: session.userId },
   });
 
   if (!owner) throw new Error("Owner record not found");
 
-  // OwnershipEntity.ownerId is Int → use owner.userId
+  // OwnershipEntity.ownerId is INT → use owner.userId
   const entities = await prisma.ownershipEntity.findMany({
     where: { ownerId: owner.userId },
     include: {
@@ -45,7 +43,6 @@ export default async function OwnerPortalPropertiesPage() {
 
   return (
     <div className="space-y-10 text-white">
-      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Properties</h1>
         <p className="text-slate-300 text-lg">
@@ -54,7 +51,6 @@ export default async function OwnerPortalPropertiesPage() {
         </p>
       </div>
 
-      {/* Entities */}
       {entities.length === 0 ? (
         <p className="text-slate-400">No ownership entities found.</p>
       ) : (
@@ -63,7 +59,6 @@ export default async function OwnerPortalPropertiesPage() {
             key={entity.id}
             className="bg-slate-800/60 p-6 rounded-xl border border-slate-700 space-y-6"
           >
-            {/* Entity Header */}
             <div>
               <h2 className="text-2xl font-semibold mb-2">
                 {entity.name} ({entity.type})
@@ -74,7 +69,6 @@ export default async function OwnerPortalPropertiesPage() {
               </p>
             </div>
 
-            {/* Properties */}
             {entity.properties.length === 0 ? (
               <p className="text-slate-400">No properties under this entity.</p>
             ) : (
@@ -84,7 +78,6 @@ export default async function OwnerPortalPropertiesPage() {
                     key={prop.id}
                     className="bg-slate-900/40 p-4 rounded-lg border border-slate-700 space-y-4"
                   >
-                    {/* Property Header */}
                     <div>
                       <h3 className="text-xl font-semibold">
                         {prop.address}, {prop.city}, {prop.state}
@@ -94,7 +87,6 @@ export default async function OwnerPortalPropertiesPage() {
                       </p>
                     </div>
 
-                    {/* Valuation */}
                     <div className="space-y-1">
                       <p>
                         <strong>Purchase Price:</strong>{" "}
@@ -108,7 +100,6 @@ export default async function OwnerPortalPropertiesPage() {
                       </p>
                     </div>
 
-                    {/* Financials */}
                     {prop.financials && (
                       <div className="mt-3 text-sm text-slate-400 space-y-1">
                         <p>
@@ -126,7 +117,6 @@ export default async function OwnerPortalPropertiesPage() {
                       </div>
                     )}
 
-                    {/* Equity */}
                     {prop.ownerEquity && (
                       <div className="mt-3 text-sm text-slate-400 space-y-1">
                         <p>
@@ -140,7 +130,6 @@ export default async function OwnerPortalPropertiesPage() {
                       </div>
                     )}
 
-                    {/* Rent Roll */}
                     {prop.rentRoll.length > 0 && (
                       <div className="mt-4 space-y-2">
                         <h4 className="font-semibold">Rent Roll</h4>

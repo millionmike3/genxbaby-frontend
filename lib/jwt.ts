@@ -1,3 +1,4 @@
-export const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dev-secret"
-);
+// lib/jwt.ts
+export const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+

@@ -22,7 +22,7 @@ export async function routeByRole() {
       LOAN_OFFICER: "/loan-officer-portal",
       STAFF: "/staff-portal",
       SERVICING: "/servicing-portal",
-      PROCESSING: "/processing-portal",
+      PROCESSOR: "/processor-portal",
     };
 
     return portalMap[role] ?? "/login";

@@ -17,11 +17,13 @@ export async function POST(request: NextRequest) {
 
     const { prisma } = await import("@/lib/prisma");
 
+    // Fetch LO user
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || user.role !== "lo") {
+    // FIXED: role must match DB enum
+    if (!user || user.role !== "LO") {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -36,15 +38,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = jwt.sign(
-      { id: user.id, role: "lo" },
-      JWT_SECRET,
-      { expiresIn: "7d" }
+    // FIXED: correct JWT payload
+   const token = jwt.sign(
+  {
+    userId: user.id,        // REQUIRED
+    ownerId: user.ownerId,  // optional
+    role: user.role,        // REQUIRED
+  },
+  JWT_SECRET,
+  { expiresIn: "7d" }
     );
 
     const res = NextResponse.json({ success: true });
 
-    res.cookies.set("lo_token", token, {
+    // FIXED: use same cookie name as rest of system
+    res.cookies.set("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

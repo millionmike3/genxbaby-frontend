@@ -4,20 +4,27 @@ import { SignJWT } from "jose";
 import { JWT_SECRET } from "@/lib/jwt";
 import { getPrisma } from "@/lib/db/prisma";
 
-export async function roleLogin(email: string, password: string, role: string) {
+export async function roleLogin(email: string, password: string) {
   const prisma = getPrisma();
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || user.role !== role) return null;
+  // Load user record only
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) return null;
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return null;
 
-  const token = await new SignJWT({
-    id: user.id,
-    role: user.role,
+  // Build JWT payload with role
+  const payload = {
+    userId: user.id,
+    role: user.role,              // "OWNER" | "ADMIN" | "INVESTOR" | "PROCESSOR" | "UNDERWRITER"
     fullName: user.fullName ?? null,
-  })
+  };
+
+  const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
     .sign(JWT_SECRET);

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     // ---------------------------------------------
-    // 1. Extract unified session cookie
+    // 1. Extract unified auth cookie
     // ---------------------------------------------
     const cookie = request.cookies.get("auth_token")?.value;
 
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ---------------------------------------------
-    // 2. Verify JWT using JOSE
+    // 2. Verify JWT using unified auth backend secret
     // ---------------------------------------------
     const secret = process.env.JWT_SECRET;
     if (!secret) {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ---------------------------------------------
-    // 3. Ensure admin role (uppercase)
+    // 3. Ensure ADMIN role from unified enum
     // ---------------------------------------------
     if (payload.role !== "ADMIN") {
       return NextResponse.json(
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ---------------------------------------------
-    // 4. Fetch audit logs
+    // 4. Fetch audit logs using your existing User model
     // ---------------------------------------------
     const prisma = await getPrisma();
 

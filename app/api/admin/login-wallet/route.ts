@@ -3,6 +3,7 @@ import { verifyMessage, createPublicClient, http } from "viem";
 import { polygon } from "viem/chains";
 import { CHECK_REGISTRY_ABI } from "@/lib/contract";
 import jwt from "jsonwebtoken";
+import { prisma } from "@/lib/prisma"; // ⭐ REQUIRED
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,22 +42,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Create JWT
+    // ⭐ 3. Fetch the admin user from your database
+    const user = await prisma.user.findUnique({
+      where: { walletAddress: address.toLowerCase() },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Admin wallet not found in database" },
+        { status: 403 }
+      );
+    }
+
+    // ⭐ 4. Create JWT with REAL values
     const token = jwt.sign(
-      { address, role: "admin" },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
+  {
+    userId: user.id,        // REQUIRED
+    ownerId: user.ownerId,  // optional
+    role: user.role,        // REQUIRED
+  },
+    JWT_SECRET,
+    { expiresIn: "7d" }
     );
 
-    // ⭐ 4. Create response object FIRST
+    // ⭐ 5. Create response object FIRST
     const res = NextResponse.json({ success: true });
 
-    // ⭐ 5. Set admin cookie (localhost-safe)
+    // ⭐ 6. Set cookie
     res.cookies.set("auth_token", token, {
       httpOnly: true,
-      secure: false,          // MUST be false on localhost
-      sameSite: "lax",        // MUST NOT be "none" on localhost
-      path: "/",              // MUST be root
+      secure: false,
+      sameSite: "lax",
+      path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
 

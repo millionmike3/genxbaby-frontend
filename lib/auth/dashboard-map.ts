@@ -18,7 +18,7 @@ export const dashboardMap: Record<string, string> = {
   LOAN_OFFICER: "/loan-officer-portal",
   STAFF: "/staff-portal",
   SERVICING: "/servicing-portal",
-  PROCESSING: "/processing-portal",
+  PROCESSOR: "/processor-portal",
 };
 
 /**

@@ -1,40 +1,35 @@
+import { cookies } from "next/headers";
+import { getSession } from "@/lib/session";
 import { getPrisma } from "@/lib/db/prisma";
-import { auth, requireRole } from "@/lib/auth";
 
 export default async function OwnerPortalEquityPage() {
-  // 🔒 Enforce owner role
-  try {
-    await requireRole(["OWNER"]);
-  } catch {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        Unauthorized: Owner access required
-      </div>
-    );
+  // Read cookie
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) throw new Error("Not authenticated");
+
+  // Decode JWT
+  const session = await getSession(token);
+  if (!session) throw new Error("Invalid session token");
+
+  const userId = session.userId ?? null;
+  if (!userId) {
+    console.error("SESSION OBJECT:", session);
+    throw new Error("Session missing userId");
   }
 
-  // 🔐 Read verified session from auth_token
-  const session = await auth();
-  if (!session?.user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        Unauthorized: Invalid session
-      </div>
-    );
-  }
-
-  const prisma = await getPrisma();
+  const prisma = getPrisma();
 
   // Fetch user
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
   });
-
   if (!user) throw new Error("User not found");
 
-  // Fetch owner + properties + equity + financials
+  // Fetch owner + properties + financials
   const owner = await prisma.owner.findFirst({
-    where: { userId: user.id },
+    where: { userId },
     include: {
       properties: {
         include: {
@@ -44,10 +39,12 @@ export default async function OwnerPortalEquityPage() {
       },
     },
   });
+  if (!owner) {
+    console.error("OWNER LOOKUP FAILED — session.userId =", userId);
+    throw new Error("Owner record not found");
+  }
 
-  if (!owner) throw new Error("Owner record not found");
-
-  // Compute equity metrics
+  // Aggregate metrics
   const totalEquity =
     owner.properties.reduce(
       (sum, p) => sum + (p.ownerEquity?.equityAmount ?? 0),

@@ -10,21 +10,32 @@ export default function LoginPageClient() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [role, setRole] = useState<string | null>(null);
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setRole(null);
 
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError("Invalid server response");
+        setLoading(false);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Login failed");
@@ -32,38 +43,52 @@ export default function LoginPageClient() {
         return;
       }
 
-      // 🔥 FIX: Use the role-based redirect returned from API
-      router.push(data.redirect);
+      // Save JWT token
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
+
+      // Capture role
+      if (data.role) {
+        setRole(data.role);
+      }
+
+      // Redirect based on backend role map
+      if (data.redirect) {
+        router.push(data.redirect);
+      } else {
+        setError("No redirect provided by server");
+      }
     } catch (err) {
       console.error(err);
       setError("Unexpected error");
+    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center 
-      bg-gradient-to-br from-purple-700 via-purple-500 to-blue-500 p-6"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-700 via-purple-500 to-blue-500 p-6">
       <div className="absolute w-96 h-96 bg-purple-400/40 blur-3xl rounded-full -z-10" />
 
       <form
         onSubmit={handleLogin}
-        className="backdrop-blur-xl bg-white/10 border border-white/20 
-        p-10 rounded-2xl shadow-2xl w-full max-w-sm space-y-6 text-white"
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-10 rounded-2xl shadow-2xl w-full max-w-sm space-y-6 text-white"
       >
         <h1 className="text-3xl font-bold text-center tracking-wide">
           GEN X BABY — LOGIN
         </h1>
-
         <p className="text-center text-white/70 text-sm -mt-3">
           Secure access required
         </p>
 
         {error && (
-          <div className="text-red-300 text-center font-medium">
-            {error}
+          <div className="text-red-300 text-center font-medium">{error}</div>
+        )}
+
+        {role && (
+          <div className="text-green-300 text-center font-medium">
+            Logged in as: {role}
           </div>
         )}
 
@@ -71,9 +96,7 @@ export default function LoginPageClient() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 
-            placeholder-white/60 text-white focus:outline-none focus:ring-2 
-            focus:ring-white/70 transition"
+            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -82,9 +105,7 @@ export default function LoginPageClient() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 
-            placeholder-white/60 text-white focus:outline-none focus:ring-2 
-            focus:ring-white/70 transition"
+            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -94,9 +115,7 @@ export default function LoginPageClient() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-white/20 hover:bg-white/30 text-white p-3 
-          rounded-lg font-semibold tracking-wide border border-white/40 
-          transition-all shadow-lg active:scale-[0.97]"
+          className="w-full bg-white/20 hover:bg-white/30 text-white p-3 rounded-lg font-semibold tracking-wide border border-white/40 transition-all shadow-lg active:scale-[0.97]"
         >
           {loading ? "Signing In..." : "Sign In"}
         </button>

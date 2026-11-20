@@ -5,77 +5,112 @@ import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [role, setRole] = useState<string | null>(null);
 
-  async function handleLogin(e) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setRole(null);
 
-    const res = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError("Invalid server response");
+        setLoading(false);
+        return;
+      }
 
-    if (!res.ok) {
-      setError(data.error || "Login failed");
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Capture role
+      if (data.role) {
+        setRole(data.role);
+      }
+
+      // Only allow Admins
+      if (data.role === "ADMIN") {
+        router.push(data.redirect || "/admin-portal");
+      } else {
+        setError(`Unauthorized: This portal is for Admins. You are logged in as ${data.role}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Unexpected error");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push("/admin-portal");
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-      <div className="w-full max-w-md bg-neutral-900 p-8 rounded-xl border border-neutral-700 shadow-xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-[#3CF46B]">
-          Admin Login
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-700 to-black p-6">
+      <form
+        onSubmit={handleLogin}
+        className="backdrop-blur-xl bg-white/10 border border-white/20 p-10 rounded-2xl shadow-2xl w-full max-w-sm space-y-6 text-white"
+      >
+        <h1 className="text-3xl font-bold text-center tracking-wide">
+          Admin Portal — Login
         </h1>
+        <p className="text-center text-white/70 text-sm -mt-3">
+          Authorized access required
+        </p>
 
         {error && (
-          <p className="mb-4 text-red-500 text-center font-medium">{error}</p>
+          <div className="text-red-300 text-center font-medium">{error}</div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block mb-1 text-sm font-medium">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-neutral-800 border border-neutral-600 focus:border-[#3CF46B] outline-none"
-            />
+        {role && !error && (
+          <div className="text-green-300 text-center font-medium">
+            Logged in as: {role}
           </div>
+        )}
 
-          <div>
-            <label className="block mb-1 text-sm font-medium">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-neutral-800 border border-neutral-600 focus:border-[#3CF46B] outline-none"
-            />
-          </div>
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-lg bg-[#3CF46B] text-black font-bold hover:bg-[#32d05f] transition"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-      </div>
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-white/20 hover:bg-white/30 text-white p-3 rounded-lg font-semibold tracking-wide border border-white/40 transition-all shadow-lg active:scale-[0.97]"
+        >
+          {loading ? "Signing In..." : "Sign In"}
+        </button>
+      </form>
     </div>
   );
 }

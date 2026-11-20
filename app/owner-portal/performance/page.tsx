@@ -3,26 +3,23 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerPortalPerformancePage() {
-  // Correct cookie (NOT "session")
-  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
+  const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) throw new Error("Not authenticated");
 
-  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
-  // Fetch user (User.id is Int)
+  // ⭐ FIXED: Use session.userId instead of session.id
   const user = await prisma.user.findUnique({
-    where: { id: session.id },
+    where: { id: session.userId },
   });
 
   if (!user) throw new Error("User not found");
 
-  // Fetch owner + properties + financials (Owner.userId is Int)
   const owner = await prisma.owner.findFirst({
     where: { userId: user.id },
     include: {
@@ -34,7 +31,6 @@ export default async function OwnerPortalPerformancePage() {
     },
   });
 
-  // Aggregate metrics
   const metrics = (() => {
     if (!owner || owner.properties.length === 0) {
       return [
@@ -49,10 +45,7 @@ export default async function OwnerPortalPerformancePage() {
       .map((p) => p.financials)
       .filter(Boolean);
 
-    const totalNOI = financials.reduce(
-      (sum, f) => sum + (f?.noi ?? 0),
-      0
-    );
+    const totalNOI = financials.reduce((sum, f) => sum + (f?.noi ?? 0), 0);
 
     const avgCapRate =
       financials.length > 0
@@ -86,7 +79,6 @@ export default async function OwnerPortalPerformancePage() {
 
   return (
     <div className="space-y-10 text-white">
-      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Performance</h1>
         <p className="text-slate-300 text-lg">
@@ -95,7 +87,6 @@ export default async function OwnerPortalPerformancePage() {
         </p>
       </div>
 
-      {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {metrics.map((m) => (
           <div
@@ -109,7 +100,6 @@ export default async function OwnerPortalPerformancePage() {
         ))}
       </div>
 
-      {/* Future Enhancements Placeholder */}
       <div className="bg-slate-800/40 rounded-xl p-6 border border-slate-700">
         <h3 className="text-lg font-semibold mb-2">Performance Insights</h3>
         <p className="text-slate-300">

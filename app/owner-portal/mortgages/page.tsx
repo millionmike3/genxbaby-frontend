@@ -3,33 +3,31 @@ import { cookies } from "next/headers";
 import { getSession } from "@/lib/session";
 
 export default async function OwnerPortalMortgagesPage() {
-  // Correct cookie (NOT "session")
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) throw new Error("Not authenticated");
 
-  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
-  // Fetch user (User.id is Int)
+  // ⭐ FIXED: User.id must come from session.userId
   const user = await prisma.user.findUnique({
-    where: { id: session.id },
+    where: { id: session.userId },
   });
 
   if (!user) throw new Error("User not found");
 
-  // Fetch owner (Owner.userId is Int)
+  // Owner.userId is INT
   const owner = await prisma.owner.findFirst({
     where: { userId: user.id },
   });
 
   if (!owner) throw new Error("Owner record not found");
 
-  // Fetch mortgage assets (MortgageAsset.ownerId is String → use owner.id)
+  // MortgageAsset.ownerId is UUID → use owner.id
   const mortgageAssets = await prisma.mortgageAsset.findMany({
     where: { ownerId: owner.id },
     include: {
@@ -41,7 +39,6 @@ export default async function OwnerPortalMortgagesPage() {
 
   return (
     <div className="space-y-10 text-white px-6 md:px-12 lg:px-20 py-16 bg-slate-900">
-      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Mortgage Assets</h1>
         <p className="text-slate-300 text-lg">
@@ -50,7 +47,6 @@ export default async function OwnerPortalMortgagesPage() {
         </p>
       </div>
 
-      {/* Mortgage Assets */}
       {mortgageAssets.length === 0 ? (
         <p className="text-slate-400">No mortgage assets found.</p>
       ) : (
@@ -59,7 +55,6 @@ export default async function OwnerPortalMortgagesPage() {
             key={asset.id}
             className="bg-slate-800/60 p-6 rounded-xl border border-slate-700 space-y-6"
           >
-            {/* Asset Header */}
             <div>
               <h2 className="text-2xl font-semibold mb-2">
                 Mortgage #{asset.id.slice(0, 8)}
@@ -70,7 +65,6 @@ export default async function OwnerPortalMortgagesPage() {
               </p>
             </div>
 
-            {/* Borrower */}
             {asset.borrower && (
               <div className="text-slate-300 text-sm space-y-1">
                 <p>
@@ -82,7 +76,6 @@ export default async function OwnerPortalMortgagesPage() {
               </div>
             )}
 
-            {/* Performance */}
             {asset.performance && (
               <div className="text-sm text-slate-400 space-y-1">
                 <p>
@@ -102,7 +95,6 @@ export default async function OwnerPortalMortgagesPage() {
               </div>
             )}
 
-            {/* Payments */}
             {asset.payments.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-semibold">Payment History</h4>

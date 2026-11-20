@@ -1,0 +1,84 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/services/authClient";
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleLogin() {
+    setError(null);
+
+    try {
+      const data = await login(email, password);
+
+      // Role-based routing
+      switch (data.role) {
+        case "ADMIN":
+          router.push("/admin-portal");
+          break;
+        case "BORROWER":
+          router.push("/borrower-portal");
+          break;
+        case "INVESTOR":
+          router.push("/investor-portal");
+          break;
+        case "OWNER":
+          router.push("/owner-portal");
+          break;
+        case "UNDERWRITER":
+          router.push("/underwriter-portal");
+          break;
+        case "LOAN_OFFICER":
+          router.push("/loan-officer-portal");
+          break;
+        case "PROCESSOR":
+          router.push("/processor-portal");
+          break;
+        case "SERVICING":
+          router.push("/servicing-portal");
+          break;
+        case "STAFF":
+          router.push("/staff-portal");
+          break;
+        default:
+          router.push("/dashboard");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  }
+
+  return (
+    <div style={{ maxWidth: 400, margin: "0 auto", paddingTop: 40 }}>
+      <h1>Login</h1>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%" }}
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        style={{ display: "block", marginBottom: 10, width: "100%" }}
+      />
+
+      <button onClick={handleLogin} style={{ width: "100%" }}>
+        Login
+      </button>
+    </div>
+  );
+}

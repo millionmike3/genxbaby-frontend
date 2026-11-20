@@ -1,27 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { roleLogin } from "@/lib/auth/login";
-import { dashboardMap } from "@/lib/auth/dashboard-map";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
 
+  // Validate credentials specifically for the Underwriter role
   const result = await roleLogin(email, password, "UNDERWRITER");
   if (!result) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
+  const { token, user } = result;
+
+  // 🚦 Always redirect to the Underwriter portal
   const res = NextResponse.json({
     success: true,
-    redirect: dashboardMap["UNDERWRITER"],
+    role: user.role,
+    redirect: "/underwriter-portal",
   });
 
-  res.cookies.set("auth_token", result.token, {
+  // Set cookie for authenticated session
+  res.cookies.set("auth_token", token, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     path: "/",
-    domain: "genxbaby.com",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: 60 * 60 * 24 * 7, // 7 days
   });
 
   return res;

@@ -1,15 +1,21 @@
-import { requireRole } from "@/lib/auth";
-import { getCurrentUser } from "@/lib/session";
+import "@/app/globals.css";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-import { computeMilestone } from "@/lib/pipeline"; // your utilities
+import { computeMilestone } from "@/lib/pipeline";
+
+const SECRET = process.env.JWT_SECRET!;
 
 export const dynamic = "force-dynamic";
 
 export default async function PipelineDashboardPage() {
-  await requireRole(["ADMIN"]);
-  const admin = await getCurrentUser();
+  // ----------------------------------------------------
+  // 1. Read unified auth cookie
+  // ----------------------------------------------------
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
 
-  if (!admin) {
+  if (!token) {
     return (
       <main className="min-h-screen flex items-center justify-center text-white">
         <h1 className="text-3xl">Not authenticated</h1>
@@ -17,6 +23,39 @@ export default async function PipelineDashboardPage() {
     );
   }
 
+  // ----------------------------------------------------
+  // 2. Verify JWT using JOSE
+  // ----------------------------------------------------
+  let payload: any;
+  try {
+    const verified = await jwtVerify(
+      token,
+      new TextEncoder().encode(SECRET)
+    );
+    payload = verified.payload;
+  } catch (err) {
+    console.error("JWT VERIFY ERROR:", err);
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white">
+        <h1 className="text-3xl">Invalid or expired token</h1>
+      </main>
+    );
+  }
+
+  // ----------------------------------------------------
+  // 3. Enforce ADMIN role (uppercase enum)
+  // ----------------------------------------------------
+  if (payload.role !== "ADMIN") {
+    return (
+      <main className="min-h-screen flex items-center justify-center text-white">
+        <h1 className="text-3xl">Forbidden</h1>
+      </main>
+    );
+  }
+
+  // ----------------------------------------------------
+  // 4. Fetch pipeline applications
+  // ----------------------------------------------------
   const apps = await prisma.application.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -29,6 +68,9 @@ export default async function PipelineDashboardPage() {
     },
   });
 
+  // ----------------------------------------------------
+  // 5. Render dashboard
+  // ----------------------------------------------------
   return (
     <main className="min-h-screen bg-slate-900 text-white p-10 space-y-10">
       <header>

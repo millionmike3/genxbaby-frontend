@@ -8,29 +8,25 @@ import RentRollTrendChart from "./RentRollTrendChart";
 import MortgagePaymentTrendChart from "./MortgagePaymentTrendChart";
 
 export default async function OwnerCharts() {
-  // Read correct cookie
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) throw new Error("Not authenticated");
 
-  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
-  // Correct role check
   if (session.role !== "OWNER") throw new Error("Unauthorized");
 
   const prisma = await getPrisma();
 
-  // Owner.userId is Int → use session.id (Int)
+  // FIXED: Owner.userId is INT → use session.userId (INT)
   const owner = await prisma.owner.findFirst({
-    where: { userId: session.id },
+    where: { userId: session.userId },
   });
 
   if (!owner) throw new Error("Owner record not found");
 
-  // Fetch properties (OwnershipEntity.ownerId is Int → use owner.userId)
   const properties = await prisma.property.findMany({
     where: { ownershipEntity: { ownerId: owner.userId } },
     include: {
@@ -39,13 +35,11 @@ export default async function OwnerCharts() {
     },
   });
 
-  // Fetch mortgage assets (MortgageAsset.ownerId is String → use owner.id)
   const mortgageAssets = await prisma.mortgageAsset.findMany({
     where: { ownerId: owner.id },
     include: { payments: true },
   });
 
-  // Build chart data
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 
   const cashflowData = months.map((m) => ({

@@ -5,14 +5,14 @@ import { dashboardMap } from "@/lib/auth/dashboard-map";
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
 
-  const result = await roleLogin(email, password, "PROCESSING");
+  const result = await roleLogin(email, password, "PROCESSOR");
   if (!result) {
     return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
   const res = NextResponse.json({
     success: true,
-    redirect: dashboardMap["PROCESSING"],
+    redirect: dashboardMap["PROCESSOR"],
   });
 
   res.cookies.set("auth_token", result.token, {

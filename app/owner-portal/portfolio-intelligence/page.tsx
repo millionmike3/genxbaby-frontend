@@ -16,33 +16,30 @@ import {
 } from "../_components/PortfolioCharts";
 
 export default async function OwnerPortalPortfolioIntelligencePage() {
-  // Correct cookie (NOT "session")
-  const cookieStore = await cookies(); // MUST be awaited in Next.js 16
+  const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
   if (!token) throw new Error("Not authenticated");
 
-  // Parse JWT
   const session = await getSession(token);
   if (!session) throw new Error("Not authenticated");
 
   const prisma = await getPrisma();
 
-  // Fetch user (User.id is Int)
+  // ⭐ FIXED: User.id must come from session.userId
   const user = await prisma.user.findUnique({
-    where: { id: session.id },
+    where: { id: session.userId },
   });
 
   if (!user) throw new Error("User not found");
 
-  // Fetch owner (Owner.userId is Int)
+  // Owner.userId is INT
   const owner = await prisma.owner.findFirst({
-    where: { userId: user.id },
+    where: { userId: session.userId },
   });
 
   if (!owner) throw new Error("Owner record not found");
 
-  // Load properties + mortgages
   const properties = await prisma.property.findMany({
     where: { ownershipEntity: { ownerId: owner.userId } },
     include: {
@@ -52,17 +49,15 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
   });
 
   const mortgages = await prisma.mortgageAsset.findMany({
-    where: { ownerId: owner.id }, // MortgageAsset.ownerId is String
+    where: { ownerId: owner.id }, // UUID
     include: {
       performance: true,
     },
   });
 
-  // Compute intelligence
   const score = computePortfolioScore(properties, mortgages);
   const valuation = computePortfolioValuation(properties);
 
-  // Chart data
   const equityChartData = properties.map((p) => ({
     label: `${p.address}, ${p.city}`,
     equity: p.ownerEquity?.equityAmount ?? 0,
@@ -77,7 +72,6 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
 
   const riskMatrixData = riskChartData;
 
-  // Diversification
   const byCityMap = new Map<string, number>();
   const byTypeMap = new Map<string, number>();
 
@@ -101,16 +95,13 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
 
   return (
     <div className="space-y-12 text-white">
-      {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-4">Portfolio Intelligence</h1>
         <p className="text-slate-300 text-lg">
           Advanced analytics powered by your property and mortgage performance.
-          Review risk, equity, diversification, and valuation insights.
         </p>
       </div>
 
-      {/* KPI Grid */}
       <section className="grid md:grid-cols-4 gap-6">
         <Kpi label="Overall Score" value={score.overallScore} />
         <Kpi label="Equity Score" value={score.equityScore} />
@@ -131,18 +122,15 @@ export default async function OwnerPortalPortfolioIntelligencePage() {
         />
       </section>
 
-      {/* Charts */}
       <section className="grid md:grid-cols-2 gap-8">
         <PortfolioEquityChart data={equityChartData} />
         <PortfolioRiskChart data={riskChartData} />
       </section>
 
-      {/* Risk Matrix */}
       <section>
         <PortfolioRiskMatrix data={riskMatrixData} />
       </section>
 
-      {/* Diversification */}
       <section className="space-y-6">
         <DiversificationSummary cityScore={cityScore} typeScore={typeScore} />
         <PortfolioDiversification byCity={byCity} byType={byType} />

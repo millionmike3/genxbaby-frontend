@@ -1,0 +1,37 @@
+// lib/services/authClient.ts
+
+const AUTH_BASE_URL = "https://genxbaby-auth-backend-production.up.railway.app";
+
+export async function login(email: string, password: string) {
+  const res = await fetch(`${AUTH_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  if (!res.ok) {
+    throw new Error("Login failed");
+  }
+
+  const data = await res.json();
+
+  // Store token + role
+  if (typeof window !== "undefined") {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+  }
+
+  return data;
+}
+
+export function getToken() {
+  return typeof window !== "undefined"
+    ? localStorage.getItem("token")
+    : null;
+}
+
+export function getRole() {
+  return typeof window !== "undefined"
+    ? localStorage.getItem("role")
+    : null;
+}
