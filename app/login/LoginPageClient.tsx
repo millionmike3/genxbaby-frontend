@@ -1,7 +1,22 @@
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+type LoginResponse = {
+  success?: boolean;
+  role?: string;
+  redirect?: string;
+  error?: string;
+  message?: string;
+  user?: {
+    id?: number | string;
+    email?: string;
+    username?: string;
+    role?: string;
+  } | null;
+};
 
 export default function LoginPageClient() {
   const router = useRouter();
@@ -14,54 +29,54 @@ export default function LoginPageClient() {
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
     setError("");
     setRole(null);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        setError("Invalid server response");
-        setLoading(false);
+      const data: LoginResponse = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        setError(
+          data.error ||
+          data.message ||
+          `Login failed (${res.status}).`
+        );
         return;
       }
 
-      if (!res.ok) {
-        setError(data.error || "Login failed");
-        setLoading(false);
+      if (!data.role || !data.redirect) {
+        setError("Login succeeded, but the server did not provide a valid role and dashboard redirect.");
         return;
       }
 
-      // Save JWT token
-      if (data.token) {
-        localStorage.setItem("auth_token", data.token);
-      }
+      setRole(data.role);
 
-      // Capture role
-      if (data.role) {
-        setRole(data.role);
-      }
+      // The server has already set the HttpOnly authentication cookies.
+      // Do not store access tokens in localStorage.
 
-      // Redirect based on backend role map
-      if (data.redirect) {
-        router.push(data.redirect);
-      } else {
-        setError("No redirect provided by server");
-      }
+      router.replace(data.redirect);
+      router.refresh();
+
     } catch (err) {
-      console.error(err);
-      setError("Unexpected error");
+      console.error("LOGIN REQUEST ERROR:", err);
+      setError("Unable to contact the login service. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,12 +93,18 @@ export default function LoginPageClient() {
         <h1 className="text-3xl font-bold text-center tracking-wide">
           GEN X BABY — LOGIN
         </h1>
+
         <p className="text-center text-white/70 text-sm -mt-3">
           Secure access required
         </p>
 
         {error && (
-          <div className="text-red-300 text-center font-medium">{error}</div>
+          <div
+            role="alert"
+            className="text-red-300 text-center font-medium"
+          >
+            {error}
+          </div>
         )}
 
         {role && (
@@ -96,6 +117,8 @@ export default function LoginPageClient() {
           <input
             type="email"
             placeholder="Email"
+            autoComplete="username"
+            aria-label="Email"
             className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -105,6 +128,8 @@ export default function LoginPageClient() {
           <input
             type="password"
             placeholder="Password"
+            autoComplete="current-password"
+            aria-label="Password"
             className="w-full p-3 rounded-lg bg-white/20 border border-white/30 placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-white/70 transition"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -115,7 +140,7 @@ export default function LoginPageClient() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-white/20 hover:bg-white/30 text-white p-3 rounded-lg font-semibold tracking-wide border border-white/40 transition-all shadow-lg active:scale-[0.97]"
+          className="w-full bg-white/20 hover:bg-white/30 disabled:opacity-60 disabled:cursor-not-allowed text-white p-3 rounded-lg font-semibold tracking-wide border border-white/40 transition-all shadow-lg active:scale-[0.97]"
         >
           {loading ? "Signing In..." : "Sign In"}
         </button>

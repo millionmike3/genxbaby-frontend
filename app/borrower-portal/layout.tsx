@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { auth, requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 function Unauthorized() {
   return (
@@ -18,22 +18,17 @@ export default async function BorrowerPortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 🔒 Enforce borrower role
+  let session;
+
   try {
-    await requireRole(["BORROWER"]);
+    session = await requireRole(["BORROWER"]);
   } catch {
     return <Unauthorized />;
   }
 
-  // 🔐 Read verified session
-  const session = await auth();
-  if (!session?.user) return <Unauthorized />;
+  const hdrs = await headers();
+  const pathname = hdrs.get("next-url") || "/borrower-portal";
 
-  // 📍 Correct pathname detection for Next.js 16
-  const hdrs = headers();
-  const pathname = hdrs.get("next-url") || "";
-
-  // 📌 Borrower navigation items
   const navItems = [
     { name: "Overview", href: "/borrower-portal" },
     { name: "Loan Status", href: "/borrower-portal/status" },
@@ -45,13 +40,18 @@ export default async function BorrowerPortalLayout({
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex">
-      {/* Sidebar */}
       <aside className="w-64 bg-slate-800 border-r border-slate-700 p-6">
-        <h1 className="text-2xl font-bold mb-8">Borrower Portal</h1>
+        <h1 className="text-2xl font-bold mb-2">Borrower Portal</h1>
+        <p className="text-sm text-slate-400 mb-8">
+          {session.fullName}
+        </p>
 
         <nav className="space-y-2">
           {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const isActive =
+              pathname === item.href ||
+              pathname.startsWith(`${item.href}/`);
+
             return (
               <Link
                 key={item.href}
@@ -66,18 +66,17 @@ export default async function BorrowerPortalLayout({
             );
           })}
         </nav>
-        <form action="/api/logout" method="post">
-  <button
-    type="submit"
-    className="mt-6 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold"
-  >
-    Logout
-  </button>
-</form>
 
+        <form action="/api/logout" method="post">
+          <button
+            type="submit"
+            className="mt-6 w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-semibold"
+          >
+            Logout
+          </button>
+        </form>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-10">{children}</main>
     </div>
   );

@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { processorAuth } from "@/lib/auth/processor-auth";
+import { requireRole } from "@/lib/auth";
 
-function Unauthorized({ role }: { role?: string }) {
+function Unauthorized() {
   return (
     <section className="bg-slate-950 text-white p-6 min-h-screen flex items-center justify-center">
       <div className="text-xl font-semibold">
-        Unauthorized: This portal is for Processors. You are logged in as{" "}
-        {role || "Unknown"}.
+        Unauthorized: Processor access required
       </div>
     </section>
   );
@@ -20,22 +19,17 @@ export default async function ProcessorLayout({
   let session;
 
   try {
-    // 🔐 Validate processor cookie + role
-    session = await processorAuth();
+    session = await requireRole(["PROCESSOR"]);
   } catch {
-    // ❌ If processorAuth redirected or failed, show Unauthorized
-    return <Unauthorized role="Invalid or missing processor token" />;
-  }
-
-  // 🔐 Double‑check role (extra safety)
-  if (session.role !== "PROCESSOR") {
-    return <Unauthorized role={session.role} />;
+    return <Unauthorized />;
   }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white flex">
       <aside className="w-64 bg-slate-800/60 border-r border-slate-700 p-6 space-y-6">
-        <h2 className="text-xl font-bold">Processor #{session.userId}</h2>
+        <h2 className="text-xl font-bold">
+          Processor #{session.userId}
+        </h2>
 
         <nav className="space-y-3">
           <Link href="/processor-portal">Document Checklist</Link>

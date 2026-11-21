@@ -1,42 +1,31 @@
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import { JWT_SECRET } from "@/lib/jwt";
+import "server-only";
 
-export async function auth() {
-  const cookieStore = await cookies();   // 🔥 REQUIRED in Next.js 16
+import { getSession, type AppSession } from "@/lib/session";
+import type { AppRole } from "@/lib/jwt";
 
-  const token = cookieStore.get("auth_token")?.value;
-
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-
-    return {
-      user: {
-        id: payload.id,
-        role: payload.role,
-        fullName: payload.fullName,
-      },
-    };
-  } catch (err) {
-    console.error("JWT verification failed:", err);
-    return null;
-  }
+export async function auth(): Promise<AppSession | null> {
+  return getSession();
 }
 
-export async function requireRole(roles: string[]) {
-  const cookieStore = await cookies();   // 🔥 REQUIRED
+export async function requireRole(
+  roles: readonly string[]
+): Promise<AppSession> {
+  const session = await getSession();
 
-  const token = cookieStore.get("auth_token")?.value;
-
-  if (!token) throw new Error("Unauthorized");
-
-  const { payload } = await jwtVerify(token, JWT_SECRET);
-
-  if (!roles.includes(payload.role)) {
+  if (!session) {
     throw new Error("Unauthorized");
   }
 
-  return payload;
+  if (!roles.includes(session.role)) {
+    throw new Error("Unauthorized");
+  }
+
+  return session;
+}
+
+export function hasRole(
+  session: AppSession | null,
+  role: AppRole
+): boolean {
+  return session?.role === role;
 }

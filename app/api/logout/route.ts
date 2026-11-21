@@ -1,16 +1,11 @@
-import { NextResponse } from "next/server";
 
-export async function POST() {
-  const res = NextResponse.redirect("/login");
+import { NextRequest, NextResponse } from "next/server";
 
-  res.cookies.set("auth_token", "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/",
-    domain: "genxbaby.com",
-    expires: new Date(0),
-  });
+export const runtime = "nodejs";
 
-  return res;
+export async function POST(request: NextRequest) {
+  return NextResponse.redirect(
+    new URL("/api/auth/logout", request.url),
+    { status: 307 }
+  );
 }

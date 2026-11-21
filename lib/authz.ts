@@ -1,21 +1,18 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "./authOptions";
+﻿import "server-only";
 
-// If you are using your own auth() wrapper, import it here:
-// import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import type { AppSession } from "@/lib/session";
 
-export async function requireRole(roles: string[]) {
-  // Use NextAuth session
-  const session = await getServerSession(authOptions);
+export async function requireRole(
+  roles: readonly string[]
+): Promise<AppSession | null> {
+  const session = await auth();
 
-  // If you use your own auth() function instead, swap this line:
-  // const session = await auth();
-
-  if (!session || !session.user || !session.user.role) {
+  if (!session) {
     return null;
   }
 
-  if (!roles.includes(session.user.role)) {
+  if (!roles.includes(session.role)) {
     return null;
   }
 
