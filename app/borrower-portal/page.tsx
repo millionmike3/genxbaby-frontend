@@ -78,7 +78,7 @@ export default async function BorrowerPortalOverviewPage() {
             {borrower?.riskScore?.score?.toFixed(2) ?? "—"}
           </p>
           <p className="text-xs text-slate-400 mt-2">
-            BorrowerRiskScore (macro + behavioral + financial).
+            Borrower RiskScore (macro + behavioral + financial).
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default async function BorrowerPortalOverviewPage() {
             {borrower?.behaviorScore?.behaviorScore?.toFixed(2) ?? "—"}
           </p>
           <p className="text-xs text-slate-400 mt-2">
-            Session patterns, responsiveness, drift.
+            Session patterns, reactivity, drift.
           </p>
         </div>
 
