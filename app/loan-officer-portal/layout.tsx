@@ -32,7 +32,7 @@ const navigation = [
     links: [
       { label: "Loan Conditions", href: "/loan-officer-portal/conditions" },
       { label: "Pricing & Scenarios", href: "/loan-officer/pricing" },
-      { label: "Rate Lock", href: "/loan-officer/rate-lock" },
+      { label: "Rate Lock", href: "/loan-officer-portal/rate-lock" },
       { label: "Retention", href: "/loan-officer/retention" },
     ],
   },
